@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kitsune Bot – tu grupo de WhatsApp con superpoderes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FFF6EC;--ink:#1D1647;--panel:#FFFFFF;--pink:#FF7FA8;--sun:#FFB454;--sky:#7FD6E8;--mint:#9BE3B4;--onaccent:#1D1647;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#150F36;--ink:#FFF6EC;--panel:#231A55;--onaccent:#1D1647}}
+:root[data-theme="dark"]{--paper:#150F36;--ink:#FFF6EC;--panel:#231A55;--onaccent:#1D1647}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Segoe UI",sans-serif;font-weight:500;line-height:1.6;
+background-image:radial-gradient(color-mix(in srgb,var(--ink) 14%,transparent) 1.2px,transparent 1.4px);background-size:14px 14px}
+h1,h2,h3{font-family:"Dela Gothic One","Impact",sans-serif;font-weight:400;line-height:1.1;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+.panel{background:var(--panel);border:4px solid var(--ink);border-radius:6px;box-shadow:8px 8px 0 var(--ink);position:relative;overflow:hidden}
+a:focus-visible,button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:12px}
+.hero-main{padding:36px 32px 32px;background:var(--sun);color:var(--onaccent);animation:slam .55s cubic-bezier(.2,1.4,.4,1) both}
+.hero-main::before{content:"";position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg at 30% 70%,rgba(255,255,255,.55) 0 2deg,transparent 2deg 7deg);z-index:0}
+.hero-main>*{position:relative;z-index:1}
+.hero h1{font-size:clamp(2.2rem,6vw,4rem);text-shadow:3px 3px 0 #fff}
+.hero p{font-size:1.15rem;max-width:34ch;font-weight:700;margin:18px 0 26px}
+.btn{display:inline-block;background:var(--pink);color:var(--onaccent);font-family:"Dela Gothic One",sans-serif;font-size:1.1rem;padding:14px 26px;border:4px solid var(--ink);border-radius:999px;text-decoration:none;box-shadow:5px 5px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.sfx{position:absolute;right:16px;bottom:8px;font-family:"Dela Gothic One";font-size:3.2rem;color:#fff;-webkit-text-stroke:3px var(--ink);transform:rotate(-8deg);z-index:1}
+.chat{padding:22px;background:var(--sky);display:flex;flex-direction:column;gap:14px;justify-content:center;transform:rotate(1.2deg)}
+.msg{max-width:88%;padding:10px 16px;border:3px solid var(--ink);border-radius:20px;font-weight:700;color:var(--onaccent);background:#fff}
+.msg.me{align-self:flex-end;background:var(--mint);border-bottom-right-radius:4px}
+.msg.bot{border-bottom-left-radius:4px}
+.who{font-size:.8rem;font-weight:900;display:block}
+
+/* features */
+h2{font-size:clamp(1.7rem,4vw,2.6rem);margin:56px 0 20px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.f{padding:24px;color:var(--onaccent)}
+.f h3{font-size:1.5rem;margin-bottom:8px}
+.f p{margin:0;font-weight:700}
+.f:nth-child(1){grid-column:span 4;background:var(--pink)}
+.f:nth-child(2){grid-column:span 2;background:var(--mint)}
+.f:nth-child(3){grid-column:span 2;background:var(--sky)}
+.f:nth-child(4){grid-column:span 4;background:var(--sun)}
+.f .kanji{position:absolute;right:12px;top:-8px;font-size:5.5rem;opacity:.22;font-family:"Dela Gothic One";pointer-events:none}
+
+/* commands */
+.cmds{padding:8px 24px;list-style:none;margin:0}
+.cmds li{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:3px dashed var(--ink)}
+.cmds li:last-child{border:0}
+.cmds code{font-family:"Dela Gothic One",sans-serif;background:var(--ink);color:var(--paper);padding:3px 12px;border-radius:6px;white-space:nowrap}
+
+/* cta */
+.cta{margin:56px 0 24px;padding:40px 24px;text-align:center;background:var(--pink);color:var(--onaccent)}
+.cta h2{margin:0 0 20px}
+.cta .btn{background:#fff}
+footer{text-align:center;padding:12px 0 28px;font-weight:700}
+
+@keyframes slam{from{transform:scale(1.25) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:760px){
+.hero{grid-template-columns:1fr}
+.grid{grid-template-columns:1fr}
+.f:nth-child(n){grid-column:auto}
+.chat{transform:none}
+.cmds li{flex-direction:column;gap:6px}
+}
+@media (prefers-reduced-motion:reduce){.hero-main{animation:none}.btn{transition:none}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <div class="panel hero-main">
+      <h1>Tu grupo de WhatsApp, con superpoderes.</h1>
+      <p>Kitsune Bot crea stickers, busca música y cuida tu grupo mientras tú charlas.</p>
+      <a class="btn" href="#unete">Agregar al grupo</a>
+      <span class="sfx" aria-hidden="true">ドン!</span>
+    </div>
+    <div class="panel chat" aria-label="Ejemplo de conversación">
+      <div class="msg me"><span class="who">Tú</span>!sticker</div>
+      <div class="msg bot"><span class="who">Kitsune</span>Listo, sticker en camino. ✨</div>
+      <div class="msg me"><span class="who">Tú</span>!musica Cruel Angel's Thesis</div>
+      <div class="msg bot"><span class="who">Kitsune</span>Encontré 3 resultados. ¿Cuál quieres?</div>
+    </div>
+  </section>
+
+  <h2>Qué hace por tu grupo</h2>
+  <section class="grid">
+    <article class="panel f"><span class="kanji" aria-hidden="true">絵</span><h3>Stickers al instante</h3><p>Envía una imagen o un video corto y recibe el sticker en segundos.</p></article>
+    <article class="panel f"><span class="kanji" aria-hidden="true">音</span><h3>Música y videos</h3><p>Pide una canción por nombre y descárgala sin salir del chat.</p></article>
+    <article class="panel f"><span class="kanji" aria-hidden="true">守</span><h3>Moderación</h3><p>Bloquea enlaces, da la bienvenida y expulsa spam automáticamente.</p></article>
+    <article class="panel f"><span class="kanji" aria-hidden="true">夜</span><h3>Siempre despierto</h3><p>Responde a cualquier hora, incluso cuando todos duermen.</p></article>
+  </section>
+
+  <h2>Comandos básicos</h2>
+  <ul class="panel cmds">
+    <li><code>!menu</code><span>Muestra todos los comandos disponibles.</span></li>
+    <li><code>!sticker</code><span>Convierte una imagen o video en sticker.</span></li>
+    <li><code>!musica</code><span>Busca y envía una canción por nombre.</span></li>
+    <li><code>!antilink</code><span>Activa o desactiva el bloqueo de enlaces.</span></li>
+  </ul>
+
+  <section class="panel cta" id="unete">
+    <h2>Empieza tu aventura</h2>
+    <a class="btn" href="#">Agregar a WhatsApp</a>
+  </section>
+</main>
+<footer>© 2026 Kitsune Bot</footer>
+</body>
+</html>
