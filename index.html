@@ -3,7 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Isla</title>
+<title>Isla · Panel</title>
+<meta name="description" content="Panel web de Isla: minar, talar y pescar desde tu navegador con tu cuenta de WhatsApp.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/logo-favicon.svg">
+<link rel="icon" type="image/png" href="/logo-favicon.png">
+<link rel="apple-touch-icon" href="/logo-favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Isla">
+<meta property="og:title" content="Isla · Panel">
+<meta property="og:description" content="Entra con tu cuenta de WhatsApp y juega desde el navegador.">
+<meta property="og:image" content="https://nephre.hub-team.xyz/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nephre.hub-team.xyz/og.jpg">
 <meta name="theme-color" content="#150e18">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +34,6 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .top{display:flex;align-items:center;justify-content:space-between;padding:calc(18px + env(safe-area-inset-top)) 0 14px}
 .marca{font-weight:900;font-size:20px;color:var(--petal);text-shadow:0 0 16px rgba(244,166,192,.5)}
 .link{background:none;border:0;color:var(--lav);font-weight:700;cursor:pointer;padding:8px 4px}
-.demo{margin-bottom:14px;padding:10px 14px;border-radius:12px;border:1px dashed rgba(242,140,56,.6);color:#ffd2a6;font-size:14px}
 h1{font-weight:900;font-size:28px;line-height:1.2;color:var(--petal);margin:22px 0 8px}
 h2{font-weight:900;font-size:22px;line-height:1.25;color:var(--petal)}
 h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
@@ -95,13 +108,13 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 </style>
 </head>
 <body>
+<noscript><p style="padding:24px;text-align:center">Este panel necesita JavaScript.</p></noscript>
 <div id="petalas" aria-hidden="true"></div>
 <main id="app">
   <header class="top">
     <span class="marca">Isla</span>
     <button class="link" id="salir" hidden>Cerrar sesión</button>
   </header>
-  <p class="demo" id="demo" hidden>Modo demostración: los resultados son de ejemplo y no se guardan.</p>
 
   <section id="v-login" hidden>
     <h1>Conecta con Isla</h1>
@@ -115,7 +128,7 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
     <form id="form" novalidate>
       <label for="codigo">Tu código</label>
       <div class="campo">
-        <input id="codigo" placeholder="K7M2-9QXA" maxlength="9" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false">
+        <input id="codigo" placeholder="K7M2-9QXA" maxlength="12" inputmode="text" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false">
         <button class="btn2" id="entrar" type="submit">Entrar</button>
       </div>
       <p class="err" id="err" role="alert"></p>
@@ -161,24 +174,13 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 <div id="toast" role="status" hidden></div>
 
 <script>
-/* Configuración. Con MODO_DEMO en true la página simula el servidor.
-   Contrato esperado de la API (misma origen, con cookie de sesión httpOnly):
-   POST /api/auth/login   {codigo}            -> {ok:true}
-   POST /api/auth/logout  {}                  -> {ok:true}
-   GET  /api/me           -> {alias,nivel,xp,xpSig,monedas,esperas:{minar:seg,...},totales:{minar:seg,...}}
-   POST /api/rpg/:accion  {}                  -> {resultado:{titulo,zona,rareza,monedas,xp,espera,subioNivel}, me:{...igual que /api/me}}
-   Errores: JSON {error:"texto"} con 400, 401 (sin sesión) o 429 (en espera). */
-const MODO_DEMO = true; // pon false cuando el bot ya tenga la API activa
-const API = '';         // vacío = mismo dominio (proxy de Vercel); o la URL completa del bot
-const BOT_NUMBER = ''; // número del bot con código de país y sin +, por ejemplo 521234567890
-const DEMO = MODO_DEMO;
+const API = '';
+const BOT_NUMBER = '5219633122232';
 
 const $ = s => document.querySelector(s);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmt = n => Number(n).toLocaleString('es');
 const mmss = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-const pick = a => a[Math.floor(Math.random() * a.length)];
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICONOS = {
   mine: svg('<path d="M4 20 L14 10"/><path d="M9 5 C14 3 19 6 20 11 L17 11 C16 8 13 6 9 5 Z"/>'),
@@ -197,61 +199,23 @@ const RAREZA = {
   epica: ['Épica', '#f08ac0'], legendaria: ['Legendaria', '#f28c38']
 };
 
-/* ---------- Modo demostración (simula la API) ---------- */
-const demo = {
-  sesion: false,
-  me: { alias: 'Tu alias', nivel: 12, xp: 640, xpSig: 1000, monedas: 1280,
-        fin: { minar: 0, talar: 0, pescar: Date.now() + 750e3, cazar: Date.now() + 1865e3 } },
-  botin: {
-    minar:  [['Amatista pulida', 'rara', 'Cueva profunda'], ['Hierro en bruto', 'comun', 'Mina vieja'], ['Cuarzo rosa', 'poco', 'Cueva profunda'], ['Diamante de sakura', 'legendaria', 'Veta oculta']],
-    talar:  [['Tronco de roble', 'comun', 'Bosque sereno'], ['Madera de cerezo', 'poco', 'Colina de sakura'], ['Savia dorada', 'epica', 'Árbol antiguo']],
-    pescar: [['Sardina plateada', 'comun', 'Río tranquilo'], ['Carpa koi', 'rara', 'Estanque del templo'], ['Pez luna', 'epica', 'Lago de la noche']],
-    cazar:  [['Piel de ciervo', 'comun', 'Pradera'], ['Cuerno antiguo', 'rara', 'Monte nevado'], ['Pluma de fénix', 'legendaria', 'Cima del volcán']]
-  }
-};
 function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }
-function demoMe() {
-  const m = demo.me, t = Date.now(), esperas = {}, totales = {};
-  for (const k in ACC) { esperas[k] = Math.max(0, Math.ceil((m.fin[k] - t) / 1000)); totales[k] = ACC[k].tot; }
-  return { alias: m.alias, nivel: m.nivel, xp: m.xp, xpSig: m.xpSig, monedas: m.monedas, esperas, totales };
-}
-async function demoApi(ruta, cuerpo) {
-  await sleep(250);
-  const m = demo.me;
-  if (ruta === '/api/auth/login') {
-    if (!/^[A-Z0-9]{8}$/.test(cuerpo.codigo)) throw err('Ese código no es válido. Pide uno nuevo con /web.', 400);
-    demo.sesion = true; return { ok: true };
-  }
-  if (ruta === '/api/auth/logout') { demo.sesion = false; return { ok: true }; }
-  if (!demo.sesion) throw err('Tu sesión caducó.', 401);
-  if (ruta === '/api/me') return demoMe();
-  const a = ruta.split('/').pop();
-  if (!ACC[a]) throw err('Acción desconocida.', 400);
-  const rest = Math.ceil((m.fin[a] - Date.now()) / 1000);
-  if (rest > 0) throw err('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[a].n.toLowerCase() + '.', 429);
-  const [titulo, rareza, zona] = pick(demo.botin[a]);
-  const mult = { comun: 1, poco: 2, rara: 3, epica: 5, legendaria: 9 }[rareza];
-  const monedas = (30 + Math.floor(Math.random() * 30)) * mult, xp = 15 * mult + Math.floor(Math.random() * 10);
-  m.monedas += monedas; m.xp += xp; m.fin[a] = Date.now() + ACC[a].tot * 1000;
-  let sube = 0;
-  while (m.xp >= m.xpSig) { m.xp -= m.xpSig; m.nivel++; m.xpSig = Math.round(m.xpSig * 1.15); sube = m.nivel; }
-  return { resultado: { titulo, zona, rareza, monedas, xp, espera: ACC[a].tot, subioNivel: sube }, me: demoMe() };
-}
-
-/* ---------- Cliente de la API ---------- */
 async function api(ruta, cuerpo) {
-  if (DEMO) return demoApi(ruta, cuerpo);
-  const r = await fetch(API + ruta, {
-    method: cuerpo ? 'POST' : 'GET', credentials: 'include',
-    headers: { 'Content-Type': 'application/json', 'X-Panel': '1' },
-    body: cuerpo ? JSON.stringify(cuerpo) : undefined
-  });
+  let r;
+  try {
+    r = await fetch(API + ruta, {
+      method: cuerpo ? 'POST' : 'GET', credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'X-Panel': '1' },
+      body: cuerpo ? JSON.stringify(cuerpo) : undefined
+    });
+  } catch (_) {
+    throw err('No pude conectar con Isla. Revisa tu internet o inténtalo en un momento.', 0);
+  }
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw err(d.error || 'Algo salió mal. Inténtalo de nuevo.', r.status, d);
   return d;
 }
 
-/* ---------- Pétalos ---------- */
 function petalos(n, modo) {
   if (reducir) return;
   const c = $('#petalas'), r = Math.random;
@@ -267,7 +231,6 @@ function petalos(n, modo) {
 }
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
-/* ---------- Estado y pantalla ---------- */
 let me = null, fin = {}, tot = {}, ocupado = false, saltar = null, enviando = false;
 
 function vista(v) {
@@ -317,7 +280,6 @@ function tick() {
 }
 setInterval(tick, 1000);
 
-/* ---------- Jugar ---------- */
 function animar(k) {
   const a = ACC[k], d = $('#dib');
   d.className = 'dib ' + a.fx;
@@ -367,7 +329,13 @@ function mostrar(k, r) {
 $('#h-ok').addEventListener('click', () => { $('#hoja').hidden = true; });
 $('#rejilla').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b) jugar(b.dataset.a); });
 
-/* ---------- Conexión ---------- */
+$('#codigo').addEventListener('input', e => {
+  const l = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+  e.target.value = l.length > 4 ? l.slice(0, 4) + '-' + l.slice(4) : l;
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && me && !ocupado) api('/api/me').then(aplicar).catch(e => { if (e.estado === 401) { aviso('Tu sesión caducó. Conéctate de nuevo.'); vista('login'); } });
+});
 $('#form').addEventListener('submit', async e => {
   e.preventDefault();
   if (enviando) return;
@@ -387,9 +355,7 @@ $('#salir').addEventListener('click', async () => {
   me = null; vista('login');
 });
 
-/* ---------- Inicio ---------- */
 (async function () {
-  $('#demo').hidden = !DEMO;
   if (BOT_NUMBER) { const wa = $('#wa'); wa.href = 'https://wa.me/' + BOT_NUMBER + '?text=%2Fweb'; wa.hidden = false; }
   montar();
   try { aplicar(await api('/api/me')); vista('panel'); } catch (_) { vista('login'); }
