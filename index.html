@@ -3,108 +3,397 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kitsune API – utilidades en una sola llamada</title>
+<title>Isla</title>
+<meta name="theme-color" content="#150e18">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--paper:#FFF6EC;--ink:#1D1647;--panel:#fff;--pink:#FF7FA8;--sun:#FFB454;--sky:#7FD6E8;--mint:#9BE3B4;--on:#1D1647;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#150F36;--ink:#FFF6EC;--panel:#231A55}}
-:root[data-theme="dark"]{--paper:#150F36;--ink:#FFF6EC;--panel:#231A55}
-html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:500 1rem/1.6 "Zen Maru Gothic","Hiragino Maru Gothic ProN","Segoe UI",sans-serif;
-background-image:radial-gradient(color-mix(in srgb,var(--ink) 14%,transparent) 1.2px,transparent 1.4px);background-size:14px 14px}
-h1,h2,h3,.btn,code{font-family:"Dela Gothic One",Impact,sans-serif;font-weight:400}
-h1,h2,h3{line-height:1.1;margin:0}
-.wrap{max-width:1080px;margin:0 auto;padding:20px}
-.panel{background:var(--panel);border:4px solid var(--ink);border-radius:6px;box-shadow:8px 8px 0 var(--ink);position:relative;overflow:hidden}
-:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
-.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:12px}
-.hm{padding:36px 32px;background:var(--sun);color:var(--on);animation:slam .55s cubic-bezier(.2,1.4,.4,1) both}
-.hm::before{content:"";position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg at 30% 70%,rgba(255,255,255,.55) 0 2deg,transparent 2deg 7deg)}
-.hm>*{position:relative}
-h1{font-size:clamp(2.2rem,7vw,4rem);text-shadow:3px 3px 0 #fff}
-.hm p{font-size:1.15rem;font-weight:700;max-width:34ch;margin:16px 0 24px}
-.btn{display:inline-block;background:var(--pink);color:var(--on);font-size:1.05rem;padding:12px 24px;border:4px solid var(--ink);border-radius:999px;text-decoration:none;box-shadow:5px 5px 0 var(--ink);cursor:pointer;transition:transform .12s,box-shadow .12s}
-.btn:hover{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
-.btn.w{background:#fff}
-.sfx{position:absolute;right:14px;bottom:6px;font:3rem "Dela Gothic One";color:#fff;-webkit-text-stroke:3px var(--ink);transform:rotate(-8deg)}
-pre{margin:0;font:600 .85rem/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
-.demo{padding:22px;background:var(--sky);color:var(--on);transform:rotate(1.2deg);display:flex;flex-direction:column;gap:12px;justify-content:center}
-.demo pre{background:var(--ink);color:var(--paper);padding:14px;border-radius:10px;border:3px solid var(--ink)}
-.demo .bub{align-self:flex-start;background:#fff;border:3px solid var(--ink);border-radius:18px 18px 18px 4px;padding:6px 14px;font-weight:900}
-h2{font-size:clamp(1.7rem,4vw,2.5rem);margin:56px 0 20px}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:22px}
-.c{padding:20px;color:var(--on);display:flex;flex-direction:column;gap:10px}
-.c:nth-child(4n+1){background:var(--pink)}.c:nth-child(4n+2){background:var(--mint)}.c:nth-child(4n+3){background:var(--sky)}.c:nth-child(4n){background:var(--sun)}
-.c h3{font-size:1.35rem;display:flex;align-items:center;gap:10px}
-.m{font:.7rem "Dela Gothic One";background:var(--ink);color:var(--paper);padding:3px 8px;border-radius:6px}
-.c p{margin:0;font-weight:700}
-.c input{width:100%;font:600 .85rem ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;border:3px solid var(--ink);border-radius:8px;background:#fff;color:#1D1647}
-.c .btn{align-self:flex-start;padding:8px 20px;font-size:.95rem}
-.c pre{background:var(--ink);color:var(--paper);padding:12px;border-radius:8px;min-height:3.2em;max-height:180px;overflow:auto}
-.qs{padding:24px}
-.qs pre{background:var(--ink);color:var(--paper);padding:16px;border-radius:10px;overflow-x:auto;white-space:pre}
-.qs p{margin:0 0 14px;font-weight:700}
-footer{text-align:center;padding:40px 0 28px;font-weight:700}
-@keyframes slam{from{transform:scale(1.25) rotate(-3deg);opacity:0}to{transform:none;opacity:1}}
-@media (max-width:760px){.hero{grid-template-columns:1fr}.demo{transform:none}.hm{padding:28px 22px}.panel{box-shadow:5px 5px 0 var(--ink)}}
-@media (prefers-reduced-motion:reduce){.hm{animation:none}.btn{transition:none}html{scroll-behavior:auto}}
+:root{--bg:#150e18;--panel:#211624;--petal:#fde4ec;--sakura:#f4a6c0;--lav:#b9a7e6;--naranja:#f28c38;--menta:#7fd8be;--txt:#f6eaf1;--mut:#b3a2b5;--font:'Zen Maru Gothic',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--txt);font:500 16px/1.55 var(--font);min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(60vmax 45vmax at 80% -10%,rgba(244,166,192,.22),transparent 60%),radial-gradient(55vmax 45vmax at -10% 105%,rgba(185,167,230,.2),transparent 60%)}
+button,input{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--lav);outline-offset:2px}
+.vidrio{background:rgba(33,22,36,.78);border:1px solid rgba(244,166,192,.22);border-radius:18px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#app{max-width:460px;margin:auto;padding:0 18px calc(40px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;justify-content:space-between;padding:calc(18px + env(safe-area-inset-top)) 0 14px}
+.marca{font-weight:900;font-size:20px;color:var(--petal);text-shadow:0 0 16px rgba(244,166,192,.5)}
+.link{background:none;border:0;color:var(--lav);font-weight:700;cursor:pointer;padding:8px 4px}
+.demo{margin-bottom:14px;padding:10px 14px;border-radius:12px;border:1px dashed rgba(242,140,56,.6);color:#ffd2a6;font-size:14px}
+h1{font-weight:900;font-size:28px;line-height:1.2;color:var(--petal);margin:22px 0 8px}
+h2{font-weight:900;font-size:22px;line-height:1.25;color:var(--petal)}
+h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
+.mut{color:var(--mut)}.peq{font-size:14px}
+.pasos{list-style:none;padding:20px 18px 4px;margin:24px 0 22px}
+.pasos li{display:flex;gap:14px;margin-bottom:16px}
+.pasos b{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--sakura);color:var(--sakura);display:grid;place-items:center;font-size:13px}
+.pasos strong{display:block;color:#fff}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;height:50px;border-radius:12px;border:1px solid var(--sakura);background:var(--sakura);color:#2a1220;font-weight:900;cursor:pointer;text-decoration:none;box-shadow:0 0 18px rgba(244,166,192,.35);transition:transform .15s}
+.btn:active{transform:scale(.98)}
+.btn2{height:50px;padding:0 20px;border-radius:12px;border:1px solid rgba(185,167,230,.55);background:transparent;font-weight:700;cursor:pointer}
+label{display:block;margin:24px 0 8px;font-size:14px;color:var(--mut)}
+.campo{display:flex;gap:10px}
+input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1px solid rgba(185,167,230,.4);background:rgba(33,22,36,.7);font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.err{color:#ff8a9b;font-size:14px;min-height:21px;margin-top:8px}
+.jug{padding:16px;display:flex;gap:14px;align-items:center}
+.av{flex:none;width:52px;height:52px;border-radius:50%;border:2px solid var(--sakura);background:rgba(244,166,192,.12);display:grid;place-items:center;font-weight:900;color:var(--sakura)}
+.jug>div:last-child{flex:1;min-width:0}
+.fila{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.nivel{color:var(--lav);font-weight:700;font-size:14px}
+.barra{height:6px;border-radius:3px;background:rgba(185,167,230,.2);margin:8px 0 6px}
+.barra div{height:6px;border-radius:3px;background:var(--lav);box-shadow:0 0 8px var(--lav);transition:width .6s}
+.rejilla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+.card{padding:16px 14px 14px}
+.aro{position:relative;width:64px;height:64px;display:grid;place-items:center;color:var(--sakura)}
+.aro svg:first-child{position:absolute;inset:0;transform:rotate(-90deg)}
+.aro svg:last-child{width:30px;height:30px}
+.pista,.prog{fill:none;stroke-width:3}.pista{stroke:rgba(185,167,230,.2)}
+.prog{stroke:var(--naranja);stroke-linecap:round;stroke-dasharray:182;stroke-dashoffset:182;transition:stroke-dashoffset 1s linear}
+.espera .aro{color:var(--mut)}
+.est{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--mut)}
+.est i{width:7px;height:7px;border-radius:50%;background:var(--menta);box-shadow:0 0 8px var(--menta)}
+.espera .est i{background:var(--naranja);box-shadow:0 0 8px var(--naranja)}
+.accion{margin-top:14px;width:100%;height:42px;border-radius:10px;border:1px solid rgba(244,166,192,.6);background:rgba(244,166,192,.14);font-weight:700;cursor:pointer}
+.espera .accion{border-color:rgba(185,167,230,.2);background:transparent;color:var(--mut);cursor:default}
+#petalas{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+#petalas i{position:absolute;width:var(--s);height:calc(var(--s)*.72);background:linear-gradient(135deg,#fde4ec,#f4a6c0);border-radius:100% 0 100% 0;opacity:.8}
+.ambiente{top:0;left:var(--l);animation:caer var(--d) linear var(--dl) infinite}
+.estallido{animation:estallar 1.4s ease-out forwards}
+@keyframes caer{from{transform:translate3d(0,-8vh,0) rotate(0)}to{transform:translate3d(var(--dx),108vh,0) rotate(var(--r))}}
+@keyframes estallar{from{transform:translate(0,0) scale(.4);opacity:1}to{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:0}}
+.anim,.sheet{position:fixed;inset:0;display:flex;justify-content:center;background:rgba(10,6,12,.62);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.anim{z-index:40;align-items:center;flex-direction:column;gap:22px;cursor:pointer}
+.sheet{z-index:50;align-items:flex-end;padding:16px}
+[hidden]{display:none!important}
+.dib{position:relative;width:130px;height:130px;display:grid;place-items:center;border-radius:50%;background:rgba(244,166,192,.12);border:1px solid rgba(244,166,192,.4);color:var(--petal)}
+.dib svg{width:64px;height:64px}
+.golpe .ic{animation:golpe .45s ease-in-out infinite alternate;transform-origin:20% 85%}
+.sacudir .ic{animation:sacudir .3s ease-in-out infinite alternate}
+.flotar .ic{animation:flotar .6s ease-in-out infinite alternate}
+@keyframes golpe{from{transform:rotate(-35deg)}to{transform:rotate(15deg)}}
+@keyframes sacudir{from{transform:translateX(-8px) rotate(-6deg)}to{transform:translateX(8px) rotate(6deg)}}
+@keyframes flotar{from{transform:translateY(-10px)}to{transform:translateY(10px)}}
+.ic{display:grid}
+.chispas i,.ondas i{position:absolute;left:50%;top:50%}
+.chispas i{width:6px;height:6px;margin:-3px;border-radius:50%;background:var(--petal);transform:rotate(var(--a)) translateY(-70px);animation:chispa .7s ease-out infinite;animation-delay:calc(var(--n)*.07s)}
+@keyframes chispa{from{opacity:1}to{opacity:0;transform:rotate(var(--a)) translateY(-120px)}}
+.ondas i{width:130px;height:130px;margin:-65px;border-radius:50%;border:2px solid var(--lav);animation:onda 1.2s ease-out infinite}
+.ondas i+i{animation-delay:.6s}
+@keyframes onda{from{transform:scale(.8);opacity:.9}to{transform:scale(1.7);opacity:0}}
+.flotar .chispas,.dib:not(.flotar) .ondas{display:none}
+.cap{font-weight:700;font-size:18px;color:var(--petal)}
+.hoja{width:100%;max-width:428px;padding:26px 22px 22px;text-align:center;border-color:rgba(244,166,192,.5);box-shadow:0 0 40px rgba(244,166,192,.25);background:rgba(28,18,32,.95)}
+.halo{width:120px;height:120px;margin:-6px auto 6px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--col) 28%,transparent),transparent 70%);border:1px dashed color-mix(in srgb,var(--col) 55%,transparent)}
+.halo svg{width:58px;height:58px}
+.rar{font-weight:700;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px 0}
+.chips span{padding:6px 12px;border-radius:99px;border:1px solid rgba(185,167,230,.4);background:rgba(185,167,230,.1);font-size:14px}
+.hoja .mut{margin-bottom:18px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90%;padding:12px 18px;border-radius:12px;background:#2c1b30;border:1px solid rgba(244,166,192,.4);font-size:14px;z-index:70;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#petalas{display:none}}
 </style>
 </head>
 <body>
-<main class="wrap">
-<section class="hero">
-  <div class="panel hm">
-    <h1>Kitsune API</h1>
-    <p>Utilidades listas para usar en una sola llamada: UUID, hashes, contraseñas, dados y más.</p>
-    <a class="btn" href="#endpoints">Ver endpoints</a>
-    <span class="sfx" aria-hidden="true">ドン!</span>
-  </div>
-  <div class="panel demo" aria-label="Ejemplo de uso">
-    <span class="bub">GET /api/uuid</span>
-    <pre>{
-  "uuid": "3f2b8c1e-9d4a-4e6f-8a21-5c7d0b9e1f34"
-}</pre>
-  </div>
-</section>
+<div id="petalas" aria-hidden="true"></div>
+<main id="app">
+  <header class="top">
+    <span class="marca">Isla</span>
+    <button class="link" id="salir" hidden>Cerrar sesión</button>
+  </header>
+  <p class="demo" id="demo" hidden>Modo demostración: los resultados son de ejemplo y no se guardan.</p>
 
-<h2 id="endpoints">Endpoints</h2>
-<section class="g" id="g"></section>
+  <section id="v-login" hidden>
+    <h1>Conecta con Isla</h1>
+    <p class="mut">Entra con tu cuenta de WhatsApp. Nunca te pedimos tu número.</p>
+    <ol class="pasos vidrio">
+      <li><b>1</b><span><strong>Abre el chat privado con Isla</strong><span class="mut peq">Desde el botón de abajo.</span></span></li>
+      <li><b>2</b><span><strong>Envía /web</strong><span class="mut peq">El bot te responde con un código.</span></span></li>
+      <li><b>3</b><span><strong>Pega el código aquí</strong><span class="mut peq">Sirve una sola vez y caduca en 5 minutos.</span></span></li>
+    </ol>
+    <a class="btn" id="wa" hidden target="_blank" rel="noopener">Abrir WhatsApp</a>
+    <form id="form" novalidate>
+      <label for="codigo">Tu código</label>
+      <div class="campo">
+        <input id="codigo" placeholder="K7M2-9QXA" maxlength="9" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false">
+        <button class="btn2" id="entrar" type="submit">Entrar</button>
+      </div>
+      <p class="err" id="err" role="alert"></p>
+    </form>
+  </section>
 
-<h2>Inicio rápido</h2>
-<section class="panel qs">
-  <p>Sin llaves ni registro. Todas las respuestas son JSON y admiten CORS.</p>
-<pre>fetch("/api/dado?caras=20&amp;n=2")
-  .then(r =&gt; r.json())
-  .then(console.log);
-
-curl "https://TU-DOMINIO.vercel.app/api/password?len=24"</pre>
-</section>
+  <section id="v-panel" hidden>
+    <div class="jug vidrio">
+      <div class="av" id="inicial">?</div>
+      <div>
+        <div class="fila"><strong id="alias"></strong><span class="nivel" id="nivel"></span></div>
+        <div class="barra"><div id="xpbar" style="width:0"></div></div>
+        <div class="fila peq mut"><span id="xp"></span><span id="monedas"></span></div>
+      </div>
+    </div>
+    <h2 style="margin-top:26px">Acciones</h2>
+    <p class="mut peq">Cada una con su tiempo de espera.</p>
+    <div class="rejilla" id="rejilla"></div>
+  </section>
 </main>
-<footer>© 2026 Kitsune API</footer>
+
+<div class="anim" id="anim" hidden>
+  <div class="dib" id="dib">
+    <div class="chispas" aria-hidden="true"></div>
+    <div class="ondas" aria-hidden="true"><i></i><i></i></div>
+    <span class="ic" id="aicono"></span>
+  </div>
+  <p class="cap" id="acap" role="status"></p>
+  <p class="mut peq">Toca para saltar</p>
+</div>
+
+<div class="sheet" id="hoja" hidden role="dialog" aria-modal="true" aria-labelledby="h-titulo">
+  <div class="hoja vidrio">
+    <div class="halo" id="halo"><span id="h-icono"></span></div>
+    <p class="mut peq" id="h-zona" style="margin:0"></p>
+    <h2 id="h-titulo"></h2>
+    <p class="rar" id="h-rareza"></p>
+    <div class="chips" id="h-chips"></div>
+    <p class="mut peq" id="h-espera"></p>
+    <button class="btn" id="h-ok">Volver a acciones</button>
+  </div>
+</div>
+<div id="toast" role="status" hidden></div>
+
 <script>
-const E=[
-["uuid","/api/uuid","Genera un UUID v4 aleatorio."],
-["password","/api/password?len=20","Contraseña segura de 8 a 128 caracteres."],
-["hash","/api/hash?text=hola&algo=sha256","Hash de un texto: md5, sha1, sha256 o sha512."],
-["base64","/api/base64?text=hola&mode=encode","Codifica o decodifica en Base64."],
-["dado","/api/dado?caras=6&n=2","Tira uno o varios dados de las caras que quieras."],
-["color","/api/color","Color aleatorio en HEX y RGB."],
-["hora","/api/hora?tz=America/Mexico_City","Fecha y hora en cualquier zona horaria."],
-["ip","/api/ip","Devuelve tu dirección IP pública."],
-["slug","/api/slug?text=Canción Épica 2026","Convierte un texto en un slug para URLs."]];
-const g=document.getElementById('g');
-E.forEach(([n,u,d])=>{
- const c=document.createElement('article');c.className='panel c';
- c.innerHTML=`<h3><span class="m">GET</span>${n}</h3><p>${d}</p><input value="${u}" aria-label="URL de ${n}"><button class="btn w" type="button">Probar</button><pre aria-live="polite"></pre>`;
- const i=c.querySelector('input'),o=c.querySelector('pre');
- c.querySelector('button').onclick=async()=>{o.textContent='…';
-  try{const r=await fetch(i.value);o.textContent=JSON.stringify(await r.json(),null,2)}
-  catch(e){o.textContent='La API no responde aquí. Despliega en Vercel para probarla en vivo.'}};
- g.append(c)});
+/* Configuración. Con MODO_DEMO en true la página simula el servidor.
+   Contrato esperado de la API (misma origen, con cookie de sesión httpOnly):
+   POST /api/auth/login   {codigo}            -> {ok:true}
+   POST /api/auth/logout  {}                  -> {ok:true}
+   GET  /api/me           -> {alias,nivel,xp,xpSig,monedas,esperas:{minar:seg,...},totales:{minar:seg,...}}
+   POST /api/rpg/:accion  {}                  -> {resultado:{titulo,zona,rareza,monedas,xp,espera,subioNivel}, me:{...igual que /api/me}}
+   Errores: JSON {error:"texto"} con 400, 401 (sin sesión) o 429 (en espera). */
+const MODO_DEMO = true; // pon false cuando el bot ya tenga la API activa
+const API = '';         // vacío = mismo dominio (proxy de Vercel); o la URL completa del bot
+const BOT_NUMBER = ''; // número del bot con código de país y sin +, por ejemplo 521234567890
+const DEMO = MODO_DEMO;
+
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmt = n => Number(n).toLocaleString('es');
+const mmss = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICONOS = {
+  mine: svg('<path d="M4 20 L14 10"/><path d="M9 5 C14 3 19 6 20 11 L17 11 C16 8 13 6 9 5 Z"/>'),
+  chop: svg('<path d="M5 20 L15 10"/><path d="M13 4 L20 11 L16 14 L10 8 Z"/>'),
+  fish: svg('<path d="M3 12 C7 6 14 6 18 12 C14 18 7 18 3 12 Z"/><path d="M18 12 L22 8 M18 12 L22 16"/><circle cx="8" cy="11" r="0.8"/>'),
+  hunt: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 1 V5 M12 19 V23 M1 12 H5 M19 12 H23"/>')
+};
+const ACC = {
+  minar:  { n: 'Minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700 },
+  talar:  { n: 'Talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'sacudir', tot: 1800 },
+  pescar: { n: 'Pescar', p: 'Pescaste', v: 'Pescando…', ic: 'fish', fx: 'flotar',  tot: 2700 },
+  cazar:  { n: 'Cazar',  p: 'Cazaste',  v: 'Cazando…',  ic: 'hunt', fx: 'sacudir', tot: 3600 }
+};
+const RAREZA = {
+  comun: ['Común', '#b3a2b5'], poco: ['Poco común', '#7fd8be'], rara: ['Rara', '#b9a7e6'],
+  epica: ['Épica', '#f08ac0'], legendaria: ['Legendaria', '#f28c38']
+};
+
+/* ---------- Modo demostración (simula la API) ---------- */
+const demo = {
+  sesion: false,
+  me: { alias: 'Tu alias', nivel: 12, xp: 640, xpSig: 1000, monedas: 1280,
+        fin: { minar: 0, talar: 0, pescar: Date.now() + 750e3, cazar: Date.now() + 1865e3 } },
+  botin: {
+    minar:  [['Amatista pulida', 'rara', 'Cueva profunda'], ['Hierro en bruto', 'comun', 'Mina vieja'], ['Cuarzo rosa', 'poco', 'Cueva profunda'], ['Diamante de sakura', 'legendaria', 'Veta oculta']],
+    talar:  [['Tronco de roble', 'comun', 'Bosque sereno'], ['Madera de cerezo', 'poco', 'Colina de sakura'], ['Savia dorada', 'epica', 'Árbol antiguo']],
+    pescar: [['Sardina plateada', 'comun', 'Río tranquilo'], ['Carpa koi', 'rara', 'Estanque del templo'], ['Pez luna', 'epica', 'Lago de la noche']],
+    cazar:  [['Piel de ciervo', 'comun', 'Pradera'], ['Cuerno antiguo', 'rara', 'Monte nevado'], ['Pluma de fénix', 'legendaria', 'Cima del volcán']]
+  }
+};
+function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }
+function demoMe() {
+  const m = demo.me, t = Date.now(), esperas = {}, totales = {};
+  for (const k in ACC) { esperas[k] = Math.max(0, Math.ceil((m.fin[k] - t) / 1000)); totales[k] = ACC[k].tot; }
+  return { alias: m.alias, nivel: m.nivel, xp: m.xp, xpSig: m.xpSig, monedas: m.monedas, esperas, totales };
+}
+async function demoApi(ruta, cuerpo) {
+  await sleep(250);
+  const m = demo.me;
+  if (ruta === '/api/auth/login') {
+    if (!/^[A-Z0-9]{8}$/.test(cuerpo.codigo)) throw err('Ese código no es válido. Pide uno nuevo con /web.', 400);
+    demo.sesion = true; return { ok: true };
+  }
+  if (ruta === '/api/auth/logout') { demo.sesion = false; return { ok: true }; }
+  if (!demo.sesion) throw err('Tu sesión caducó.', 401);
+  if (ruta === '/api/me') return demoMe();
+  const a = ruta.split('/').pop();
+  if (!ACC[a]) throw err('Acción desconocida.', 400);
+  const rest = Math.ceil((m.fin[a] - Date.now()) / 1000);
+  if (rest > 0) throw err('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[a].n.toLowerCase() + '.', 429);
+  const [titulo, rareza, zona] = pick(demo.botin[a]);
+  const mult = { comun: 1, poco: 2, rara: 3, epica: 5, legendaria: 9 }[rareza];
+  const monedas = (30 + Math.floor(Math.random() * 30)) * mult, xp = 15 * mult + Math.floor(Math.random() * 10);
+  m.monedas += monedas; m.xp += xp; m.fin[a] = Date.now() + ACC[a].tot * 1000;
+  let sube = 0;
+  while (m.xp >= m.xpSig) { m.xp -= m.xpSig; m.nivel++; m.xpSig = Math.round(m.xpSig * 1.15); sube = m.nivel; }
+  return { resultado: { titulo, zona, rareza, monedas, xp, espera: ACC[a].tot, subioNivel: sube }, me: demoMe() };
+}
+
+/* ---------- Cliente de la API ---------- */
+async function api(ruta, cuerpo) {
+  if (DEMO) return demoApi(ruta, cuerpo);
+  const r = await fetch(API + ruta, {
+    method: cuerpo ? 'POST' : 'GET', credentials: 'include',
+    headers: { 'Content-Type': 'application/json', 'X-Panel': '1' },
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw err(d.error || 'Algo salió mal. Inténtalo de nuevo.', r.status, d);
+  return d;
+}
+
+/* ---------- Pétalos ---------- */
+function petalos(n, modo) {
+  if (reducir) return;
+  const c = $('#petalas'), r = Math.random;
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('i'), s = 10 + r() * 12;
+    p.className = modo;
+    p.style.cssText = modo === 'ambiente'
+      ? `--l:${r() * 100}%;--s:${s}px;--d:${9 + r() * 8}s;--dl:${-r() * 14}s;--dx:${(r() - .5) * 160}px;--r:${360 + r() * 360}deg`
+      : `--s:${s}px;--x:${(r() - .5) * 360}px;--y:${-140 + r() * 340}px;--r:${(r() - .5) * 720}deg;left:50%;top:62%`;
+    c.appendChild(p);
+    if (modo === 'estallido') setTimeout(() => p.remove(), 1500);
+  }
+}
+const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
+
+/* ---------- Estado y pantalla ---------- */
+let me = null, fin = {}, tot = {}, ocupado = false, saltar = null, enviando = false;
+
+function vista(v) {
+  $('#v-login').hidden = v !== 'login';
+  $('#v-panel').hidden = v !== 'panel';
+  $('#salir').hidden = v !== 'panel';
+  quitarAmbiente();
+  if (v === 'login') petalos(14, 'ambiente');
+}
+function aviso(txt) {
+  const t = $('#toast'); t.textContent = txt; t.hidden = false;
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), 3500);
+}
+function aplicar(d) {
+  me = d; fin = {}; tot = {};
+  for (const k in ACC) { fin[k] = Date.now() + (d.esperas[k] || 0) * 1000; if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot; }
+  $('#alias').textContent = d.alias;
+  $('#inicial').textContent = (d.alias || '?').trim().charAt(0).toUpperCase() || '?';
+  $('#nivel').textContent = 'Nivel ' + d.nivel;
+  $('#xp').textContent = fmt(d.xp) + ' / ' + fmt(d.xpSig) + ' XP';
+  $('#monedas').textContent = fmt(d.monedas) + ' monedas';
+  $('#xpbar').style.width = Math.min(100, d.xp / d.xpSig * 100) + '%';
+  tick();
+}
+function montar() {
+  $('#rejilla').innerHTML = Object.entries(ACC).map(([k, a]) => `
+    <div class="card vidrio" id="c-${k}">
+      <div class="aro"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/><circle class="prog" id="r-${k}" cx="32" cy="32" r="29"/></svg>${ICONOS[a.ic]}</div>
+      <h3>${a.n}</h3>
+      <p class="est"><i></i><span id="t-${k}">Listo</span></p>
+      <button class="accion" data-a="${k}">${a.n}</button>
+    </div>`).join('');
+}
+function tick() {
+  if (!me) return;
+  for (const k in ACC) {
+    const rest = Math.max(0, Math.ceil((fin[k] - Date.now()) / 1000)), lista = rest === 0;
+    const c = $('#c-' + k), b = c.querySelector('button');
+    c.hidden = tot[k] === undefined;
+    if (c.hidden) continue;
+    c.classList.toggle('espera', !lista);
+    $('#t-' + k).textContent = lista ? 'Listo' : mmss(rest);
+    b.textContent = lista ? ACC[k].n : 'En espera';
+    b.setAttribute('aria-disabled', String(!lista));
+    $('#r-' + k).style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
+  }
+}
+setInterval(tick, 1000);
+
+/* ---------- Jugar ---------- */
+function animar(k) {
+  const a = ACC[k], d = $('#dib');
+  d.className = 'dib ' + a.fx;
+  $('#aicono').className = 'ic';
+  $('#aicono').innerHTML = ICONOS[a.ic];
+  $('#acap').textContent = a.v;
+  const ch = d.querySelector('.chispas');
+  if (!ch.children.length) ch.innerHTML = Array.from({ length: 8 }, (_, i) => `<i style="--a:${i * 45}deg;--n:${i}"></i>`).join('');
+  $('#anim').hidden = false;
+}
+const esperaAnim = () => new Promise(r => { saltar = r; setTimeout(r, reducir ? 300 : 1600); });
+$('#anim').addEventListener('click', () => saltar && saltar());
+
+async function jugar(k) {
+  if (ocupado) return;
+  const rest = Math.ceil((fin[k] - Date.now()) / 1000);
+  if (rest > 0) return aviso('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[k].n.toLowerCase() + '.');
+  ocupado = true; animar(k);
+  try {
+    const [d] = await Promise.all([api('/api/rpg/' + k, {}), esperaAnim()]);
+    $('#anim').hidden = true;
+    aplicar(d.me); mostrar(k, d.resultado);
+  } catch (e) {
+    $('#anim').hidden = true;
+    if (e.estado === 401) { aviso('Tu sesión caducó. Conéctate de nuevo.'); vista('login'); }
+    else { aviso(e.message); api('/api/me').then(aplicar).catch(() => {}); }
+  } finally { ocupado = false; }
+}
+function mostrar(k, r) {
+  const [nom, col] = RAREZA[r.rareza] || RAREZA.comun;
+  $('#h-icono').innerHTML = ICONOS[ACC[k].ic];
+  $('#halo').style.setProperty('--col', col);
+  $('#halo').style.color = col;
+  $('#h-zona').textContent = ACC[k].p + ' en ' + r.zona;
+  $('#h-titulo').textContent = r.titulo;
+  const rz = $('#h-rareza'); rz.textContent = 'Rareza: ' + nom; rz.style.color = col;
+  const chips = ['+' + fmt(r.monedas) + ' monedas', '+' + fmt(r.xp) + ' XP'];
+  if (r.subioNivel) chips.push('Subiste al nivel ' + r.subioNivel);
+  if (r.evento) chips.push(r.evento);
+  if (r.guardian) chips.push(r.guardian.gana ? 'Derrotaste a ' + r.guardian.nombre : r.guardian.nombre + ' te hizo retroceder');
+  $('#h-chips').replaceChildren(...chips.map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
+  $('#h-espera').textContent = 'Podrás volver a ' + ACC[k].n.toLowerCase() + ' en ' + Math.round(r.espera / 60) + ' minutos.';
+  $('#hoja').hidden = false;
+  petalos(r.rareza === 'legendaria' ? 44 : 26, 'estallido');
+  $('#h-ok').focus();
+}
+$('#h-ok').addEventListener('click', () => { $('#hoja').hidden = true; });
+$('#rejilla').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b) jugar(b.dataset.a); });
+
+/* ---------- Conexión ---------- */
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (enviando) return;
+  const codigo = $('#codigo').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), b = $('#entrar'), msg = $('#err');
+  msg.textContent = '';
+  if (codigo.length !== 8) return (msg.textContent = 'El código tiene 8 caracteres. Revisa que lo hayas copiado completo.');
+  enviando = true; b.textContent = 'Entrando…';
+  try {
+    await api('/api/auth/login', { codigo });
+    aplicar(await api('/api/me'));
+    $('#codigo').value = ''; vista('panel');
+  } catch (x) { msg.textContent = x.message; }
+  finally { enviando = false; b.textContent = 'Entrar'; }
+});
+$('#salir').addEventListener('click', async () => {
+  try { await api('/api/auth/logout', {}); } catch (_) {}
+  me = null; vista('login');
+});
+
+/* ---------- Inicio ---------- */
+(async function () {
+  $('#demo').hidden = !DEMO;
+  if (BOT_NUMBER) { const wa = $('#wa'); wa.href = 'https://wa.me/' + BOT_NUMBER + '?text=%2Fweb'; wa.hidden = false; }
+  montar();
+  try { aplicar(await api('/api/me')); vista('panel'); } catch (_) { vista('login'); }
+})();
 </script>
 </body>
 </html>
