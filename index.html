@@ -310,6 +310,24 @@ input.txt.corto{margin-top:0;height:40px}
 .si-ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(244,166,192,.1);border:1px solid rgba(244,166,192,.3);color:var(--sakura)}
 .si-ic svg{width:19px;height:19px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#petalas{display:none}}
+
+.tals{display:grid;gap:8px;margin-top:10px}
+.tal{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--linea);background:rgba(255,255,255,.04)}
+.tal .em{font-size:22px}
+.tal>div{flex:1;min-width:0}
+.tal .pips{display:inline-flex;gap:4px;margin-top:4px}
+.req{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:4px;font-size:14px}
+.req li.ok{color:var(--menta)}
+.req li.no{color:var(--mut)}
+.clases{display:grid;gap:10px;margin-top:10px}
+.clase.actual{border-color:var(--sakura)}
+.habs{display:grid;gap:6px;margin-top:8px}
+.hab{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.hab.cerrada{opacity:.5}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.kpis div{padding:10px 12px;border-radius:12px;border:1px solid var(--linea);background:rgba(255,255,255,.04)}
+.kpis b{display:block;font-family:var(--serif);font-size:20px}
+.kpis span{font-size:12px;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -787,13 +805,13 @@ const titulo = (t, extra) => `<div class="sec"><h2>${t}</h2>${extra || ''}</div>
 
 function pintarFicha(d, base) {
   const avisos = [];
-  if (d.stats.libres) avisos.push(`🎯 Tienes <b>${d.stats.libres}</b> punto${d.stats.libres === 1 ? '' : 's'} de atributo libre${d.stats.libres === 1 ? '' : 's'}. Repártelos con /points en WhatsApp.`);
-  if (d.talentosLibres) avisos.push(`🌳 Tienes <b>${d.talentosLibres}</b> punto${d.talentosLibres === 1 ? '' : 's'} de talento libre${d.talentosLibres === 1 ? '' : 's'}. Úsalos con /talent.`);
+  if (d.stats.libres) avisos.push(`🎯 Tienes <b>${d.stats.libres}</b> punto${d.stats.libres === 1 ? '' : 's'} de atributo libre${d.stats.libres === 1 ? '' : 's'}. Repártelos en la sección Héroe.`);
+  if (d.talentosLibres) avisos.push(`🌳 Tienes <b>${d.talentosLibres}</b> punto${d.talentosLibres === 1 ? '' : 's'} de talento libre${d.talentosLibres === 1 ? '' : 's'}. Úsalos en la sección Héroe.`);
   const heroe = d.clase
     ? kv('Clase', esc(d.clase.emoji) + ' ' + esc(d.clase.nombre)) + `<p class="mut peq" style="padding:2px 0 6px">${esc(d.clase.desc)}</p>` +
       kv('Energía', `<span class="pips">${'<i class="pip on"></i>'.repeat(d.energia.n)}${'<i class="pip"></i>'.repeat(Math.max(0, d.energia.max - d.energia.n))}</span> ${d.energia.n}/${d.energia.max}`) +
       (d.energia.n < d.energia.max ? kv('Próxima energía', cuenta(d.energia.faltaS, base)) : '')
-    : `<p class="mut peq">Sin clase todavía. Se elige desde el nivel ${d.nivelClase} con /class en WhatsApp.</p>`;
+    : `<p class="mut peq">Sin clase todavía. Se elige desde el nivel ${d.nivelClase} en la sección Héroe.</p>`;
   const m = d.mascota;
   const mascota = m
     ? kv('Mascota', esc(m.emoji) + ' ' + esc(m.nombre) + (m.activa ? '' : '<span class="etiq nar">Descansando</span>')) +
@@ -831,8 +849,10 @@ function cabPerfil(d) {
   return `<section class="perfil"><div class="escena">${escena('p')}</div><div class="hero-in">${avatar(me, 88, true)}<div class="quien"><h1>${esc(me.alias)}</h1><span class="peq mut">Nivel ${me.nivel}${emp}</span><div class="xpb"><div style="width:${pct}%"></div></div><span class="peq mut">${fmt(me.xp)} / ${fmt(me.xpSig)} XP</span></div></div></section>`;
 }
 function pintarPerfil(d, base) {
-  const seg = segHtml('Sección del perfil', [['ficha', 'Ficha'], ['historial', 'Historial']], perfilSel, 'p');
-  const cuerpo = perfilSel === 'historial' ? pintarHistorial(d) : pintarFicha(d, base);
+  const ops = [['ficha', 'Ficha'], ['heroe', 'Héroe'], ['historial', 'Historial']];
+  if (me && me.owner) ops.push(['owner', 'Owner']);
+  const seg = segHtml('Sección del perfil', ops, perfilSel, 'p');
+  const cuerpo = perfilSel === 'historial' ? pintarHistorial(d) : perfilSel === 'heroe' ? pintarHeroe(d, base) : perfilSel === 'owner' ? pintarOwner(d, base) : pintarFicha(d, base);
   return cabPerfil(perfilSel === 'ficha' ? d : null) + seg + cuerpo + '<button type="button" class="link salir" data-salir>Cerrar sesión</button>';
 }
 
@@ -1118,8 +1138,89 @@ function pintarInventario(d, base) {
   return cab('Mochila', 'Tus herramientas, equipo y materiales.') + seg + (invSel === 'objetos' ? pintarObjetos(d, base) : pintarEquipo(d, base));
 }
 
+const pips = (n, m) => `<span class="pips">${'<i class="pip on"></i>'.repeat(n)}${'<i class="pip"></i>'.repeat(Math.max(0, m - n))}</span>`;
+const dato = (ok, txt) => `<li class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '○'} ${txt}</li>`;
+
+function pintarClase(d, base) {
+  const c = d.clase;
+  const actual = c
+    ? `<div class="bloque vidrio"><div class="fila"><strong>${esc(c.emoji)} ${esc(c.nombre)}</strong><span class="mut peq">${pips(c.energia.n, c.energia.max)} ${c.energia.n}/${c.energia.max}</span></div>
+        <p class="mut peq">${esc(c.desc)}</p>${c.energia.n < c.energia.max ? `<p class="peq">Próxima energía en ${cuenta(c.energia.faltaS, base)}</p>` : ''}</div>`
+    : `<p class="mut peq">${d.clases.disponible ? 'Elige tu clase. Es gratis la primera vez.' : 'Se desbloquea en el nivel ' + d.clases.nivelMin + '.'}</p>`;
+  const lista = d.clases.lista.map(k => {
+    const habs = k.habilidades.map(h => `<div class="hab ${h.abierta ? '' : 'cerrada'}"><span>${esc(h.nombre)} <span class="mut peq">Nv ${h.nivel} · ${h.costo}⚡ · ${esc(h.efecto)}</span></span>${k.actual
+      ? botonPost('/api/heroe/habilidad', { n: h.n }, h.activa ? 'Activa' : 'Usar', `${h.activa || !h.abierta ? 'aria-disabled="true"' : ''} data-motivo="${h.activa ? 'Ya está activa.' : 'Aún no la desbloqueas.'}"`)
+      : ''}</div>`).join('');
+    const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y reinicia tu energía. ¿Continuar?` : '';
+    return `<div class="bloque vidrio clase ${k.actual ? 'actual' : ''}"><div class="fila"><strong>${esc(k.emoji)} ${esc(k.nombre)}</strong>${k.actual ? '<span class="etiq">Tu clase</span>' : ''}</div>
+      <p class="mut peq">${esc(k.desc)}</p><div class="habs">${habs}</div>
+      ${k.actual ? '' : `<div class="btns uno">${botonPost('/api/heroe/clase', { clase: k.id }, c ? 'Cambiar · ' + fmt(d.clases.cambio) : 'Elegir', `${d.clases.disponible ? '' : 'aria-disabled="true"'} data-motivo="Necesitas nivel ${d.clases.nivelMin}." ${confirma ? `data-confirmar="${esc(confirma)}"` : ''}`)}</div>`}</div>`;
+  }).join('');
+  return actual + `<div class="clases">${lista}</div>`;
+}
+
+function pintarTalentos(d) {
+  const t = d.talentos;
+  if (!d.clase) return '<p class="mut peq">Elige una clase para desbloquear talentos.</p>';
+  const filas = t.lista.map(x => `<div class="tal"><span class="em">${esc(x.emoji)}</span><div><strong>${esc(x.nombre)}</strong> <span class="mut peq">${x.rango}/${x.max}</span><br><span class="mut peq">${esc(x.efecto)} por rango</span><br>${pips(x.rango, x.max)}</div>
+    ${botonPost('/api/heroe/talento', { id: x.id }, '+1', `${!t.libres || x.rango >= x.max ? 'aria-disabled="true"' : ''} data-motivo="${x.rango >= x.max ? 'Ya está al máximo.' : 'No tienes puntos libres.'}"`)}</div>`).join('');
+  return `<p class="peq">Puntos libres: <b>${t.libres}</b> de ${t.total} <span class="mut">(1 cada ${t.porNivel} niveles y ${t.porPrestigio} por prestigio)</span></p><div class="tals">${filas}</div>
+    <div class="btns uno">${botonPost('/api/heroe/talentos-reiniciar', {}, 'Reiniciar · ' + fmt(t.reinicio), `${t.gastados ? '' : 'aria-disabled="true"'} data-motivo="No tienes talentos para reiniciar." data-confirmar="Reiniciar tus talentos cuesta ${fmt(t.reinicio)} monedas. ¿Continuar?"`)}</div>`;
+}
+
+function pintarAtributos(d) {
+  const a = d.atributos;
+  const filas = a.lista.map(x => `<div class="bloque vidrio"><div class="fila"><strong>${esc(x.emoji)} ${esc(x.nombre)}</strong><b>${x.valor}</b></div><p class="mut peq">${esc(x.desc)}</p>
+    <div class="btnrow">${botonPost('/api/heroe/puntos', { stat: x.clave, cantidad: 1 }, '+1 punto', `${a.libres ? '' : 'aria-disabled="true"'} data-motivo="No tienes puntos libres."`)}${botonPost('/api/heroe/entrenar', { stat: x.clave }, a.entreno.lleno ? 'Tope' : 'Entrenar ' + fmt(a.entreno.costo), `${a.entreno.lleno ? 'aria-disabled="true"' : ''} data-motivo="Llegaste al tope de entrenamiento."`)}</div></div>`).join('');
+  return `<p class="peq">Puntos libres: <b>${a.libres}</b> <span class="mut">(1 por nivel)</span> · Entrenamientos: ${a.entreno.n}/${a.entreno.tope}</p>${filas}`;
+}
+
+function pintarPrestigio(d) {
+  const p = d.prestigio, c = p.cumple;
+  const listo = c.nivel && c.monedas && c.cupo;
+  return `<div class="bloque vidrio"><div class="fila"><strong>🌠 Prestigio ${p.n}/${p.max}</strong><span class="etiq">+${p.actual}% ingresos</span></div>
+    <p class="mut peq">Renace con +${p.bono}% permanente en /work, /minar, /fish y /hunt. Se reinicia tu nivel, empleo y puntos. Conservas dinero, ítems y logros.</p>
+    <ul class="req">${dato(c.nivel, 'Nivel ' + p.nivelReq)}${dato(c.monedas, fmt(p.costo) + ' monedas en la cartera')}${dato(c.cupo, 'Prestigio por debajo del máximo')}</ul>
+    <div class="btns uno">${botonPost('/api/heroe/prestigio', {}, 'Renacer', `${listo ? '' : 'aria-disabled="true"'} data-motivo="Aún no cumples los requisitos." data-confirmar="Vas a renacer: tu nivel, empleo y puntos se reinician. ¿Continuar?"`)}</div></div>`;
+}
+
+function pintarExpedicion(d, base) {
+  const e = d.expedicion;
+  const curso = e.curso
+    ? `<div class="bloque vidrio"><div class="fila"><strong>${esc(e.curso.emoji)} ${esc(e.curso.nombre)}</strong><span class="etiq">${e.curso.quien === 'mascota' ? 'Mascota' : 'Tú'}</span></div>
+        <p class="peq">${e.curso.lista ? 'Lista para recoger.' : 'Termina en ' + cuenta(e.curso.restaS, base)}</p>
+        <div class="btns uno">${botonPost('/api/heroe/expedicion-recoger', {}, 'Recoger', '')}</div></div>`
+    : '';
+  const lista = e.destinos.map(x => {
+    const bloq = e.curso || !x.abierto;
+    const motivo = e.curso ? 'Ya tienes una expedición en curso.' : 'Necesitas nivel ' + x.nivel + '.';
+    return `<div class="bloque vidrio"><div class="fila"><strong>${esc(x.emoji)} ${esc(x.nombre)}</strong><span class="mut peq">${x.horas} h · Nv ${x.nivel}</span></div>
+      <p class="mut peq">${fmt(x.monedas[0])}–${fmt(x.monedas[1])} monedas · ${esc(x.materiales)} · riesgo ${x.riesgo}% · reliquia ${x.reliquia}%</p>
+      <div class="btnrow">${botonPost('/api/heroe/expedicion-iniciar', { destino: x.id, quien: 'yo' }, 'Ir yo · ' + fmt(x.costo), `${bloq ? 'aria-disabled="true"' : ''} data-motivo="${motivo}"`)}${botonPost('/api/heroe/expedicion-iniciar', { destino: x.id, quien: 'mascota' }, 'Mascota', `${bloq || !e.nivelMascota ? 'aria-disabled="true"' : ''} data-motivo="${e.nivelMascota ? motivo : 'Tu mascota no está disponible.'}"`)}</div></div>`;
+  }).join('');
+  return curso + lista;
+}
+
+function pintarHeroe(d, base) {
+  return `<p class="peq mut" style="margin-top:8px">Cartera: <b>${fmt(d.cartera)}</b> monedas · Nivel ${d.nivel}</p>
+    ${sec('h-clase', 'Clase y habilidades', d.clase ? esc(d.clase.nombre) : '', pintarClase(d, base))}
+    ${sec('h-tal', 'Talentos', d.clase ? d.talentos.libres + ' libres' : '', pintarTalentos(d))}
+    ${sec('h-atr', 'Atributos', d.atributos.libres + ' libres', pintarAtributos(d))}
+    ${sec('h-exp', 'Expediciones', d.expedicion.curso ? 'En curso' : '', pintarExpedicion(d, base))}
+    ${sec('h-pre', 'Prestigio', d.prestigio.n + '/' + d.prestigio.max, pintarPrestigio(d))}`;
+}
+
+function pintarOwner(d, base) {
+  const e = d.estado;
+  const k = (v, t) => `<div><b>${v}</b><span>${t}</span></div>`;
+  return `<div class="bloque vidrio"><div class="fila"><strong>${e.online ? '🟢 Bot conectado' : '🔴 Bot desconectado'}</strong><span class="mut peq">${esc(d.instancia.id)}</span></div>
+    <div class="kpis">${k(dur(e.uptimeS), 'Activo')}${k(e.latenciaWaMs == null ? '—' : e.latenciaWaMs + ' ms', 'WhatsApp')}${k(e.latenciaDbMs == null ? '—' : e.latenciaDbMs + ' ms', 'Base de datos')}${k(e.ramMb + ' MB', 'Memoria')}${k(e.lagMs + ' ms', 'Lag del proceso')}${k(esc(d.instancia.node), 'Node')}</div></div>
+    <div class="bloque vidrio"><div class="kpis">${k(fmt(d.totales.usuarios), 'Usuarios')}${k(fmt(d.totales.clanes), 'Clanes')}${k(d.web.habilitada ? 'Activa' : 'Apagada', 'API web')}${k(d.creadores, 'Creadores')}</div>
+    <p class="mut peq" style="margin-top:10px">Datos de esta instancia. Si corres varias, abre el panel de cada una.</p></div>`;
+}
+
 const CARGA = {
-  ficha: [() => perfilSel === 'historial' ? '/api/historial' : '/api/ficha', pintarPerfil],
+  ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', owner: '/api/owner' }[perfilSel] || '/api/ficha'), pintarPerfil],
   inventario: [() => invSel === 'equipo' ? '/api/equipo' : '/api/inventario', pintarInventario],
   tienda: [() => tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + tiendaSel, pintarTienda],
   hogar: [() => '/api/' + hogarSel, pintarHogar],
@@ -1131,7 +1232,7 @@ function dibujar(t) {
   if (c) $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
 }
 async function abrir(t, forzar) {
-  if (t === 'historial') { perfilSel = 'historial'; t = 'ficha'; }
+  if (t === 'historial' || t === 'heroe') { perfilSel = t; t = 'ficha'; }
   if (!TABS.includes(t)) t = 'inicio';
   tabActual = t;
   for (const k of TABS) $('#t-' + k).hidden = k !== t;
