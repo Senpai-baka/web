@@ -48,6 +48,7 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .btn2{height:50px;padding:0 20px;border-radius:12px;border:1px solid rgba(185,167,230,.55);background:transparent;font-weight:700;cursor:pointer}
 label{display:block;margin:24px 0 8px;font-size:14px;color:var(--mut)}
 .campo{display:flex;gap:10px}
+input.txt{text-transform:none;letter-spacing:0;font-weight:500;margin-top:10px;width:100%}
 input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1px solid rgba(185,167,230,.4);background:rgba(33,22,36,.7);font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 .err{color:#ff8a9b;font-size:14px;min-height:21px;margin-top:8px}
 .jug{padding:16px;display:flex;gap:14px;align-items:center}
@@ -116,7 +117,7 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 .tira .der{margin-left:auto;color:var(--mut);white-space:nowrap}
 .tira b{color:var(--petal);font-variant-numeric:tabular-nums}
 .nav{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(calc(100% - 24px),476px);display:flex;padding:6px;z-index:30;border-radius:20px}
-.nav button{flex:1;display:grid;justify-items:center;gap:2px;padding:8px 2px 6px;border:0;border-radius:14px;background:transparent;color:var(--mut);font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.nav button{flex:1;min-width:0;display:grid;justify-items:center;gap:2px;padding:8px 1px 6px;border:0;border-radius:14px;background:transparent;color:var(--mut);font-size:10.5px;font-weight:700;cursor:pointer;position:relative}
 .nav svg{width:22px;height:22px}
 .nav button[aria-current="page"]{background:rgba(244,166,192,.16);color:var(--petal)}
 .nav .pt{position:absolute;top:6px;right:calc(50% - 20px);width:8px;height:8px;border-radius:50%;background:var(--menta);box-shadow:0 0 8px var(--menta)}
@@ -163,6 +164,26 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 .mat .em{font-size:22px}
 .mat b{margin-left:auto;color:var(--petal)}
 .vacio{text-align:center;color:var(--mut);padding:36px 12px}
+.mini{height:40px;padding:0 14px;border-radius:10px;border:1px solid rgba(244,166,192,.6);background:rgba(244,166,192,.14);font-weight:700;cursor:pointer;font-size:14px}
+.mini[aria-disabled="true"]{border-color:rgba(185,167,230,.2);background:transparent;color:var(--mut);cursor:default}
+.btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.btns.uno{grid-template-columns:1fr}
+.btnrow{display:flex;gap:8px;margin-top:10px}
+.btnrow .mini{flex:1}
+.pet{display:flex;gap:14px;align-items:center}
+.pet .em{font-size:46px;line-height:1}
+.pet strong{color:#fff;font-size:18px}
+.stat{margin-top:10px}
+.stat .fila{font-size:14px;color:var(--mut)}
+.plots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.plot{padding:10px 6px;border-radius:14px;border:1px dashed rgba(185,167,230,.3);text-align:center;font-size:13px;color:var(--mut)}
+.plot .em{display:block;font-size:26px;line-height:1.2}
+.plot.ok{border-style:solid;border-color:var(--menta);color:var(--menta)}
+.plot.mar{border-color:var(--naranja);color:var(--naranja)}
+.rel{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.rel span{padding:5px 10px;border-radius:99px;border:1px solid rgba(185,167,230,.35);font-size:13px}
+.rel .no{opacity:.35}
+.herr .costo{margin-top:10px;font-size:14px}
 .rd{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#petalas{display:none}}
 </style>
@@ -225,6 +246,7 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
     </div>
     <div id="t-ficha" hidden></div>
     <div id="t-inventario" hidden></div>
+    <div id="t-hogar" hidden></div>
     <div id="t-rankings" hidden></div>
     <div id="t-historial" hidden></div>
   </section>
@@ -279,20 +301,26 @@ const ICONOS = {
   mine: svg('<path d="M4 20 L14 10"/><path d="M9 5 C14 3 19 6 20 11 L17 11 C16 8 13 6 9 5 Z"/>'),
   chop: svg('<path d="M5 20 L15 10"/><path d="M13 4 L20 11 L16 14 L10 8 Z"/>'),
   fish: svg('<path d="M3 12 C7 6 14 6 18 12 C14 18 7 18 3 12 Z"/><path d="M18 12 L22 8 M18 12 L22 16"/><circle cx="8" cy="11" r="0.8"/>'),
-  hunt: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 1 V5 M12 19 V23 M1 12 H5 M19 12 H23"/>')
+  hunt: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 1 V5 M12 19 V23 M1 12 H5 M19 12 H23"/>'),
+  gift: svg('<path d="M4 11 H20 V21 H4 Z"/><path d="M3 7 H21 V11 H3 Z"/><path d="M12 7 V21"/><path d="M12 7 C12 3 8 3 8 5 C8 7 12 7 12 7 C12 7 16 7 16 5 C16 3 12 3 12 7"/>'),
+  brief: svg('<path d="M3 8 H21 V20 H3 Z"/><path d="M9 8 V5 H15 V8"/><path d="M3 13 H21"/>'),
+  leaf: svg('<path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z"/><path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z"/>')
 };
 const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
   ['ficha', 'Ficha', svg('<circle cx="12" cy="8" r="4"/><path d="M4 21 C4 16 8 14 12 14 C16 14 20 16 20 21"/>')],
   ['inventario', 'Inventario', svg('<path d="M5 8 H19 L20 21 H4 Z"/><path d="M9 8 V6 A3 3 0 0 1 15 6 V8"/>')],
+  ['hogar', 'Hogar', ICONOS.leaf],
   ['rankings', 'Rankings', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')],
   ['historial', 'Historial', svg('<circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14"/>')]
 ];
 const ACC = {
-  minar:  { n: 'Minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700 },
-  talar:  { n: 'Talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'sacudir', tot: 1800 },
-  pescar: { n: 'Pescar', p: 'Pescaste', v: 'Pescando…', ic: 'fish', fx: 'flotar',  tot: 2700 },
-  cazar:  { n: 'Cazar',  p: 'Cazaste',  v: 'Cazando…',  ic: 'hunt', fx: 'sacudir', tot: 3600 }
+  minar:  { n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700 },
+  talar:  { n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'sacudir', tot: 1800 },
+  pescar: { n: 'Pescar', ya: 'pescar', p: 'Pescaste', v: 'Pescando…', ic: 'fish', fx: 'flotar',  tot: 2700 },
+  cazar:  { n: 'Cazar',  ya: 'cazar',  p: 'Cazaste',  v: 'Cazando…',  ic: 'hunt', fx: 'sacudir', tot: 3600 },
+  daily:  { n: 'Reclamar', t: 'Diario', ya: 'reclamar tu recompensa diaria', p: '', v: 'Abriendo regalo…', ic: 'gift', fx: 'flotar', tot: 86400 },
+  work:   { n: 'Trabajar', t: 'Trabajo', ya: 'trabajar', p: '', v: 'Trabajando…', ic: 'brief', fx: 'sacudir', tot: 3600 }
 };
 const RAREZA = {
   comun: ['Común', '#b3a2b5'], poco: ['Poco común', '#7fd8be'], rara: ['Rara', '#b9a7e6'],
@@ -333,7 +361,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -408,7 +436,7 @@ function montar() {
   $('#rejilla').innerHTML = Object.entries(ACC).map(([k, a]) => `
     <div class="card vidrio" id="c-${k}">
       <div class="aro"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/><circle class="prog" id="r-${k}" cx="32" cy="32" r="29"/></svg>${ICONOS[a.ic]}</div>
-      <h3>${a.n}</h3>
+      <h3>${a.t || a.n}</h3>
       <p class="est"><i></i><span id="t-${k}">Listo</span></p>
       <span id="m-${k}"></span>
       <button class="accion" data-a="${k}">${a.n}</button>
@@ -421,7 +449,7 @@ function montarMultiplicadores() {
 }
 
 function notificar(k) {
-  const msg = 'Ya puedes ' + ACC[k].n.toLowerCase() + '.';
+  const msg = 'Ya puedes ' + ACC[k].ya + '.';
   if (document.hidden || !document.hasFocus()) {
     if (avisosActivos()) {
       try { new Notification('Isla', { body: msg, icon: '/logo-favicon.png', tag: 'isla-' + k }); } catch (_) {}
@@ -434,6 +462,11 @@ function notificar(k) {
 function tick() {
   if (!me) return;
   const ahora = Date.now();
+  document.querySelectorAll('button[data-listo]').forEach(b => {
+    const rest = Number(b.dataset.listo) - ahora;
+    b.setAttribute('aria-disabled', String(rest > 0));
+    b.textContent = rest > 0 ? b.dataset.txt + ' · ' + dur(rest / 1000) : b.dataset.txt;
+  });
   let listas = 0, menor = Infinity;
   for (const k in ACC) {
     const rest = Math.max(0, Math.ceil((fin[k] - ahora) / 1000)), lista = rest === 0;
@@ -485,7 +518,7 @@ $('#anim').addEventListener('click', () => saltar && saltar());
 async function jugar(k) {
   if (ocupado) return;
   const rest = Math.ceil((fin[k] - Date.now()) / 1000);
-  if (rest > 0) return aviso('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[k].n.toLowerCase() + '.');
+  if (rest > 0) return aviso('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[k].ya + '.');
   ocupado = true; animar(k);
   try {
     const [d] = await Promise.all([api('/api/rpg/' + k, {}), esperaAnim()]);
@@ -498,23 +531,39 @@ async function jugar(k) {
     else { aviso(e.message); refrescar(); }
   } finally { ocupado = false; }
 }
-function mostrar(k, r) {
-  const [nom, col] = RAREZA[r.rareza] || RAREZA.comun;
-  $('#h-icono').innerHTML = ICONOS[ACC[k].ic];
+function hoja(o) {
+  const col = o.col || RAREZA.comun[1];
+  $('#h-icono').innerHTML = o.icono || '';
   $('#halo').style.setProperty('--col', col);
   $('#halo').style.color = col;
-  $('#h-zona').textContent = ACC[k].p + ' en ' + r.zona;
-  $('#h-titulo').textContent = r.titulo;
-  const rz = $('#h-rareza'); rz.textContent = 'Rareza: ' + nom; rz.style.color = col;
-  const chips = ['+' + fmt(r.monedas) + ' monedas', '+' + fmt(r.xp) + ' XP'];
+  $('#h-zona').textContent = o.zona || '';
+  $('#h-titulo').textContent = o.titulo;
+  const rz = $('#h-rareza'); rz.textContent = o.rareza ? 'Rareza: ' + o.rareza : ''; rz.style.color = col;
+  $('#h-chips').replaceChildren(...o.chips.map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
+  $('#h-espera').textContent = o.pie || '';
+  $('#h-ok').textContent = o.boton || 'Volver a acciones';
+  $('#hoja').hidden = false;
+  petalos(o.rareza === 'Legendaria' ? 44 : 26, 'estallido');
+  $('#h-ok').focus();
+}
+function resumen(k, r) {
+  const [nom, col] = RAREZA[r.rareza] || RAREZA.comun;
+  const chips = [];
+  if (r.monedas) chips.push('+' + fmt(r.monedas) + ' monedas');
+  if (r.xp) chips.push('+' + fmt(r.xp) + ' XP');
   if (r.subioNivel) chips.push('Subiste al nivel ' + r.subioNivel);
   if (r.evento) chips.push(r.evento);
   if (r.guardian) chips.push(r.guardian.gana ? 'Derrotaste a ' + r.guardian.nombre : r.guardian.nombre + ' te hizo retroceder');
-  $('#h-chips').replaceChildren(...chips.map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
-  $('#h-espera').textContent = 'Podrás volver a ' + ACC[k].n.toLowerCase() + ' en ' + Math.round(r.espera / 60) + ' minutos.';
-  $('#hoja').hidden = false;
-  petalos(r.rareza === 'legendaria' ? 44 : 26, 'estallido');
-  $('#h-ok').focus();
+  if (r.extra) chips.push(...r.extra);
+  return { chips, nom, col };
+}
+function mostrar(k, r) {
+  const { chips, nom, col } = resumen(k, r);
+  hoja({
+    icono: ICONOS[ACC[k].ic], col, rareza: nom, chips, titulo: r.titulo,
+    zona: ACC[k].p ? ACC[k].p + ' en ' + r.zona : r.zona,
+    pie: r.espera ? 'Podrás volver en ' + dur(r.espera) + '.' : ''
+  });
 }
 $('#h-ok').addEventListener('click', () => { $('#hoja').hidden = true; });
 $('#rejilla').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b) jugar(b.dataset.a); });
@@ -585,8 +634,16 @@ function pintarFicha(d, base) {
     </div>`;
 }
 
+const botonPost = (ruta, cuerpo, txt, extra) => `<button type="button" class="mini" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" ${extra || ''}>${esc(txt)}</button>`;
+
 function pintarInventario(d, base) {
-  const herr = d.herramientas.map(h => `
+  const herr = d.herramientas.map(h => {
+    const m = h.mejora;
+    const mejora = m
+      ? `<p class="costo mut">Nv ${m.siguiente.nivel}: x${m.siguiente.mult} · ${m.siguiente.usosMax} usos<br>Costo: ${fmt(m.monedas)} monedas · ${m.mats.map(x => esc(x.emoji) + ' ' + x.tengo + '/' + x.necesita).join(' ')}</p>
+         <div class="btns uno">${botonPost('/api/herramientas/mejorar', { clave: h.clave }, 'Mejorar', `aria-disabled="${!m.puede}" data-motivo="Te faltan monedas o materiales."`)}</div>`
+      : '<p class="mut peq" style="margin-top:10px">Nivel máximo alcanzado.</p>';
+    return `
     <div class="herr bloque vidrio ${h.activa ? '' : 'off'}">
       <div class="cab"><span class="em">${esc(h.emoji)}</span>
         <div style="flex:1;min-width:0"><strong>${esc(h.nombre)}</strong> <span class="mut peq">Nv ${h.nivel}/${h.nivelMax} · x${h.mult}</span><br><span class="mut peq">Se usa en ${esc(h.usoEn)}</span></div>
@@ -596,7 +653,16 @@ function pintarInventario(d, base) {
         : h.repuestos > 0
           ? `<p class="peq" style="margin-top:8px">Se estrenará una nueva en tu próximo uso <span class="mut">(${h.repuestos} en reserva · ${h.usosMax} usos)</span>.</p>`
           : `<p class="mut peq" style="margin-top:8px">Sin herramienta. Compra una en /shop o fabrícala con /craft.</p>`}
-    </div>`).join('');
+      ${mejora}
+    </div>`;
+  }).join('');
+  const cofres = d.cofres.map(c => {
+    const n = Math.min(c.cantidad, d.cofresMax);
+    return `<div class="fil"><span class="em" style="font-size:24px">${esc(c.emoji)}</span>
+      <div class="nom"><strong>${esc(c.nombre)}</strong><span class="mut peq">${fmt(c.monedas[0])}–${fmt(c.monedas[1])} monedas, materiales y más</span></div>
+      <span class="val">x${c.cantidad}</span></div>
+      <div class="btnrow">${botonPost('/api/cofres/abrir', { tipo: c.clave, n: 1 }, 'Abrir', `aria-disabled="${c.cantidad < 1}" data-motivo="No tienes cofres de este tipo."`)}${botonPost('/api/cofres/abrir', { tipo: c.clave, n }, n >= 2 ? 'Abrir x' + n : 'Abrir varios', `aria-disabled="${c.cantidad < 2}" data-motivo="Necesitas al menos 2 para abrir varios."`)}</div>`;
+  }).join('');
   const cons = d.consumibles.map(c => `
     <div class="fil"><span class="em" style="font-size:22px">${esc(c.emoji)}</span>
       <div class="nom"><strong>${esc(c.nombre)}</strong><span class="mut peq">${esc(c.desc)}</span></div>
@@ -606,9 +672,75 @@ function pintarInventario(d, base) {
     ? `<div class="mats">${d.materiales.map(m => `<div class="mat"><span class="em">${esc(m.emoji)}</span><span class="peq">${esc(m.nombre)}</span><b>${fmt(m.cantidad)}</b></div>`).join('')}</div>
        <p class="mut peq" style="margin-top:10px">Valor aproximado de venta: ${fmt(d.valorMateriales)} monedas.</p>`
     : vacio('Aún no tienes materiales. Mina, tala o pesca para conseguirlos.');
+  const tengo = d.reliquias.filter(r => r.tiene).length;
+  const reliquias = `<div class="rel">${d.reliquias.map(r => `<span class="${r.tiene ? '' : 'no'}">${esc(r.emoji)} ${esc(r.nombre)}</span>`).join('')}</div>
+    <p class="mut peq" style="margin-top:8px">Bono de ingresos por reliquias: +${d.bonoReliquias}%. Solo salen de los cofres.</p>`;
   return `${titulo('Herramientas')}<div class="lista">${herr}</div>
+    ${titulo('Cofres', `<span class="mut peq">se abren de ${d.cofresMax} en ${d.cofresMax}</span>`)}<div class="bloque vidrio">${cofres}</div>
+    ${titulo('Reliquias', `<span class="mut peq">${tengo}/${d.reliquias.length}</span>`)}${reliquias}
     ${titulo('Consumibles', `<span class="mut peq">máx. ${d.tope} de cada uno</span>`)}${cons}
     ${titulo('Materiales')}${mats}`;
+}
+
+const barraEstado = (nombre, v, cls) => `<div class="stat"><div class="fila"><span>${nombre}</span><span>${v}%</span></div>${barra(v, 100, cls)}</div>`;
+const botonListo = (ruta, cuerpo, txt, ms, bloq) => bloq
+  ? `<button type="button" class="mini" aria-disabled="true" data-bloq="${esc(bloq)}" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}">${esc(bloq)}</button>`
+  : `<button type="button" class="mini" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" data-txt="${esc(txt)}" data-listo="${ms}">${esc(txt)}</button>`;
+
+function pintarMascota(d, base) {
+  if (!d.tiene) {
+    return `${titulo('Adopta una mascota')}
+      <p class="mut peq">Cuesta ${fmt(d.precio)} monedas. Dan bonos si las cuidas: aliméntalas, acarícialas y juega con ellas.</p>
+      <input class="txt" id="pet-nombre" maxlength="16" placeholder="Nombre (opcional)" autocomplete="off" aria-label="Nombre de la mascota">
+      ${d.tipos.map(t => `<div class="bloque vidrio"><div class="pet"><span class="em">${esc(t.emoji)}</span><div style="flex:1"><strong>${esc(t.nombre)}</strong><p class="mut peq">${esc(t.desc)}</p></div></div>
+        <div class="btns uno">${botonPost('/api/mascota/adoptar', { tipo: t.clave }, 'Adoptar', 'data-nombre="#pet-nombre"')}</div></div>`).join('')}`;
+  }
+  const c = d.costos;
+  const hambre = d.hambre ? 'Tiene hambre, aliméntala ya' : 'Le dará hambre en ' + cuenta(d.hambreS, base);
+  return `${titulo('Tu mascota')}
+    <div class="bloque vidrio">
+      <div class="pet"><span class="em">${esc(d.tipo.emoji)}</span>
+        <div style="flex:1;min-width:0"><strong>${esc(d.nombre)}</strong>${d.nombre === d.tipo.nombre ? '' : ` <span class="mut peq">(${esc(d.tipo.nombre)})</span>`}
+          <p class="peq">${esc(d.animo.emoji)} ${esc(d.animo.nombre)}<span class="etiq ${d.activa ? '' : 'nar'}">${d.activa ? 'Bono activo' : 'Sin bono'}</span></p></div>
+      </div>
+      <div class="stat"><div class="fila"><span>Nivel ${d.nivel}/${d.max}</span><span>${d.xpSig ? d.xp + '/' + d.xpSig + ' XP' : 'Máximo'}</span></div>${barra(d.xpSig ? d.xp : 1, d.xpSig || 1)}</div>
+      ${barraEstado('Vida', d.vida, d.vida < 30 ? 'nar' : '')}
+      ${barraEstado('Felicidad', d.fel, d.fel < 25 ? 'nar' : '')}
+      <p class="peq" style="margin-top:12px">${hambre}</p>
+      <p class="mut peq">${esc(d.tipo.desc)}${d.factor !== 1 ? ' · x' + d.factor + ' por su ánimo' : ''}</p>
+    </div>
+    <div class="btns">
+      ${botonListo('/api/mascota/alimentar', {}, 'Alimentar ' + fmt(c.comida), base + d.comidaS * 1000)}
+      ${botonListo('/api/mascota/acariciar', {}, 'Acariciar', base + d.cariciaS * 1000)}
+      ${botonListo('/api/mascota/jugar', {}, 'Jugar ' + fmt(c.juego), base + d.juegoS * 1000)}
+      ${botonListo('/api/mascota/curar', {}, 'Curar ' + fmt(c.cura), 0, d.necesitaCura ? '' : 'Está sana')}
+    </div>
+    <div class="btns uno"><button type="button" class="mini" data-renombrar="${esc(d.nombre)}">Renombrar</button></div>`;
+}
+
+function pintarGranja(d, base) {
+  const parcelas = d.cultivos.map(c => `<div class="plot ${c.marchita ? 'mar' : c.lista ? 'ok' : ''}"><span class="em">${esc(c.emoji)}</span>${c.marchita ? 'Marchita' : c.lista ? 'Lista' : cuenta(c.listoS, base)}</div>`).join('') +
+    '<div class="plot"><span class="em">🟫</span>Libre</div>'.repeat(d.libres);
+  const catalogo = d.catalogo.map(c => `
+    <div class="bloque vidrio" style="padding:12px 14px">
+      <div class="fila"><strong>${esc(c.emoji)} ${esc(c.nombre)}</strong><span class="mut peq">${dur(c.duracionS)}</span></div>
+      <p class="mut peq">Semilla ${fmt(c.semilla)} → ${fmt(c.valor)} monedas</p>
+      <div class="btnrow">${botonPost('/api/granja/plantar', { cultivo: c.clave, cantidad: 1 }, 'Sembrar 1', `aria-disabled="${!d.libres}" data-motivo="No tienes parcelas libres."`)}${botonPost('/api/granja/plantar', { cultivo: c.clave, cantidad: 'todo' }, 'Sembrar todas', `aria-disabled="${!d.libres}" data-motivo="No tienes parcelas libres."`)}</div>
+    </div>`).join('');
+  return `${titulo('Tu granja', `<span class="mut peq">${d.parcelas} parcelas</span>`)}
+    <div class="bloque vidrio"><div class="plots">${parcelas}</div>
+      <p class="mut peq" style="margin-top:10px">Lo que dejes más de ${d.marchitaH} h tras madurar se marchita y paga la mitad.</p>
+      <div class="btns">
+        ${botonPost('/api/granja/cosechar', {}, d.listas ? 'Cosechar (' + d.listas + ')' : 'Cosechar', `aria-disabled="${!d.listas}" data-motivo="Aún no hay nada listo."`)}
+        ${d.costoParcela !== null ? botonPost('/api/granja/parcela', {}, 'Parcela ' + fmt(d.costoParcela), '') : '<button type="button" class="mini" aria-disabled="true" data-motivo="Ya tienes todas las parcelas extra.">Parcelas al máximo</button>'}
+      </div>
+    </div>
+    ${titulo('Semillas')}${catalogo}`;
+}
+
+function pintarHogar(d, base) {
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
+  return seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : pintarGranja(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -640,14 +772,14 @@ function pintarRankings(d, base) {
 
 function pintarHistorial(d) {
   if (!d.items.length) return titulo('Historial') + vacio('Aún no hay hallazgos. Cada vez que mines, talles o pesques aparecerá aquí.');
-  const icono = { minar: 'mine', talar: 'chop', pescar: 'fish' };
-  const verbo = { minar: 'Minaste', talar: 'Talaste', pescar: 'Pescaste' };
+  const icono = { minar: 'mine', talar: 'chop', pescar: 'fish', daily: 'gift', work: 'brief' };
+  const verbo = { minar: 'Minaste en', talar: 'Talaste en', pescar: 'Pescaste en', daily: 'Reclamaste ·', work: 'Trabajaste como' };
   return titulo('Historial', '<span class="mut peq">últimos 20</span>') + `<div class="lista">${d.items.map(i => {
     const col = (RAREZA[i.rareza] || RAREZA.comun)[1];
     const extra = [i.evento, i.guardian ? (i.guardian.gana ? 'Derrotaste a ' + i.guardian.nombre : i.guardian.nombre + ' te hizo retroceder') : ''].filter(Boolean).map(esc).join(' · ');
     return `<div class="fil"><span class="pt">${ICONOS[icono[i.accion]] || ICONOS.mine}</span>
       <div class="nom"><strong><i class="rd" style="--c:${col}"></i>${esc(i.titulo)}</strong>
-        <span class="mut peq">${esc(verbo[i.accion] || 'Actuaste')} en ${esc(i.zona)} · ${hace(i.hace)} · ${i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
+        <span class="mut peq">${esc(verbo[i.accion] || 'Actuaste en')} ${esc(i.zona)} · ${hace(i.hace)} · ${i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
         ${extra ? `<span class="peq" style="color:var(--lav)">${extra}</span>` : ''}</div>
       <span class="val">+${fmt(i.monedas)}</span></div>`;
   }).join('')}</div>`;
@@ -656,6 +788,7 @@ function pintarHistorial(d) {
 const CARGA = {
   ficha: ['/api/ficha', pintarFicha],
   inventario: ['/api/inventario', pintarInventario],
+  hogar: [() => '/api/' + hogarSel, pintarHogar],
   rankings: ['/api/rankings', pintarRankings],
   historial: ['/api/historial', pintarHistorial]
 };
@@ -680,7 +813,8 @@ async function abrir(t, forzar) {
   const el = $('#t-' + t);
   if (!cargado[t]) el.innerHTML = vacio('Cargando…');
   try {
-    const d = await api(CARGA[t][0]);
+    const ruta = typeof CARGA[t][0] === 'function' ? CARGA[t][0]() : CARGA[t][0];
+    const d = await api(ruta);
     cargado[t] = { d, t: Date.now() };
     if (tabActual === t) dibujar(t);
   } catch (e) {
@@ -690,10 +824,40 @@ async function abrir(t, forzar) {
   }
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) abrir(b.dataset.t); });
+async function publicar(b, ruta, cuerpo) {
+  if (publicando || ocupado) return;
+  publicando = true; b.setAttribute('aria-busy', 'true');
+  try {
+    const d = await api(ruta, cuerpo);
+    cargado = {};
+    if (d.me) aplicar(d.me);
+    if (d.resultado) {
+      const { chips, nom, col } = resumen('', d.resultado);
+      hoja({ icono: ruta.includes('granja') ? ICONOS.leaf : ICONOS.gift, col, rareza: nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo' });
+    } else if (d.mensaje) aviso(d.mensaje);
+    await abrir(tabActual, true);
+  } catch (e) {
+    if (e.estado === 401) sesionCaducada(); else aviso(e.message);
+  } finally { publicando = false; b.removeAttribute('aria-busy'); }
+}
 $('#v-panel').addEventListener('click', e => {
   if (e.target.closest('[data-reintentar]')) return abrir(tabActual, true);
   const r = e.target.closest('button[data-r]');
-  if (r) { rankSel = r.dataset.r; dibujar('rankings'); }
+  if (r) { rankSel = r.dataset.r; return dibujar('rankings'); }
+  const h = e.target.closest('button[data-h]');
+  if (h) { hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
+  const rn = e.target.closest('button[data-renombrar]');
+  if (rn) {
+    const n = window.prompt('Nuevo nombre (2 a 16 letras o números):', rn.dataset.renombrar);
+    if (n && n.trim()) publicar(rn, '/api/mascota/renombrar', { nombre: n.trim() });
+    return;
+  }
+  const b = e.target.closest('button[data-post]');
+  if (!b) return;
+  if (b.getAttribute('aria-disabled') === 'true') return aviso(b.dataset.motivo || b.dataset.bloq || 'Todavía no está disponible.');
+  const cuerpo = JSON.parse(b.dataset.body || '{}');
+  if (b.dataset.nombre) cuerpo.nombre = ($(b.dataset.nombre) || {}).value || '';
+  publicar(b, b.dataset.post, cuerpo);
 });
 
 $('#codigo').addEventListener('input', e => {
