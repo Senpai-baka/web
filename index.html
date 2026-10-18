@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Isla · Panel</title>
-<meta name="description" content="Panel web de Isla: minar, talar y pescar desde tu navegador con tu cuenta de WhatsApp.">
+<meta name="description" content="Panel web de Isla: minar, talar y pescar, ficha, inventario y rankings con tu cuenta de WhatsApp.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="/logo-favicon.svg">
 <link rel="icon" type="image/png" href="/logo-favicon.png">
@@ -30,8 +30,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-grad
 button,input{font:inherit;color:inherit}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--lav);outline-offset:2px}
 .vidrio{background:rgba(33,22,36,.78);border:1px solid rgba(244,166,192,.22);border-radius:18px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-#app{max-width:460px;margin:auto;padding:0 18px calc(40px + env(safe-area-inset-bottom))}
-.top{display:flex;align-items:center;justify-content:space-between;padding:calc(18px + env(safe-area-inset-top)) 0 14px}
+#app{max-width:500px;margin:auto;padding:0 18px calc(40px + env(safe-area-inset-bottom))}
+#app.con-nav{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;justify-content:space-between;padding:calc(18px + env(safe-area-inset-top)) 0 10px}
 .marca{font-weight:900;font-size:20px;color:var(--petal);text-shadow:0 0 16px rgba(244,166,192,.5)}
 .link{background:none;border:0;color:var(--lav);font-weight:700;cursor:pointer;padding:8px 4px}
 h1{font-weight:900;font-size:28px;line-height:1.2;color:var(--petal);margin:22px 0 8px}
@@ -52,10 +53,12 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 .jug{padding:16px;display:flex;gap:14px;align-items:center}
 .av{flex:none;width:52px;height:52px;border-radius:50%;border:2px solid var(--sakura);background:rgba(244,166,192,.12);display:grid;place-items:center;font-weight:900;color:var(--sakura)}
 .jug>div:last-child{flex:1;min-width:0}
+.jug strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.nivel{color:var(--lav);font-weight:700;font-size:14px}
+.nivel{color:var(--lav);font-weight:700;font-size:14px;white-space:nowrap}
 .barra{height:6px;border-radius:3px;background:rgba(185,167,230,.2);margin:8px 0 6px}
 .barra div{height:6px;border-radius:3px;background:var(--lav);box-shadow:0 0 8px var(--lav);transition:width .6s}
+.barra.nar div{background:var(--naranja);box-shadow:0 0 8px var(--naranja)}
 .rejilla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
 .card{padding:16px 14px 14px}
 .aro{position:relative;width:64px;height:64px;display:grid;place-items:center;color:var(--sakura)}
@@ -69,6 +72,9 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 .espera .est i{background:var(--naranja);box-shadow:0 0 8px var(--naranja)}
 .accion{margin-top:14px;width:100%;height:42px;border-radius:10px;border:1px solid rgba(244,166,192,.6);background:rgba(244,166,192,.14);font-weight:700;cursor:pointer}
 .espera .accion{border-color:rgba(185,167,230,.2);background:transparent;color:var(--mut);cursor:default}
+.mx{display:inline-block;margin-top:6px;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700;border:1px solid rgba(185,167,230,.35);color:var(--mut)}
+.mx.up{color:var(--menta);border-color:rgba(127,216,190,.5)}
+.mx.down{color:var(--naranja);border-color:rgba(242,140,56,.5)}
 #petalas{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
 #petalas i{position:absolute;width:var(--s);height:calc(var(--s)*.72);background:linear-gradient(135deg,#fde4ec,#f4a6c0);border-radius:100% 0 100% 0;opacity:.8}
 .ambiente{top:0;left:var(--l);animation:caer var(--d) linear var(--dl) infinite}
@@ -103,7 +109,61 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px 0}
 .chips span{padding:6px 12px;border-radius:99px;border:1px solid rgba(185,167,230,.4);background:rgba(185,167,230,.1);font-size:14px}
 .hoja .mut{margin-bottom:18px}
-#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90%;padding:12px 18px;border-radius:12px;background:#2c1b30;border:1px solid rgba(244,166,192,.4);font-size:14px;z-index:70;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90%;padding:12px 18px;border-radius:12px;background:#2c1b30;border:1px solid rgba(244,166,192,.4);font-size:14px;z-index:70;text-align:center}
+.tira{display:flex;align-items:center;gap:10px;padding:9px 14px;margin-bottom:6px;font-size:14px}
+.tira .em{font-size:20px;line-height:1}
+.tira strong{color:#fff}
+.tira .der{margin-left:auto;color:var(--mut);white-space:nowrap}
+.tira b{color:var(--petal);font-variant-numeric:tabular-nums}
+.nav{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(calc(100% - 24px),476px);display:flex;padding:6px;z-index:30;border-radius:20px}
+.nav button{flex:1;display:grid;justify-items:center;gap:2px;padding:8px 2px 6px;border:0;border-radius:14px;background:transparent;color:var(--mut);font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.nav svg{width:22px;height:22px}
+.nav button[aria-current="page"]{background:rgba(244,166,192,.16);color:var(--petal)}
+.nav .pt{position:absolute;top:6px;right:calc(50% - 20px);width:8px;height:8px;border-radius:50%;background:var(--menta);box-shadow:0 0 8px var(--menta)}
+.sec{margin-top:24px;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sec h2{font-size:18px}
+.bloque{padding:14px 16px;margin-top:12px}
+.bloque>h3:first-child{margin-top:0}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid rgba(185,167,230,.1)}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--mut);font-size:14px}
+.kv b{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.pips{display:inline-flex;gap:5px;vertical-align:middle}
+.pip{width:12px;height:12px;border-radius:50%;border:1px solid var(--lav);background:transparent}
+.pip.on{background:var(--lav);box-shadow:0 0 8px var(--lav)}
+.etiq{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700;border:1px solid rgba(127,216,190,.5);color:var(--menta);margin-left:6px}
+.etiq.nar{border-color:rgba(242,140,56,.5);color:var(--naranja)}
+.aviso-i{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(185,167,230,.1);border:1px dashed rgba(185,167,230,.35);font-size:14px;color:var(--mut)}
+.clima{display:flex;gap:14px;align-items:center;padding:16px;margin-top:16px}
+.clima .em{font-size:40px;line-height:1}
+.clima strong{color:#fff;font-size:17px}
+.mxs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mxs .mx{margin-top:0}
+.herr{padding:14px}
+.herr .cab{display:flex;align-items:center;gap:10px}
+.herr .em{font-size:26px;line-height:1}
+.herr strong{color:#fff}
+.herr.off{opacity:.62}
+.lista{list-style:none;padding:0;margin:0}
+.fil{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;border:1px solid rgba(185,167,230,.14);background:rgba(33,22,36,.55);margin-top:8px}
+.fil.yo{border-color:var(--sakura);background:rgba(244,166,192,.12)}
+.fil .pos{flex:none;width:30px;text-align:center;font-weight:900;color:var(--lav);font-size:15px}
+.fil .nom{flex:1;min-width:0}
+.fil .nom span{display:block}
+.fil .nom strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.fil .val{font-weight:700;color:var(--petal);white-space:nowrap;font-variant-numeric:tabular-nums}
+.fil .pt{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(185,167,230,.35);color:var(--lav)}
+.fil .pt svg{width:18px;height:18px}
+.seg{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-top:16px;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:none;padding:8px 14px;border-radius:99px;border:1px solid rgba(185,167,230,.35);background:transparent;font-weight:700;font-size:14px;color:var(--mut);cursor:pointer}
+.seg button[aria-pressed="true"]{background:rgba(244,166,192,.16);border-color:var(--sakura);color:var(--petal)}
+.mats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.mat{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(185,167,230,.14);background:rgba(33,22,36,.55)}
+.mat .em{font-size:22px}
+.mat b{margin-left:auto;color:var(--petal)}
+.vacio{text-align:center;color:var(--mut);padding:36px 12px}
+.rd{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#petalas{display:none}}
 </style>
 </head>
@@ -115,6 +175,12 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
     <span class="marca">Isla</span>
     <button class="link" id="salir" hidden>Cerrar sesión</button>
   </header>
+
+  <div class="tira vidrio" id="tira" hidden>
+    <span class="em" id="ts-em" aria-hidden="true"></span>
+    <span><strong id="ts-nom"></strong></span>
+    <span class="der">cambia en <b id="ts-resta" data-fin="0"></b></span>
+  </div>
 
   <section id="v-login" hidden>
     <h1>Conecta con Isla</h1>
@@ -136,19 +202,35 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
   </section>
 
   <section id="v-panel" hidden>
-    <div class="jug vidrio">
-      <div class="av" id="inicial">?</div>
-      <div>
-        <div class="fila"><strong id="alias"></strong><span class="nivel" id="nivel"></span></div>
-        <div class="barra"><div id="xpbar" style="width:0"></div></div>
-        <div class="fila peq mut"><span id="xp"></span><span id="monedas"></span></div>
+    <div id="t-inicio">
+      <div class="jug vidrio">
+        <div class="av" id="inicial">?</div>
+        <div>
+          <div class="fila"><strong id="alias"></strong><span class="nivel" id="nivel"></span></div>
+          <div class="barra"><div id="xpbar" style="width:0"></div></div>
+          <div class="fila peq mut"><span id="xp"></span><span id="monedas"></span></div>
+        </div>
       </div>
+      <div class="clima vidrio" id="clima-card">
+        <span class="em" id="cc-em" aria-hidden="true"></span>
+        <div>
+          <strong id="cc-nom"></strong>
+          <p class="mut peq" id="cc-desc"></p>
+          <p class="peq">Cambia en <b data-fin="0" id="cc-resta"></b> <span class="mut" id="cc-sig"></span></p>
+        </div>
+      </div>
+      <div class="sec"><h2>Acciones</h2><button class="link peq" id="campana" type="button"></button></div>
+      <p class="mut peq" style="margin-top:-6px">Cada una con su tiempo de espera.</p>
+      <div class="rejilla" id="rejilla"></div>
     </div>
-    <h2 style="margin-top:26px">Acciones</h2>
-    <p class="mut peq">Cada una con su tiempo de espera.</p>
-    <div class="rejilla" id="rejilla"></div>
+    <div id="t-ficha" hidden></div>
+    <div id="t-inventario" hidden></div>
+    <div id="t-rankings" hidden></div>
+    <div id="t-historial" hidden></div>
   </section>
 </main>
+
+<nav class="nav vidrio" id="nav" aria-label="Secciones" hidden></nav>
 
 <div class="anim" id="anim" hidden>
   <div class="dib" id="dib">
@@ -176,11 +258,22 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 <script>
 const API = '';
 const BOT_NUMBER = '5219633122232';
+const TITULO = 'Isla · Panel';
 
 const $ = s => document.querySelector(s);
 const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fmt = n => Number(n).toLocaleString('es');
+const fmt = n => Number(n).toLocaleString('es-MX');
 const mmss = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const dur = s => {
+  s = Math.max(0, Math.ceil(s));
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  if (d) return d + 'd ' + h + 'h';
+  if (h) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+  if (m) return m + 'm ' + String(s % 60).padStart(2, '0') + 's';
+  return s + 's';
+};
+const hace = s => s < 60 ? 'hace un momento' : s < 3600 ? 'hace ' + Math.floor(s / 60) + ' min' : s < 86400 ? 'hace ' + Math.floor(s / 3600) + ' h' : 'hace ' + Math.floor(s / 86400) + ' d';
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICONOS = {
   mine: svg('<path d="M4 20 L14 10"/><path d="M9 5 C14 3 19 6 20 11 L17 11 C16 8 13 6 9 5 Z"/>'),
@@ -188,6 +281,13 @@ const ICONOS = {
   fish: svg('<path d="M3 12 C7 6 14 6 18 12 C14 18 7 18 3 12 Z"/><path d="M18 12 L22 8 M18 12 L22 16"/><circle cx="8" cy="11" r="0.8"/>'),
   hunt: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 1 V5 M12 19 V23 M1 12 H5 M19 12 H23"/>')
 };
+const NAV = [
+  ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
+  ['ficha', 'Ficha', svg('<circle cx="12" cy="8" r="4"/><path d="M4 21 C4 16 8 14 12 14 C16 14 20 16 20 21"/>')],
+  ['inventario', 'Inventario', svg('<path d="M5 8 H19 L20 21 H4 Z"/><path d="M9 8 V6 A3 3 0 0 1 15 6 V8"/>')],
+  ['rankings', 'Rankings', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')],
+  ['historial', 'Historial', svg('<circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14"/>')]
+];
 const ACC = {
   minar:  { n: 'Minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700 },
   talar:  { n: 'Talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'sacudir', tot: 1800 },
@@ -198,6 +298,7 @@ const RAREZA = {
   comun: ['Común', '#b3a2b5'], poco: ['Poco común', '#7fd8be'], rara: ['Rara', '#b9a7e6'],
   epica: ['Épica', '#f08ac0'], legendaria: ['Legendaria', '#f28c38']
 };
+const MEDALLA = ['🥇', '🥈', '🥉'];
 
 function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }
 async function api(ruta, cuerpo) {
@@ -231,19 +332,65 @@ function petalos(n, modo) {
 }
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
-let me = null, fin = {}, tot = {}, ocupado = false, saltar = null, enviando = false;
+let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', avisosOn = false, refrescandoClima = false;
+
+function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
+function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
+const avisosActivos = () => avisosOn && 'Notification' in window && Notification.permission === 'granted';
+function pintarCampana() {
+  const b = $('#campana');
+  if (!('Notification' in window)) { b.hidden = true; return; }
+  b.hidden = false;
+  b.textContent = avisosActivos() ? 'Avisos activados' : 'Activar avisos';
+  b.setAttribute('aria-pressed', String(avisosActivos()));
+}
+async function alternarAvisos() {
+  if (avisosActivos()) { avisosOn = false; guardarAvisos(false); return pintarCampana(); }
+  const p = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+  if (p !== 'granted') { aviso('Los avisos están bloqueados en tu navegador.'); return pintarCampana(); }
+  avisosOn = true; guardarAvisos(true); pintarCampana();
+  aviso('Te avisaré cuando una acción esté lista.');
+}
 
 function vista(v) {
   $('#v-login').hidden = v !== 'login';
   $('#v-panel').hidden = v !== 'panel';
   $('#salir').hidden = v !== 'panel';
+  $('#nav').hidden = v !== 'panel';
+  $('#tira').hidden = v !== 'panel';
+  $('#app').classList.toggle('con-nav', v === 'panel');
   quitarAmbiente();
-  if (v === 'login') petalos(14, 'ambiente');
+  if (v === 'login') { petalos(14, 'ambiente'); document.title = TITULO; }
 }
 function aviso(txt) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), 3500);
 }
+function sesionCaducada() {
+  me = null; cargado = {};
+  aviso('Tu sesión caducó. Conéctate de nuevo.');
+  vista('login');
+}
+
+function multChip(m) {
+  if (m === undefined || m === null) return '';
+  const cls = m > 1 ? 'up' : m < 1 ? 'down' : '';
+  return `<span class="mx ${cls}">x${Number(m).toFixed(2)}</span>`;
+}
+
+function pintarClima(c) {
+  $('#ts-em').textContent = c.emoji;
+  $('#ts-nom').textContent = c.nombre;
+  $('#cc-em').textContent = c.emoji;
+  $('#cc-nom').textContent = c.nombre + (c.raro ? ' · raro' : '');
+  $('#cc-desc').textContent = c.desc;
+  $('#cc-sig').textContent = '· luego ' + c.siguiente.emoji + ' ' + c.siguiente.nombre;
+  const f = Date.now() + c.faltaS * 1000;
+  $('#ts-resta').dataset.fin = f;
+  $('#cc-resta').dataset.fin = f;
+}
+
 function aplicar(d) {
   me = d; fin = {}; tot = {};
   for (const k in ACC) { fin[k] = Date.now() + (d.esperas[k] || 0) * 1000; if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot; }
@@ -253,6 +400,8 @@ function aplicar(d) {
   $('#xp').textContent = fmt(d.xp) + ' / ' + fmt(d.xpSig) + ' XP';
   $('#monedas').textContent = fmt(d.monedas) + ' monedas';
   $('#xpbar').style.width = Math.min(100, d.xp / d.xpSig * 100) + '%';
+  if (d.clima) pintarClima(d.clima);
+  montarMultiplicadores();
   tick();
 }
 function montar() {
@@ -261,13 +410,33 @@ function montar() {
       <div class="aro"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/><circle class="prog" id="r-${k}" cx="32" cy="32" r="29"/></svg>${ICONOS[a.ic]}</div>
       <h3>${a.n}</h3>
       <p class="est"><i></i><span id="t-${k}">Listo</span></p>
+      <span id="m-${k}"></span>
       <button class="accion" data-a="${k}">${a.n}</button>
     </div>`).join('');
+  $('#nav').innerHTML = NAV.map(([k, n, ic]) => `<button type="button" data-t="${k}" ${k === 'inicio' ? 'aria-current="page"' : ''}>${ic}<span>${n}</span><i class="pt" id="pt-${k}" hidden></i></button>`).join('');
 }
+function montarMultiplicadores() {
+  const mult = me && me.clima ? me.clima.mult : {};
+  for (const k in ACC) $('#m-' + k).innerHTML = multChip(mult[k]);
+}
+
+function notificar(k) {
+  const msg = 'Ya puedes ' + ACC[k].n.toLowerCase() + '.';
+  if (document.hidden || !document.hasFocus()) {
+    if (avisosActivos()) {
+      try { new Notification('Isla', { body: msg, icon: '/logo-favicon.png', tag: 'isla-' + k }); } catch (_) {}
+    }
+  } else if (tabActual !== 'inicio') {
+    aviso(msg);
+  }
+}
+
 function tick() {
   if (!me) return;
+  const ahora = Date.now();
+  let listas = 0, menor = Infinity;
   for (const k in ACC) {
-    const rest = Math.max(0, Math.ceil((fin[k] - Date.now()) / 1000)), lista = rest === 0;
+    const rest = Math.max(0, Math.ceil((fin[k] - ahora) / 1000)), lista = rest === 0;
     const c = $('#c-' + k), b = c.querySelector('button');
     c.hidden = tot[k] === undefined;
     if (c.hidden) continue;
@@ -276,9 +445,29 @@ function tick() {
     b.textContent = lista ? ACC[k].n : 'En espera';
     b.setAttribute('aria-disabled', String(!lista));
     $('#r-' + k).style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
+    if (lista) listas++; else menor = Math.min(menor, rest);
+    if (previa[k] === false && lista) notificar(k);
+    previa[k] = lista;
+  }
+  document.querySelectorAll('[data-fin]').forEach(e => { e.textContent = dur((Number(e.dataset.fin) - ahora) / 1000); });
+  document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
+  const pt = $('#pt-inicio');
+  if (pt) pt.hidden = !listas;
+  const cf = Number($('#ts-resta').dataset.fin);
+  if (cf && ahora >= cf && !refrescandoClima && !ocupado) {
+    refrescandoClima = true;
+    setTimeout(() => { refrescar().finally(() => { refrescandoClima = false; }); }, 1500);
   }
 }
 setInterval(tick, 1000);
+
+async function refrescar() {
+  try { aplicar(await api('/api/me')); }
+  catch (e) { if (e.estado === 401) sesionCaducada(); }
+}
+setInterval(() => {
+  if (me && !ocupado && (!document.hidden || avisosActivos())) refrescar();
+}, 30000);
 
 function animar(k) {
   const a = ACC[k], d = $('#dib');
@@ -301,11 +490,12 @@ async function jugar(k) {
   try {
     const [d] = await Promise.all([api('/api/rpg/' + k, {}), esperaAnim()]);
     $('#anim').hidden = true;
+    cargado = {};
     aplicar(d.me); mostrar(k, d.resultado);
   } catch (e) {
     $('#anim').hidden = true;
-    if (e.estado === 401) { aviso('Tu sesión caducó. Conéctate de nuevo.'); vista('login'); }
-    else { aviso(e.message); api('/api/me').then(aplicar).catch(() => {}); }
+    if (e.estado === 401) sesionCaducada();
+    else { aviso(e.message); refrescar(); }
   } finally { ocupado = false; }
 }
 function mostrar(k, r) {
@@ -328,13 +518,192 @@ function mostrar(k, r) {
 }
 $('#h-ok').addEventListener('click', () => { $('#hoja').hidden = true; });
 $('#rejilla').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b) jugar(b.dataset.a); });
+$('#campana').addEventListener('click', alternarAvisos);
+
+const kv = (k, v) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`;
+const cuenta = (s, base) => `<b data-fin="${base + s * 1000}">${dur(s)}</b>`;
+const barra = (v, m, cls) => `<div class="barra ${cls || ''}"><div style="width:${m ? Math.min(100, v / m * 100) : 0}%"></div></div>`;
+const vacio = txt => `<p class="vacio">${txt}</p>`;
+const titulo = (t, extra) => `<div class="sec"><h2>${t}</h2>${extra || ''}</div>`;
+
+function pintarFicha(d, base) {
+  const avisos = [];
+  if (d.stats.libres) avisos.push(`🎯 Tienes <b>${d.stats.libres}</b> punto${d.stats.libres === 1 ? '' : 's'} de atributo libre${d.stats.libres === 1 ? '' : 's'}. Repártelos con /points en WhatsApp.`);
+  if (d.talentosLibres) avisos.push(`🌳 Tienes <b>${d.talentosLibres}</b> punto${d.talentosLibres === 1 ? '' : 's'} de talento libre${d.talentosLibres === 1 ? '' : 's'}. Úsalos con /talent.`);
+  const heroe = d.clase
+    ? kv('Clase', esc(d.clase.emoji) + ' ' + esc(d.clase.nombre)) + `<p class="mut peq" style="padding:2px 0 6px">${esc(d.clase.desc)}</p>` +
+      kv('Energía', `<span class="pips">${'<i class="pip on"></i>'.repeat(d.energia.n)}${'<i class="pip"></i>'.repeat(Math.max(0, d.energia.max - d.energia.n))}</span> ${d.energia.n}/${d.energia.max}`) +
+      (d.energia.n < d.energia.max ? kv('Próxima energía', cuenta(d.energia.faltaS, base)) : '')
+    : `<p class="mut peq">Sin clase todavía. Se elige desde el nivel ${d.nivelClase} con /class en WhatsApp.</p>`;
+  const m = d.mascota;
+  const mascota = m
+    ? kv('Mascota', esc(m.emoji) + ' ' + esc(m.nombre) + (m.activa ? '' : '<span class="etiq nar">Descansando</span>')) +
+      kv('Nivel', m.nivel + '/' + m.max) + `<p class="mut peq" style="padding:2px 0 0">${esc(m.tipo)}: ${esc(m.desc)}${m.activa ? '' : '. Aliméntala con /pet para reactivar su bono.'}</p>`
+    : '<p class="mut peq">Aún no tienes mascota. Adopta una con /pet en WhatsApp.</p>';
+  const c = d.clan;
+  const clan = c
+    ? kv('Clan', esc(c.nombre) + (c.lider ? '<span class="etiq">Líder</span>' : '')) +
+      kv('Nivel del clan', c.nivel + '/' + c.max) + kv('Miembros', c.miembros + '/' + c.cupo) + kv('Banco del clan', fmt(c.banco) + ' monedas') +
+      kv('Bono de ingresos', '+' + c.bono + '%') +
+      kv('Guerra de clanes', fmt(c.guerra.pts) + ' pts' + (c.guerra.puesto ? ' · puesto ' + c.guerra.puesto : '')) +
+      kv('Cierra en', cuenta(c.guerra.cierraS, base)) +
+      (c.guerra.pts < c.guerra.min ? `<p class="mut peq" style="padding-top:6px">Faltan ${fmt(c.guerra.min - c.guerra.pts)} puntos para entrar a los premios.</p>` : '')
+    : '<p class="mut peq">No perteneces a ningún clan. Crea uno o únete con /clan.</p>';
+  const activos = [];
+  if (d.boosts.escudoS) activos.push(kv('Escudo anti-robo', cuenta(d.boosts.escudoS, base)));
+  if (d.boosts.xpS) activos.push(kv('Boost de XP x2', cuenta(d.boosts.xpS, base)));
+  return `
+    <div class="jug vidrio" style="margin-top:6px">
+      <div class="av">${esc((d.alias || '?').trim().charAt(0).toUpperCase())}</div>
+      <div>
+        <div class="fila"><strong>${esc(d.alias)}</strong><span class="nivel">Nivel ${d.nivel}</span></div>
+        ${barra(d.xp, d.xpSig)}
+        <div class="fila peq mut"><span>${fmt(d.xp)} / ${fmt(d.xpSig)} XP</span><span>${d.empleo ? esc(d.empleo.emoji) + ' ' + esc(d.empleo.nombre) : ''}</span></div>
+      </div>
+    </div>
+    ${avisos.length ? `<div class="aviso-i">${avisos.join('<br>')}</div>` : ''}
+    ${titulo('Finanzas')}
+    <div class="bloque vidrio">
+      ${kv('Cartera', fmt(d.cartera) + ' monedas')}${kv('Banco', fmt(d.banco) + ' monedas')}${kv('Total', fmt(d.total) + ' monedas')}
+      ${kv('Bono de ingresos', '+' + d.bonoIngresos + '%')}
+      ${kv('Prestigio', d.prestigio.n + '/' + d.prestigio.max + (d.prestigio.bono ? ' · +' + d.prestigio.bono + '%' : ''))}
+    </div>
+    ${titulo('Atributos')}
+    <div class="bloque vidrio">${kv('Fuerza', d.stats.fuerza)}${kv('Vigor', d.stats.vigor)}${kv('Suerte', d.stats.suerte)}</div>
+    ${titulo('Héroe')}
+    <div class="bloque vidrio">${heroe}</div>
+    ${titulo('Mascota')}
+    <div class="bloque vidrio">${mascota}</div>
+    ${titulo('Clan')}
+    <div class="bloque vidrio">${clan}</div>
+    ${activos.length ? titulo('Activos') + `<div class="bloque vidrio">${activos.join('')}</div>` : ''}
+    ${titulo('Colección')}
+    <div class="bloque vidrio">
+      ${kv('Reliquias', d.reliquias.n + '/' + d.reliquias.total)}
+      ${kv('Hogar', d.hogar ? esc(d.hogar.emoji) + ' ' + esc(d.hogar.nombre) : 'Sin hogar')}
+      ${kv('Récord de mazmorra', d.mazmorra ? 'Piso ' + d.mazmorra : 'Sin explorar')}
+    </div>`;
+}
+
+function pintarInventario(d, base) {
+  const herr = d.herramientas.map(h => `
+    <div class="herr bloque vidrio ${h.activa ? '' : 'off'}">
+      <div class="cab"><span class="em">${esc(h.emoji)}</span>
+        <div style="flex:1;min-width:0"><strong>${esc(h.nombre)}</strong> <span class="mut peq">Nv ${h.nivel}/${h.nivelMax} · x${h.mult}</span><br><span class="mut peq">Se usa en ${esc(h.usoEn)}</span></div>
+      </div>
+      ${h.usos > 0
+        ? barra(h.usos, h.usosMax, 'nar') + `<div class="fila peq"><span>${h.usos} uso${h.usos === 1 ? '' : 's'} restante${h.usos === 1 ? '' : 's'}</span><span class="mut">${h.repuestos ? h.repuestos + ' de repuesto' : 'Sin repuestos'}</span></div>`
+        : h.repuestos > 0
+          ? `<p class="peq" style="margin-top:8px">Se estrenará una nueva en tu próximo uso <span class="mut">(${h.repuestos} en reserva · ${h.usosMax} usos)</span>.</p>`
+          : `<p class="mut peq" style="margin-top:8px">Sin herramienta. Compra una en /shop o fabrícala con /craft.</p>`}
+    </div>`).join('');
+  const cons = d.consumibles.map(c => `
+    <div class="fil"><span class="em" style="font-size:22px">${esc(c.emoji)}</span>
+      <div class="nom"><strong>${esc(c.nombre)}</strong><span class="mut peq">${esc(c.desc)}</span></div>
+      <span class="val">x${c.cantidad}${c.activoS ? `<br><span class="etiq" style="margin:0">Activo ${cuenta(c.activoS, base)}</span>` : ''}</span>
+    </div>`).join('');
+  const mats = d.materiales.length
+    ? `<div class="mats">${d.materiales.map(m => `<div class="mat"><span class="em">${esc(m.emoji)}</span><span class="peq">${esc(m.nombre)}</span><b>${fmt(m.cantidad)}</b></div>`).join('')}</div>
+       <p class="mut peq" style="margin-top:10px">Valor aproximado de venta: ${fmt(d.valorMateriales)} monedas.</p>`
+    : vacio('Aún no tienes materiales. Mina, tala o pesca para conseguirlos.');
+  return `${titulo('Herramientas')}<div class="lista">${herr}</div>
+    ${titulo('Consumibles', `<span class="mut peq">máx. ${d.tope} de cada uno</span>`)}${cons}
+    ${titulo('Materiales')}${mats}`;
+}
+
+function filaRanking(r, extra, valor) {
+  return `<div class="fil ${r.yo || r.mio ? 'yo' : ''}"><span class="pos">${MEDALLA[r.pos - 1] || r.pos}</span>
+    <div class="nom"><strong>${esc(r.nombre)}${r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}</strong>${extra ? `<span class="mut peq">${extra}</span>` : ''}</div>
+    <span class="val">${valor}</span></div>`;
+}
+
+function pintarRankings(d, base) {
+  const opciones = [['monedas', 'Monedas'], ['xp', 'XP semanal'], ['clanes', 'Clanes'], ['guerra', 'Guerra']];
+  const seg = `<div class="seg" role="group" aria-label="Tipo de ranking">${opciones.map(([k, n]) => `<button type="button" data-r="${k}" aria-pressed="${k === rankSel}">${n}</button>`).join('')}</div>`;
+  let cuerpo = '';
+  if (rankSel === 'monedas') {
+    cuerpo = d.monedas.length ? d.monedas.map(r => filaRanking(r, '', fmt(r.valor))).join('') : vacio('Aún no hay datos.');
+  } else if (rankSel === 'xp') {
+    cuerpo = `<p class="mut peq" style="margin-top:12px">Se reinicia en ${cuenta(d.cierraXpS, base)}. Premios: ${d.premiosXp.map((p, i) => MEDALLA[i] + ' ' + fmt(p)).join(' · ')}</p>` +
+      (d.xpSemana.length ? d.xpSemana.map(r => filaRanking(r, '', fmt(r.valor) + ' XP')).join('') : vacio('Nadie ha sumado XP esta semana.'));
+  } else if (rankSel === 'clanes') {
+    cuerpo = d.clanes.length ? d.clanes.map(c => filaRanking(c, `Nv ${c.nivel} · ${c.miembros} miembro${c.miembros === 1 ? '' : 's'}`, fmt(c.banco))).join('') : vacio('Aún no hay clanes.');
+  } else {
+    const g = d.guerra;
+    const mio = g.mio ? `<div class="bloque vidrio">${kv('Tu clan', esc(g.mio.nombre))}${kv('Puesto', '#' + g.mio.puesto)}${kv('Puntos', fmt(g.mio.pts))}</div>` : `<div class="aviso-i">Suma puntos para tu clan minando, talando y pescando.</div>`;
+    cuerpo = `<p class="mut peq" style="margin-top:12px">Semana ${esc(g.semana)} · cierra en ${cuenta(g.cierraS, base)}<br>Premios al banco del clan: ${g.premios.map((p, i) => MEDALLA[i] + ' ' + fmt(p)).join(' · ')} (mínimo ${g.minPuntos} pts)</p>` +
+      mio + (g.ranking.length ? g.ranking.map(c => filaRanking(c, `${c.miembros} miembro${c.miembros === 1 ? '' : 's'}`, fmt(c.pts) + ' pts')).join('') : vacio('Todavía nadie ha puntuado esta semana.')) +
+      (g.ultima && g.ultima.ranking.length ? `<p class="mut peq" style="margin-top:16px">Semana anterior (${esc(g.ultima.semana)}): ${g.ultima.ranking.map((r, i) => MEDALLA[i] + ' ' + esc(r.nombre)).join(' · ')}</p>` : '');
+  }
+  return `${titulo('Rankings')}${seg}<div class="lista">${cuerpo}</div>`;
+}
+
+function pintarHistorial(d) {
+  if (!d.items.length) return titulo('Historial') + vacio('Aún no hay hallazgos. Cada vez que mines, talles o pesques aparecerá aquí.');
+  const icono = { minar: 'mine', talar: 'chop', pescar: 'fish' };
+  const verbo = { minar: 'Minaste', talar: 'Talaste', pescar: 'Pescaste' };
+  return titulo('Historial', '<span class="mut peq">últimos 20</span>') + `<div class="lista">${d.items.map(i => {
+    const col = (RAREZA[i.rareza] || RAREZA.comun)[1];
+    const extra = [i.evento, i.guardian ? (i.guardian.gana ? 'Derrotaste a ' + i.guardian.nombre : i.guardian.nombre + ' te hizo retroceder') : ''].filter(Boolean).map(esc).join(' · ');
+    return `<div class="fil"><span class="pt">${ICONOS[icono[i.accion]] || ICONOS.mine}</span>
+      <div class="nom"><strong><i class="rd" style="--c:${col}"></i>${esc(i.titulo)}</strong>
+        <span class="mut peq">${esc(verbo[i.accion] || 'Actuaste')} en ${esc(i.zona)} · ${hace(i.hace)} · ${i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
+        ${extra ? `<span class="peq" style="color:var(--lav)">${extra}</span>` : ''}</div>
+      <span class="val">+${fmt(i.monedas)}</span></div>`;
+  }).join('')}</div>`;
+}
+
+const CARGA = {
+  ficha: ['/api/ficha', pintarFicha],
+  inventario: ['/api/inventario', pintarInventario],
+  rankings: ['/api/rankings', pintarRankings],
+  historial: ['/api/historial', pintarHistorial]
+};
+
+function dibujar(t) {
+  const c = cargado[t];
+  if (c) $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
+}
+async function abrir(t, forzar) {
+  if (!['inicio', ...Object.keys(CARGA)].includes(t)) t = 'inicio';
+  tabActual = t;
+  for (const [k] of NAV) {
+    $('#t-' + k).hidden = k !== t;
+    const b = $('#nav [data-t="' + k + '"]');
+    if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  }
+  try { history.replaceState(null, '', t === 'inicio' ? location.pathname : '#' + t); } catch (_) {}
+  window.scrollTo(0, 0);
+  if (t === 'inicio') return;
+  const viejo = !cargado[t] || Date.now() - cargado[t].t > 20000;
+  if (!forzar && !viejo) return dibujar(t);
+  const el = $('#t-' + t);
+  if (!cargado[t]) el.innerHTML = vacio('Cargando…');
+  try {
+    const d = await api(CARGA[t][0]);
+    cargado[t] = { d, t: Date.now() };
+    if (tabActual === t) dibujar(t);
+  } catch (e) {
+    if (e.estado === 401) return sesionCaducada();
+    if (!cargado[t]) el.innerHTML = vacio(esc(e.message)) + '<button class="btn2" style="margin:0 auto;display:block" data-reintentar type="button">Reintentar</button>';
+    else aviso(e.message);
+  }
+}
+$('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) abrir(b.dataset.t); });
+$('#v-panel').addEventListener('click', e => {
+  if (e.target.closest('[data-reintentar]')) return abrir(tabActual, true);
+  const r = e.target.closest('button[data-r]');
+  if (r) { rankSel = r.dataset.r; dibujar('rankings'); }
+});
 
 $('#codigo').addEventListener('input', e => {
   const l = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
   e.target.value = l.length > 4 ? l.slice(0, 4) + '-' + l.slice(4) : l;
 });
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && me && !ocupado) api('/api/me').then(aplicar).catch(e => { if (e.estado === 401) { aviso('Tu sesión caducó. Conéctate de nuevo.'); vista('login'); } });
+  if (document.hidden || !me || ocupado) return;
+  refrescar();
+  if (tabActual !== 'inicio') abrir(tabActual);
 });
 $('#form').addEventListener('submit', async e => {
   e.preventDefault();
@@ -345,20 +714,28 @@ $('#form').addEventListener('submit', async e => {
   enviando = true; b.textContent = 'Entrando…';
   try {
     await api('/api/auth/login', { codigo });
+    previa = {}; cargado = {};
     aplicar(await api('/api/me'));
-    $('#codigo').value = ''; vista('panel');
+    $('#codigo').value = ''; vista('panel'); abrir('inicio');
   } catch (x) { msg.textContent = x.message; }
   finally { enviando = false; b.textContent = 'Entrar'; }
 });
 $('#salir').addEventListener('click', async () => {
   try { await api('/api/auth/logout', {}); } catch (_) {}
-  me = null; vista('login');
+  me = null; cargado = {}; previa = {};
+  vista('login');
 });
 
 (async function () {
   if (BOT_NUMBER) { const wa = $('#wa'); wa.href = 'https://wa.me/' + BOT_NUMBER + '?text=%2Fweb'; wa.hidden = false; }
+  avisosOn = leerAvisos();
   montar();
-  try { aplicar(await api('/api/me')); vista('panel'); } catch (_) { vista('login'); }
+  pintarCampana();
+  try {
+    aplicar(await api('/api/me'));
+    vista('panel');
+    abrir(location.hash.slice(1) || 'inicio');
+  } catch (_) { vista('login'); }
 })();
 </script>
 </body>
