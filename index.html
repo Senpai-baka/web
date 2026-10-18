@@ -18,10 +18,10 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://nephre.hub-team.xyz/og.jpg">
-<meta name="theme-color" content="#150e18">
+<meta name="theme-color" content="#0a0812">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Almendra:wght@400;700&family=Shippori+Mincho+B1:wght@700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--noche:#0d0a1d;--marea:#191433;--marea2:#241c47;--linea:rgba(247,184,207,.13);--petal:#fbd3e1;--sakura:#f4a6c0;--lav:#b9a7e6;--naranja:#f2955a;--menta:#7fd8be;--txt:#f5ecf3;--mut:#a99cbd;--font:'Zen Maru Gothic',system-ui,sans-serif;--serif:'Shippori Mincho B1','Hiragino Mincho ProN',serif;--bg:#0d0a1d}
 *{box-sizing:border-box;margin:0}
@@ -257,6 +257,78 @@ input.txt.corto{margin-top:0;height:40px}
 .nav button[aria-current="page"]::before{content:"";position:absolute;top:-5px;left:50%;width:26px;height:3px;margin-left:-13px;border-radius:0 0 4px 4px;background:var(--sakura);box-shadow:0 0 12px var(--sakura)}
 .nav .pt{position:absolute;top:6px;right:calc(50% - 20px);width:8px;height:8px;border-radius:50%;background:var(--menta);box-shadow:0 0 8px var(--menta)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#petalas{display:none}}
+
+/* ================= 🩹 CAPA RPG ================= */
+:root{--noche:#0a0812;--marea:#161122;--marea2:#221a36;--linea:rgba(201,164,92,.22);--petal:#f3e3c1;--oro:#e6c47a;--oro2:#a9803a;--bronce:#6b5430;--hueco:#0e0b16;--serif:'Almendra','Shippori Mincho B1',Georgia,serif;
+--studs:radial-gradient(circle,var(--oro) 0 1.5px,transparent 2.3px) 5px 5px/8px 8px no-repeat,radial-gradient(circle,var(--oro) 0 1.5px,transparent 2.3px) right 5px top 5px/8px 8px no-repeat,radial-gradient(circle,var(--oro) 0 1.5px,transparent 2.3px) 5px bottom 5px/8px 8px no-repeat,radial-gradient(circle,var(--oro) 0 1.5px,transparent 2.3px) right 5px bottom 5px/8px 8px no-repeat}
+body::before{background:radial-gradient(90vmax 50vmax at 50% -10%,rgba(122,78,160,.3),transparent 62%),radial-gradient(60vmax 40vmax at 50% 120%,rgba(230,196,122,.09),transparent 60%),radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.55))}
+body::after{content:"";position:fixed;inset:0;z-index:-1;opacity:.07;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* Ventanas: marco doble de bronce con tachuelas en las esquinas */
+.vidrio,.zona,.ticket,.hoja{border:1px solid var(--bronce);border-radius:8px;box-shadow:inset 0 0 0 3px var(--hueco),inset 0 0 0 4px rgba(230,196,122,.28),0 6px 18px rgba(0,0,0,.45)}
+.vidrio{background:var(--studs),linear-gradient(180deg,#1e1832,#151020)}
+.zona{background:var(--studs),linear-gradient(160deg,color-mix(in srgb,var(--z) 26%,#171220),#110d1b 72%);padding:18px 17px 16px}
+.ticket{background:var(--studs),linear-gradient(100deg,color-mix(in srgb,var(--z) 20%,#171220),#110d1b 60%);padding:16px 18px}
+.hoja{background:var(--studs),#18122a;border-color:var(--oro2);box-shadow:inset 0 0 0 3px var(--hueco),inset 0 0 0 4px rgba(230,196,122,.3),0 0 50px color-mix(in srgb,var(--col,#e6c47a) 35%,transparent)}
+.bloque{padding:18px 18px}
+/* Títulos */
+h1,h2,h3,.marca,.zona h3,.ticket h3{font-family:var(--serif);font-weight:700;letter-spacing:.02em}
+h1{font-size:33px;color:var(--petal);text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 18px rgba(230,196,122,.22)}
+h2{font-size:23px;color:var(--petal);text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.marca{font-size:26px;color:var(--oro);text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.quien h1,.perfil .quien h1{font-size:28px}
+.sec h2::before,.sd summary h2::before,.grupo h2::before{width:8px;height:8px;border-radius:1px;background:linear-gradient(135deg,#f6e2a8,var(--oro2));transform:rotate(45deg);box-shadow:0 0 8px rgba(230,196,122,.5)}
+.sd{border-bottom-color:var(--bronce)}
+/* Personaje: anillo de XP dorado y placa de nivel */
+.anillo .pista{stroke:rgba(230,196,122,.16)}
+.anillo .nv{stroke:var(--oro)}
+.ava-i{box-shadow:0 0 0 2px var(--bronce);color:var(--oro)}
+.ava .lv{border-radius:5px;background:linear-gradient(#f4dc9c,#b98a3e);border:1px solid #6b5430;color:#2a1c08;font-family:var(--serif);font-size:14px;font-weight:700}
+.bolsa{border-radius:6px;border-color:var(--bronce);background:var(--hueco);color:var(--oro);box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+.bolsa svg{color:var(--oro)}
+/* Barras de XP / vida: segmentadas en 10 tramos */
+.xpb,.barra{position:relative;border-radius:3px;background:var(--hueco);border:1px solid var(--bronce);overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.7)}
+.xpb{height:11px}.barra{height:10px;margin:8px 0 6px}
+.xpb div,.barra div{height:100%;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.xpb div{background:linear-gradient(#f8bfd3,#c4547e)}
+.barra div{background:linear-gradient(#b9a7e6,#6c52b8)}
+.barra.nar div{background:linear-gradient(#f7b27f,#d0702f)}
+.xpb::after,.barra::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(10,8,18,.75) calc(10% - 1px) 10%)}
+/* Botones: biselados, de metal */
+.accion,.btn,.mini,.btn2{font-family:var(--serif);font-weight:700;border-radius:7px;letter-spacing:.02em}
+.accion{font-size:17px;border-color:rgba(0,0,0,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -3px 0 rgba(0,0,0,.28),0 2px 0 rgba(0,0,0,.6)}
+.accion:active,.btn:active,.mini:active{transform:translateY(2px);box-shadow:inset 0 2px 4px rgba(0,0,0,.4)}
+.espera .accion{box-shadow:none;border-color:rgba(230,196,122,.18)}
+.btn,.mini[data-post$="/comprar"],.mini[data-post$="/pujar"],.mini[data-post$="/publicar"],.mini[data-post$="/crear"],.mini[data-post$="/mejorar"],.mini[data-post$="/equipar"]{background:linear-gradient(#f4dc9c,#c9a04e);border-color:#6b5430;color:#2a1c08;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.22),0 2px 0 rgba(0,0,0,.6)}
+.btn{font-size:18px}
+.mini{font-size:15px;border-color:var(--bronce);background:rgba(230,196,122,.08)}
+.btn2{border-color:var(--bronce)}
+.link{color:var(--oro)}
+/* Casillas de inventario y estadísticas */
+.cifras>div,.mat,.plot,.chips span,.rel span{border-radius:6px;background:var(--hueco);border:1px solid var(--bronce);box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+.cifras b{font-size:25px;color:var(--oro)}
+.plot.ok{border-color:var(--menta)}.plot.mar{border-color:var(--naranja)}
+.mat b{color:var(--oro)}
+.fil .pos,.fil .val,.cartera b{color:var(--oro)}
+.fil .pos{font-size:20px}
+.fil.yo{background:rgba(230,196,122,.1);border-radius:8px}
+.cartera{border-radius:6px;border-color:var(--bronce);background:var(--hueco)}
+.pasos::before{background:linear-gradient(var(--oro),rgba(201,164,92,.15))}
+.pasos b{border-radius:5px;transform:rotate(45deg);border-color:var(--oro);color:var(--oro)}
+.pasos b{font-size:0}.pasos b::after{content:"";width:6px;height:6px;background:var(--oro)}
+/* Pestañas */
+.seg{background:var(--hueco);border:1px solid var(--bronce);border-radius:8px}
+.seg button{border-radius:5px;font-family:var(--serif);font-size:16px}
+.seg button[aria-pressed="true"]{background:linear-gradient(#2c2244,#1f1733);color:var(--oro);box-shadow:inset 0 -2px 0 var(--oro)}
+input,select.txt{border-radius:7px;border-color:var(--bronce);background:var(--hueco);box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+/* Barra de navegación */
+.nav{background:linear-gradient(#171220,#0e0b16);border-top:1px solid var(--bronce);box-shadow:0 -1px 0 rgba(230,196,122,.25),0 -8px 24px rgba(0,0,0,.5)}
+.nav button[aria-current="page"]{color:var(--oro)}
+.nav button[aria-current="page"]::before{background:var(--oro);box-shadow:0 0 12px var(--oro)}
+#toast{border-radius:6px;border-color:var(--oro2);background:#171220;box-shadow:0 0 0 3px var(--hueco),0 8px 24px rgba(0,0,0,.6)}
+/* Botín: rayos giratorios al revelar un objeto */
+.halo{position:relative;isolation:isolate;border:1px solid color-mix(in srgb,var(--col,#e6c47a) 60%,transparent)}
+.halo::before{content:"";position:absolute;inset:-34px;z-index:-1;border-radius:50%;background:repeating-conic-gradient(color-mix(in srgb,var(--col,#e6c47a) 30%,transparent) 0 8deg,transparent 8deg 22deg);-webkit-mask-image:radial-gradient(circle,transparent 38%,#000 40%,transparent 72%);mask-image:radial-gradient(circle,transparent 38%,#000 40%,transparent 72%);animation:rayos 22s linear infinite}
+@keyframes rayos{to{transform:rotate(1turn)}}
 </style>
 </head>
 <body>
