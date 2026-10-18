@@ -170,6 +170,11 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
 .btns.uno{grid-template-columns:1fr}
 .btnrow{display:flex;gap:8px;margin-top:10px}
 .btnrow .mini{flex:1}
+select.txt{flex:1;min-width:0;height:50px;padding:0 14px;border-radius:12px;border:1px solid rgba(185,167,230,.4);background:rgba(33,22,36,.7);color:inherit;font:inherit;font-weight:600;margin-top:10px;width:100%}
+.fil .nom strong.largo{white-space:normal;overflow:visible}
+input.txt.corto{flex:1;margin-top:0;height:40px;min-width:0}
+.equi.puesto{border-color:var(--sakura)}
+.fil .mini{flex:none}
 .pet{display:flex;gap:14px;align-items:center}
 .pet .em{font-size:46px;line-height:1}
 .pet strong{color:#fff;font-size:18px}
@@ -246,6 +251,7 @@ input{flex:1;min-width:0;height:50px;padding:0 16px;border-radius:12px;border:1p
     </div>
     <div id="t-ficha" hidden></div>
     <div id="t-inventario" hidden></div>
+    <div id="t-tienda" hidden></div>
     <div id="t-hogar" hidden></div>
     <div id="t-rankings" hidden></div>
     <div id="t-historial" hidden></div>
@@ -310,6 +316,7 @@ const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
   ['ficha', 'Ficha', svg('<circle cx="12" cy="8" r="4"/><path d="M4 21 C4 16 8 14 12 14 C16 14 20 16 20 21"/>')],
   ['inventario', 'Inventario', svg('<path d="M5 8 H19 L20 21 H4 Z"/><path d="M9 8 V6 A3 3 0 0 1 15 6 V8"/>')],
+  ['tienda', 'Tienda', svg('<path d="M4 9 L6 4 H18 L20 9"/><path d="M4 9 C4 11 8 11 8 9 C8 11 12 11 12 9 C12 11 16 11 16 9 C16 11 20 11 20 9"/><path d="M5 11 V20 H19 V11"/><path d="M10 20 V15 H14 V20"/>')],
   ['hogar', 'Hogar', ICONOS.leaf],
   ['rankings', 'Rankings', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')],
   ['historial', 'Historial', svg('<circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14"/>')]
@@ -361,7 +368,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', publicando = false, avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -636,7 +643,7 @@ function pintarFicha(d, base) {
 
 const botonPost = (ruta, cuerpo, txt, extra) => `<button type="button" class="mini" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" ${extra || ''}>${esc(txt)}</button>`;
 
-function pintarInventario(d, base) {
+function pintarObjetos(d, base) {
   const herr = d.herramientas.map(h => {
     const m = h.mejora;
     const mejora = m
@@ -785,9 +792,132 @@ function pintarHistorial(d) {
   }).join('')}</div>`;
 }
 
+const pintarEquipo = (d, base) => {
+  const b = d.bonos;
+  const bonos = `<div class="bloque vidrio">${kv('Daño', '+' + b.dano + '%')}${kv('Vida', '+' + b.vida + '%')}${kv('Ingresos', '+' + b.ingresos + '%')}${kv('Suerte', '+' + b.suerte)}</div>`;
+  const filas = d.items.map(i => {
+    const [rn, col] = RAREZA[i.rareza] || RAREZA.comun;
+    const m = i.mejora;
+    const costo = m ? `<p class="mut peq">Mejora: ${fmt(m.monedas)} monedas · ${m.hierro} hierro${m.oro ? ' · ' + m.oro + ' oro' : ''} · ${m.prob}% de éxito</p>` : '<p class="mut peq">Mejora al máximo (+' + d.maxPlus + ').</p>';
+    const poner = i.equipado
+      ? botonPost('/api/equipo/desequipar', { tipo: i.tipo }, 'Quitar', '')
+      : botonPost('/api/equipo/equipar', { id: i.id }, 'Equipar', '');
+    const mejorar = m
+      ? botonPost('/api/equipo/mejorar', { id: i.id }, 'Mejorar +' + (i.plus + 1), `aria-disabled="${!m.puede}" data-motivo="Te faltan monedas o materiales."`)
+      : '<button type="button" class="mini" aria-disabled="true" data-motivo="Ya está al máximo.">Al máximo</button>';
+    return `<div class="bloque vidrio equi ${i.equipado ? 'puesto' : ''}">
+      <div class="fila"><strong style="color:${col}">${esc(i.etiqueta)}</strong>${i.equipado ? '<span class="etiq">Equipado</span>' : ''}</div>
+      <p class="peq">${esc(i.desc)}</p>
+      <p class="mut peq">${esc(rn)} · nivel ${i.ilvl}</p>${costo}
+      <div class="btns">${poner}${mejorar}
+        ${botonPost('/api/equipo/desmontar', { id: i.id }, 'Desmontar', `data-confirmar="¿Desmontar este equipo? Recibirás ${esc(i.desmonte)}."`)}
+        ${botonPost('/api/equipo/vender', { id: i.id }, 'Vender ' + fmt(i.precio), `data-confirmar="¿Vender este equipo por ${fmt(i.precio)} monedas?"`)}
+      </div></div>`;
+  }).join('');
+  const opciones = d.rarezas.map(r => `<option value="${esc(r.clave)}">${esc(r.emoji)} ${esc(r.nombre)}</option>`).join('');
+  const masa = d.items.length
+    ? `<div class="bloque vidrio"><p class="peq"><strong>Vender en lote</strong></p><p class="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p>
+        <select class="txt" id="vh-rar" aria-label="Rareza máxima">${opciones}</select>
+        <div class="btns uno">${botonPost('/api/equipo/vender-hasta', {}, 'Vender en lote', `data-campos="${esc(JSON.stringify({ rareza: '#vh-rar' }))}" data-confirmar="¿Vender en lote? No se puede deshacer."`)}</div></div>`
+    : '';
+  const c = d.casa;
+  const sig = c.siguiente
+    ? `<p class="mut peq" style="margin-top:8px">Siguiente: ${esc(c.siguiente.emoji)} ${esc(c.siguiente.nombre)} · ${fmt(c.siguiente.costo)} monedas<br>+${c.siguiente.perks.parcelas} parcelas · +${c.siguiente.perks.bolsa} de bolsa · +${c.siguiente.perks.ofertas} ofertas · +${c.siguiente.perks.ingresos}% ingresos</p>
+       <div class="btns uno">${botonPost('/api/casa/mejorar', {}, 'Mejorar hogar', `aria-disabled="${d.cartera < c.siguiente.costo}" data-motivo="Te faltan monedas."`)}</div>`
+    : '<p class="mut peq" style="margin-top:8px">Tu hogar está al máximo.</p>';
+  const casa = `<div class="bloque vidrio"><div class="fila"><strong>${esc(c.emoji)} ${esc(c.nombre)}</strong><span class="mut peq">Nv ${c.nivel}/${c.max}</span></div>
+    <p class="mut peq">${c.perks.parcelas} parcelas · +${c.perks.bolsa} de bolsa · +${c.perks.ofertas} ofertas · +${c.perks.ingresos}% ingresos</p>${sig}</div>`;
+  return `${titulo('Bonos activos')}${bonos}
+    ${titulo('Tu equipo', `<span class="mut peq">Bolsa ${d.bolsa.usados}/${d.bolsa.max}</span>`)}
+    ${filas || vacio('Aún no tienes equipo. Consíguelo en combates, mazmorras y cofres.')}${masa}
+    ${titulo('Tu hogar')}${casa}`;
+};
+
+const vTienda = (d, base) => titulo('Objetos') + d.items.map(i => {
+  const lleno = i.stock >= d.tope, limite = i.limiteDia && i.usosHoy >= i.limiteDia, pobre = d.cartera < i.precio;
+  const motivo = lleno ? 'Ya tienes el máximo.' : limite ? 'Llegaste al límite de hoy.' : 'Te faltan monedas.';
+  const est = [];
+  if (i.activoS) est.push(`<span class="etiq">Activo ${cuenta(i.activoS, base)}</span>`);
+  if (i.usosRestantes) est.push(`<span class="etiq">${i.usosRestantes} usos</span>`);
+  if (i.limiteDia) est.push(`<span class="mut peq">Hoy ${i.usosHoy}/${i.limiteDia}</span>`);
+  const usar = i.pasivo ? '' : botonPost('/api/tienda/usar', { clave: i.clave }, 'Usar', `aria-disabled="${i.stock < 1}" data-motivo="No tienes este objeto."`);
+  return `<div class="bloque vidrio"><div class="fila"><strong>${esc(i.emoji)} ${esc(i.nombre)}</strong><b>${fmt(i.precio)}</b></div>
+    <p class="mut peq">${esc(i.desc)}</p>
+    <p class="peq">Tienes ${i.stock}/${d.tope} ${est.join(' ')}</p>
+    ${i.pasivo ? `<p class="mut peq">Se usa solo en ${esc(i.usoEn)}</p>` : ''}
+    <div class="btnrow">${botonPost('/api/tienda/comprar', { clave: i.clave }, 'Comprar', `aria-disabled="${!!(lleno || limite || pobre)}" data-motivo="${esc(motivo)}"`)}${usar}</div></div>`;
+}).join('');
+
+const vBazar = (d, base) => titulo('Ofertas de hoy', `<span class="mut peq">cambian en ${cuenta(d.cambiaS, base)}</span>`) +
+  d.ofertas.map(o => `<div class="fil"><div class="nom"><strong class="largo">${esc(o.nombre)}</strong><span class="mut peq">${fmt(o.precio)} monedas</span></div>
+    ${botonPost('/api/bazar/comprar', { id: o.id }, o.comprada ? 'Comprada' : 'Comprar', `aria-disabled="${!!(o.comprada || d.cartera < o.precio)}" data-motivo="${esc(o.comprada ? 'Ya la compraste hoy.' : 'Te faltan monedas.')}"`)}</div>`).join('') +
+  '<p class="mut peq" style="margin-top:10px">Una compra por oferta cada día. El equipo sale al nivel que tengas hoy.</p>';
+
+const paginador = (k, d) => `<div class="btnrow" style="align-items:center"><button type="button" class="mini" data-pg="${k}" data-dir="-1" aria-disabled="${d.pagina <= 1}">Anterior</button><span class="mut peq" style="flex:none">Página ${d.pagina}</span><button type="button" class="mini" data-pg="${k}" data-dir="1" aria-disabled="${!d.hayMas}">Siguiente</button></div>`;
+const opcionesVenta = d => d.vendibles.map(v => `<option value="${esc(v.clave)}">${esc(v.nombre)} (x${v.cantidad})</option>`).join('');
+
+const vMercado = (d, base) => {
+  const lleno = d.mias.length >= d.limite;
+  const pub = d.vendibles.length
+    ? `<div class="bloque vidrio"><select class="txt" id="mp-obj" aria-label="Objeto a vender">${opcionesVenta(d)}</select>
+        <div class="campo"><input class="txt" id="mp-cant" type="number" inputmode="numeric" min="1" value="1" aria-label="Cantidad"><input class="txt" id="mp-precio" type="number" inputmode="numeric" min="1" max="${d.maxPrecio}" placeholder="Precio total" aria-label="Precio total"></div>
+        <p class="mut peq" style="margin-top:8px">Comisión del ${d.comision}% al vender. Máximo ${fmt(d.maxPrecio)} monedas. Ofertas: ${d.mias.length}/${d.limite}.</p>
+        <div class="btns uno">${botonPost('/api/mercado/publicar', {}, 'Publicar oferta', `data-campos="${esc(JSON.stringify({ clave: '#mp-obj', cantidad: '#mp-cant', precio: '#mp-precio' }))}" ${lleno ? 'aria-disabled="true" data-motivo="Ya tienes el máximo de ofertas."' : ''}`)}</div></div>`
+    : vacio('No tienes objetos ni materiales para vender.');
+  const mias = d.mias.length
+    ? d.mias.map(o => `<div class="fil"><div class="nom"><strong class="largo">${esc(o.nombre)} x${o.cantidad}</strong><span class="mut peq">${fmt(o.precio)} monedas</span></div>${botonPost('/api/mercado/cancelar', { id: o.id }, 'Cancelar', '')}</div>`).join('')
+    : vacio('No tienes ofertas publicadas.');
+  const resto = d.ofertas.filter(o => !o.mia);
+  const lista = resto.length
+    ? resto.map(o => `<div class="fil"><div class="nom"><strong class="largo">${esc(o.nombre)} x${o.cantidad}</strong><span class="mut peq">${fmt(o.precio)} monedas</span></div>${botonPost('/api/mercado/comprar', { id: o.id }, 'Comprar', `aria-disabled="${d.cartera < o.precio}" data-motivo="Te faltan monedas."`)}</div>`).join('')
+    : vacio('No hay ofertas de otros jugadores por ahora.');
+  return `${titulo('Vender')}${pub}${titulo('Mis ofertas')}${mias}${titulo('A la venta')}${lista}${paginador('mercado', d)}`;
+};
+
+const vSubastas = (d, base) => {
+  const lleno = d.mias.length >= d.limite;
+  const horas = d.horas.map(h => `<option value="${h}" ${h === 6 ? 'selected' : ''}>${h} h</option>`).join('');
+  const crear = d.vendibles.length
+    ? `<div class="bloque vidrio"><select class="txt" id="sp-obj" aria-label="Objeto a subastar">${opcionesVenta(d)}</select>
+        <div class="campo"><input class="txt" id="sp-cant" type="number" inputmode="numeric" min="1" value="1" aria-label="Cantidad"><input class="txt" id="sp-base" type="number" inputmode="numeric" min="1" max="${d.maxPrecio}" placeholder="Precio base" aria-label="Precio base"></div>
+        <select class="txt" id="sp-horas" aria-label="Duración">${horas}</select>
+        <p class="mut peq" style="margin-top:8px">Comisión del ${d.comision}% si se vende. Subastas: ${d.mias.length}/${d.limite}. El equipo se elige aquí también.</p>
+        <div class="btns uno">${botonPost('/api/subastas/crear', {}, 'Crear subasta', `data-campos="${esc(JSON.stringify({ clave: '#sp-obj', cantidad: '#sp-cant', base: '#sp-base', horas: '#sp-horas' }))}" ${lleno ? 'aria-disabled="true" data-motivo="Ya tienes el máximo de subastas."' : ''}`)}</div></div>`
+    : vacio('No tienes nada para subastar.');
+  const fila = s => {
+    const puja = s.puja > 0 ? 'Puja actual ' + fmt(s.puja) : 'Base ' + fmt(s.base) + ' · sin pujas';
+    const acc = s.mia
+      ? botonPost('/api/subastas/cancelar', { id: s.id }, 'Cancelar', `aria-disabled="${s.puja > 0}" data-motivo="Ya tiene pujas y no se puede cancelar."`)
+      : s.ganando
+        ? '<span class="etiq">Vas ganando</span>'
+        : `<input class="txt corto" id="puja-${s.id}" type="number" inputmode="numeric" min="${s.minimo}" value="${s.minimo}" aria-label="Tu puja">${botonPost('/api/subastas/pujar', { id: s.id }, 'Pujar', `data-campos="${esc(JSON.stringify({ monto: '#puja-' + s.id }))}" aria-disabled="${d.cartera < s.minimo}" data-motivo="Te faltan monedas."`)}`;
+    return `<div class="bloque vidrio"><div class="fila"><strong class="largo">${esc(s.nombre)}</strong></div>
+      <p class="mut peq">${puja} · mínimo ${fmt(s.minimo)} · termina en ${cuenta(s.terminaS, base)}</p>
+      <div class="btnrow" style="align-items:center">${acc}</div></div>`;
+  };
+  const mias = d.mias.length ? d.mias.map(fila).join('') : vacio('No tienes subastas activas.');
+  const resto = d.activas.filter(s => !s.mia);
+  const lista = resto.length ? resto.map(fila).join('') : vacio('No hay subastas de otros jugadores por ahora.');
+  return `${titulo('Crear')}${crear}${titulo('Mis subastas')}${mias}${titulo('Activas')}${lista}${paginador('subastas', d)}`;
+};
+
+const SECCIONES_TIENDA = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
+function pintarTienda(d, base) {
+  const seg = `<div class="seg" role="group" aria-label="Sección de la tienda">${SECCIONES_TIENDA.map(([k, n]) => `<button type="button" data-s="${k}" aria-pressed="${k === tiendaSel}">${n}</button>`).join('')}</div>`;
+  const cart = `<p class="mut peq" style="margin-top:12px">Cartera: <b>${fmt(d.cartera)}</b> monedas</p>`;
+  const v = { tienda: vTienda, bazar: vBazar, mercado: vMercado, subastas: vSubastas }[tiendaSel];
+  return seg + cart + v(d, base);
+}
+
+function pintarInventario(d, base) {
+  const seg = `<div class="seg" role="group" aria-label="Sección del inventario">${[['objetos', 'Objetos'], ['equipo', 'Equipo']].map(([k, n]) => `<button type="button" data-i="${k}" aria-pressed="${k === invSel}">${n}</button>`).join('')}</div>`;
+  return seg + (invSel === 'objetos' ? pintarObjetos(d, base) : pintarEquipo(d, base));
+}
+
 const CARGA = {
   ficha: ['/api/ficha', pintarFicha],
-  inventario: ['/api/inventario', pintarInventario],
+  inventario: [() => invSel === 'equipo' ? '/api/equipo' : '/api/inventario', pintarInventario],
+  tienda: [() => tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + tiendaSel, pintarTienda],
   hogar: [() => '/api/' + hogarSel, pintarHogar],
   rankings: ['/api/rankings', pintarRankings],
   historial: ['/api/historial', pintarHistorial]
@@ -844,6 +974,18 @@ $('#v-panel').addEventListener('click', e => {
   if (e.target.closest('[data-reintentar]')) return abrir(tabActual, true);
   const r = e.target.closest('button[data-r]');
   if (r) { rankSel = r.dataset.r; return dibujar('rankings'); }
+  const si = e.target.closest('button[data-i]');
+  if (si) { invSel = si.dataset.i; delete cargado.inventario; return abrir('inventario', true); }
+  const ss = e.target.closest('button[data-s]');
+  if (ss) { tiendaSel = ss.dataset.s; delete cargado.tienda; return abrir('tienda', true); }
+  const pg = e.target.closest('button[data-pg]');
+  if (pg) {
+    if (pg.getAttribute('aria-disabled') === 'true') return;
+    const dir = Number(pg.dataset.dir);
+    if (pg.dataset.pg === 'mercado') merPag = Math.max(1, merPag + dir); else subPag = Math.max(1, subPag + dir);
+    delete cargado.tienda;
+    return abrir('tienda', true);
+  }
   const h = e.target.closest('button[data-h]');
   if (h) { hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
   const rn = e.target.closest('button[data-renombrar]');
@@ -855,7 +997,12 @@ $('#v-panel').addEventListener('click', e => {
   const b = e.target.closest('button[data-post]');
   if (!b) return;
   if (b.getAttribute('aria-disabled') === 'true') return aviso(b.dataset.motivo || b.dataset.bloq || 'Todavía no está disponible.');
+  if (b.dataset.confirmar && !window.confirm(b.dataset.confirmar)) return;
   const cuerpo = JSON.parse(b.dataset.body || '{}');
+  if (b.dataset.campos) {
+    const campos = JSON.parse(b.dataset.campos);
+    for (const k in campos) { const el = $(campos[k]); cuerpo[k] = el ? el.value : ''; }
+  }
   if (b.dataset.nombre) cuerpo.nombre = ($(b.dataset.nombre) || {}).value || '';
   publicar(b, b.dataset.post, cuerpo);
 });
