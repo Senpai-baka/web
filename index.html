@@ -872,7 +872,12 @@ function pintarPerfil(d, base) {
   if (me && me.owner) ops.push(['owner', 'Owner']);
   const seg = segHtml('Sección del perfil', ops, perfilSel, 'p');
   const cuerpo = perfilSel === 'historial' ? pintarHistorial(d) : perfilSel === 'heroe' ? pintarHeroe(d, base) : perfilSel === 'owner' ? pintarOwner(d, base) : pintarFicha(d, base);
-  return cabPerfil(perfilSel === 'ficha' ? d : null) + seg + cuerpo + '<button type="button" class="link salir" data-salir>Cerrar sesión</button>';
+  const avisos = perfilSel === 'ficha'
+    ? `<div class="bloque vidrio"><div class="fila"><strong>🔔 Avisos por WhatsApp</strong><span class="etiq ${d.avisosWa ? '' : 'nar'}">${d.avisosWa ? 'Activados' : 'Apagados'}</span></div>
+        <p class="mut peq">Te escribo cuando termine una expedición o te superen en una subasta.</p>
+        <div class="btns uno">${botonPost('/api/avisos', { activo: !d.avisosWa }, d.avisosWa ? 'Desactivar avisos' : 'Activar avisos', '')}</div></div>`
+    : '';
+  return cabPerfil(perfilSel === 'ficha' ? d : null) + seg + cuerpo + avisos + '<button type="button" class="link salir" data-salir>Cerrar sesión</button>';
 }
 
 const botonPost = (ruta, cuerpo, txt, extra) => `<button type="button" class="mini" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" ${extra || ''}>${esc(txt)}</button>`;
