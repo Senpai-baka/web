@@ -458,7 +458,7 @@ const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
   ['inventario', 'Mochila', svg('<path d="M5 8 H19 L20 21 H4 Z"/><path d="M9 8 V6 A3 3 0 0 1 15 6 V8"/>')],
   ['tienda', 'Tienda', svg('<path d="M4 9 L6 4 H18 L20 9"/><path d="M4 9 C4 11 8 11 8 9 C8 11 12 11 12 9 C12 11 16 11 16 9 C16 11 20 11 20 9"/><path d="M5 11 V20 H19 V11"/><path d="M10 20 V15 H14 V20"/>')],
-  ['hogar', 'Hogar', ICONOS.leaf],
+  ['hogar', 'Mundo', ICONOS.leaf],
   ['rankings', 'Ranking', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')]
 ];
 const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'rankings'];
@@ -960,9 +960,42 @@ function pintarGranja(d, base) {
     ${titulo('Semillas')}${catalogo}`;
 }
 
+function pintarMazmorra(d, base) {
+  const cab2 = `<p class="peq mut" style="margin-top:8px">Cartera: <b>${fmt(d.cartera)}</b> · Récord: piso <b>${d.record}</b> · Pociones: <b>${d.pociones}</b></p>`;
+  if (d.nivel < d.nivelMin) return cab2 + `<div class="bloque vidrio"><p class="mut peq">Se desbloquea en el nivel ${d.nivelMin}. Tu nivel: ${d.nivel}.</p></div>`;
+  if (!d.activo) {
+    const e = d.entrada;
+    const espera = d.esperaS > 0;
+    const motivo = 'Tus heridas siguen frescas.';
+    const b = (cuerpo, txt) => botonPost('/api/mazmorra/entrar', cuerpo, txt, `${espera ? 'aria-disabled="true"' : ''} data-motivo="${motivo}"`);
+    return cab2 + `<div class="bloque vidrio"><strong>🕳️ Mazmorra</strong>
+      <p class="mut peq">Baja piso a piso. Los jefes aparecen cada ${d.jefeCada} pisos y siempre sueltan equipo. Si caes pierdes el ${d.perdida}% de las monedas reunidas; conservas equipo y cofres.</p>
+      ${d.check ? `<p class="peq">💾 Guardado: piso ${d.check}</p>` : ''}
+      ${espera ? `<p class="peq">Podrás entrar en ${cuenta(d.esperaS, base)}</p>` : ''}
+      <div class="btns">${b({}, (d.check ? 'Continuar piso ' + d.check : 'Entrar') + ' · ' + fmt(e.normal))}${b({ seguro: true }, 'Con seguro · ' + fmt(e.normal + e.seguro))}
+      ${d.check ? b({ inicio: true }, 'Desde piso 1 · ' + fmt(e.inicio)) : ''}</div>
+      <p class="mut peq" style="margin-top:8px">El seguro evita perder monedas y retroceder al caer.</p></div>`;
+  }
+  const r = d.run, s = r.siguiente;
+  const pct = r.hpMax ? Math.round(r.hp / r.hpMax * 100) : 0;
+  return cab2 + `<div class="bloque vidrio"><div class="fila"><strong>📍 Piso ${r.piso}</strong>${r.seguro ? '<span class="etiq">Asegurada</span>' : ''}</div>
+      <div class="stat"><div class="fila"><span>Vida</span><span>${r.hp}/${r.hpMax}</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}</div>
+      <p class="peq" style="margin-top:10px">💰 Botín: <b>${fmt(r.botin)}</b> · 🎒 ${r.equipo.length} equipo${r.cofres.length ? ' · ' + r.cofres.join(' ') : ''}</p>
+      ${r.equipo.length ? `<p class="mut peq">${r.equipo.map(esc).join(' · ')}</p>` : ''}
+      <p class="peq">${r.expirada ? 'La expedición expiró. Cobra tu botín.' : 'Tiempo restante: ' + cuenta(r.restaS, base)}</p></div>
+    <div class="bloque vidrio"><div class="fila"><strong>${s.jefe ? '👑 ' : '👾 '}${esc(s.nombre)}</strong><span class="mut peq">Piso ${s.piso}</span></div>
+      <p class="mut peq">Vida ${fmt(s.hp)} · Ataque ${fmt(s.atk)}${s.jefe ? ' · Jefe' : ''}</p></div>
+    <div class="btns">
+      ${botonPost('/api/mazmorra/avanzar', {}, 'Avanzar', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
+      ${botonPost('/api/mazmorra/curar', {}, 'Poción (' + d.pociones + ')', r.hp >= r.hpMax || !d.pociones ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '')}
+      ${botonPost('/api/mazmorra/descansar', {}, 'Posada · ' + fmt(r.posada), r.hp >= r.hpMax ? 'aria-disabled="true" data-motivo="Ya tienes la vida completa."' : '')}
+      ${botonPost('/api/mazmorra/salir', {}, 'Salir y cobrar', 'data-confirmar="Saldrás con lo reunido hasta ahora. ¿Continuar?"')}
+    </div>`;
+}
+
 function pintarHogar(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
-  return cab('Hogar', 'Cuida a tu mascota y cultiva tu granja.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : pintarGranja(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mundo', 'Tu mascota, tu granja y la mazmorra.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : pintarMazmorra(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -1268,7 +1301,7 @@ async function publicar(b, ruta, cuerpo) {
     if (d.me) aplicar(d.me);
     if (d.resultado) {
       const { chips, nom, col } = resumen('', d.resultado);
-      hoja({ icono: ruta.includes('granja') ? ICONOS.leaf : ICONOS.gift, col, rareza: nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo' });
+      hoja({ icono: ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ICONOS.gift, col, rareza: nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo' });
     } else if (d.mensaje) aviso(d.mensaje);
     await abrir(tabActual, true);
   } catch (e) {
