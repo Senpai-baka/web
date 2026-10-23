@@ -1386,13 +1386,14 @@ function pintarOwner(d, base) {
 
 const valores = {};
 let ciudadSel = 'banco', progSel = 'misiones', jugQ = '', clanQ = '';
-const SECCIONES_CIUDAD = [['banco', 'Banco'], ['negocios', 'Negocios'], ['casino', 'Casino'], ['jugadores', 'Jugadores']];
+const SECCIONES_CIUDAD = [['banco', 'Banco'], ['negocios', 'Negocios'], ['casino', 'Casino'], ['altar', 'Altar'], ['jugadores', 'Jugadores']];
 const campo = (id, v, ph, o = {}) => `<input class="txt" id="${id}" data-v="${v}" type="${o.tipo || 'number'}" ${o.tipo === 'text' ? 'maxlength="24" autocomplete="off"' : 'inputmode="numeric" min="1"'} placeholder="${esc(ph)}" aria-label="${esc(ph)}" value="${esc(valores[v] !== undefined ? valores[v] : (o.def || ''))}">`;
 const camposAttr = o => `data-campos="${esc(JSON.stringify(o))}"`;
 const bloqueado = (cond, motivo) => `${cond ? 'aria-disabled="true"' : ''} data-motivo="${esc(motivo)}"`;
 
 function pintarBanco(d) {
-  const imp = d.impuesto.aplica ? `<p class="peq" style="margin-top:8px">Tu patrimonio supera ${fmt(d.impuesto.umbral)}: pagas ${d.impuesto.tasa}% diario sobre el excedente.</p>` : '';
+  const tramos = d.impuesto.tramos.map(t => 'desde ' + fmt(t.desde) + ': ' + t.tasa + '%').join(' · ');
+  const imp = `<p class="mut peq" style="margin-top:8px">Impuesto diario por tramos sobre tu patrimonio (${tramos}).</p>${d.impuesto.aplica ? `<p class="peq" style="margin-top:6px">Hoy pagarías ${fmt(d.impuesto.diario)} al día. Guardar monedas en el banco no te libra de él.</p>` : ''}`;
   return `${cifras([['Cartera', fmt(d.cartera)], ['Banco', fmt(d.banco)], ['Total', fmt(d.total)]])}
     <div class="bloque vidrio"><p class="mut peq">Interés de ${d.tasa}% diario (máximo ${fmt(d.topeDia)} por día, hasta ${d.maxDias} días acumulados). Lo que está en el banco no se puede robar.</p>${imp}
       ${campo('bk-cant', 'banco', 'Cantidad')}
@@ -1446,8 +1447,15 @@ function pintarJugadores(d, base) {
 
 function pintarCiudad(d, base) {
   const seg = segHtml('Sección de la ciudad', SECCIONES_CIUDAD, ciudadSel, 'c');
-  const v = { banco: pintarBanco, negocios: pintarNegocios, casino: pintarCasino, jugadores: pintarJugadores }[ciudadSel];
+  const v = { banco: pintarBanco, negocios: pintarNegocios, casino: pintarCasino, altar: pintarAltar, jugadores: pintarJugadores }[ciudadSel];
   return cab('Ciudad', 'Banco, negocios, casino y otros jugadores.') + seg + v(d, base);
+}
+
+function pintarAltar(d) {
+  const filas = d.lista.map(r => `<div class="fil"><div class="nom"><strong>${esc(r.emoji)} ${esc(r.nombre)}</strong><span class="mut peq">${r.tiene ? 'En tu colección' : fmt(d.precio) + ' monedas'}</span></div>${r.tiene ? '<span class="val">✓</span>' : botonPost('/api/altar/comprar', { clave: r.clave }, 'Comprar', `data-confirmar="¿Pagar ${fmt(d.precio)} monedas por ${esc(r.nombre)}?" ` + bloqueado(d.cartera < d.precio, 'No te alcanza con la cartera.'))}</div>`).join('');
+  return `${cifras([['Cartera', fmt(d.cartera)], ['Colección', d.n + '/' + d.total], ['Bono', '+' + d.bono + '%']])}
+    <div class="bloque vidrio"><p class="mut peq">Cada reliquia da un bono permanente de ingresos. El precio sube con cada una que compras${d.completo ? '' : ': la siguiente cuesta ' + fmt(d.precio)}. Se paga con la cartera.</p></div>
+    <div class="lista">${filas}</div>`;
 }
 
 function pintarForja(d) {
