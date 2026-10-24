@@ -407,6 +407,54 @@ input.txt.corto{margin-top:0;height:40px}
 .kpis div{padding:10px 12px;border-radius:12px;border:1px solid var(--linea);background:rgba(255,255,255,.04)}
 .kpis b{display:block;font-family:var(--serif);font-size:20px}
 .kpis span{font-size:12px;color:var(--mut)}
+
+/* ===== Respiración (más aire entre bloques) ===== */
+body{line-height:1.6}
+#app{padding-inline:20px}
+.hero,.perfil{margin-inline:-20px}.hero-in{left:20px;right:20px}
+h1{margin:28px 0 12px}
+.sec,summary.sec{margin-top:38px;margin-bottom:16px}
+.bloque{padding:20px 18px;margin-top:18px}
+.rejilla{gap:18px}
+.zc{padding:14px 14px 16px}
+.ticket{padding:18px 16px 18px 18px;gap:16px}
+.hud{padding:14px 16px;gap:10px;margin-top:16px}
+.cifras{gap:12px;margin-top:8px}.cifras>div{padding:14px 10px 12px}
+.mats{gap:14px}.bolsa-g{gap:12px;margin-top:16px}.plots{gap:12px;margin-top:14px}
+.btns{gap:12px;margin-top:16px}
+.tals,.clases,.habs,.kpis{gap:12px;margin-top:14px}
+.muneco{gap:18px;padding:24px 18px 20px}
+.vidrio+.vidrio{margin-top:18px}
+.fil{padding-block:12px}
+@media (min-width:760px){
+  #app{max-width:900px;padding-inline:32px}
+  .hero,.perfil{margin-inline:-32px}.hero-in{left:32px;right:32px}
+  .rejilla{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mats{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .bolsa-g{grid-template-columns:repeat(8,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .nav .in{max-width:640px}
+}
+/* ===== Respuesta al tacto y al cursor ===== */
+.accion,.btn,.mini,.ico,.nav button,.slot.celda,.zona{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .25s,filter .2s}
+.accion:active,.btn:active,.mini:active,.ico:active,.slot.celda:active{transform:scale(.94)}
+@media (hover:hover){
+  .zona:hover{transform:translateY(-5px);box-shadow:0 16px 30px rgba(0,0,0,.5),0 0 0 1px color-mix(in srgb,var(--z) 60%,transparent)}
+  .slot.celda:hover{transform:translateY(-3px) scale(1.07);filter:brightness(1.15)}
+  .accion:hover,.btn:hover{filter:brightness(1.12)}
+}
+#xpbar{transition:width .9s cubic-bezier(.2,.7,.2,1)}
+/* Entrada escalonada de las tarjetas de inicio */
+#rejilla>.zona,#recompensas>.ticket{animation:entraHome .55s cubic-bezier(.2,.7,.2,1) backwards}
+#rejilla>.zona:nth-child(2){animation-delay:.07s}#rejilla>.zona:nth-child(3){animation-delay:.14s}
+#rejilla>.zona:nth-child(4){animation-delay:.21s}#rejilla>.zona:nth-child(5){animation-delay:.28s}
+#rejilla>.zona:nth-child(n+6){animation-delay:.35s}
+#recompensas>.ticket:nth-child(1){animation-delay:.3s}#recompensas>.ticket:nth-child(n+2){animation-delay:.4s}
+@keyframes entraHome{from{opacity:0;transform:translateY(18px)}}
+/* Números que salen volando al ganar o perder */
+.numvuela{position:fixed;z-index:80;pointer-events:none;font:800 21px var(--serif);color:var(--oro);text-shadow:0 2px 10px #000;animation:numSube 1.5s cubic-bezier(.2,.7,.3,1) forwards;white-space:nowrap}
+.numvuela.xp{color:var(--sakura)}.numvuela.neg{color:#f59aa8}
+@keyframes numSube{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}14%{opacity:1;transform:translate(-50%,-8px) scale(1.2)}100%{opacity:0;transform:translate(-50%,-78px) scale(1)}}
 </style>
 </head>
 <body>
@@ -1699,6 +1747,37 @@ $('#top-ava').addEventListener('click', () => abrir('ficha'));
     vista('panel');
     abrir(location.hash.slice(1) || 'inicio');
   } catch (_) { vista('login'); }
+})();
+</script>
+
+<script>
+/* Capa de interacción: números flotantes. No cambia la lógica del panel. */
+(() => {
+  if (reducir) return;
+  const volar = (txt, el, cls) => {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const n = document.createElement('div');
+    n.className = 'numvuela ' + (cls || '');
+    n.textContent = txt;
+    n.style.left = (r.left + r.width / 2 + (Math.random() - .5) * 24) + 'px';
+    n.style.top = (r.top + r.height / 2) + 'px';
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 1600);
+  };
+  const original = window.aplicar;
+  window.aplicar = function (d) {
+    const antes = me ? { m: me.monedas, xp: me.xp, nv: me.nivel } : null;
+    const r = original.apply(this, arguments);
+    if (antes && d && typeof d.monedas === 'number') {
+      const dm = d.monedas - antes.m;
+      if (dm) volar((dm > 0 ? '+' : '−') + fmt(Math.abs(dm)), document.getElementById('monedas'), dm > 0 ? '' : 'neg');
+      const dx = d.xp - antes.xp;
+      if (d.nivel === antes.nv && dx > 0) volar('+' + fmt(dx) + ' XP', document.getElementById('xp'), 'xp');
+    }
+    return r;
+  };
 })();
 </script>
 </body>
