@@ -947,7 +947,7 @@ function pintarFicha(d, base) {
   const c = d.clan;
   const clan = c
     ? kv('Clan', esc(c.nombre) + (c.lider ? '<span class="etiq">Líder</span>' : '')) +
-      kv('Nivel del clan', c.nivel + '/' + c.max) + kv('Miembros', c.miembros + '/' + c.cupo) + kv('Banco del clan', fmt(c.banco) + ' monedas') +
+      kv('Nivel del clan', 'Nv ' + c.nivel) + kv('Miembros', c.miembros + '/' + c.cupo) + kv('Banco del clan', fmt(c.banco) + ' monedas') +
       kv('Bono de ingresos', '+' + c.bono + '%') +
       kv('Guerra de clanes', fmt(c.guerra.pts) + ' pts' + (c.guerra.puesto ? ' · puesto ' + c.guerra.puesto : '')) +
       kv('Cierra en', cuenta(c.guerra.cierraS, base)) +
@@ -1197,12 +1197,17 @@ const pintarEquipo = (d, base) => {
       : '<button type="button" class="mini" aria-disabled="true" data-motivo="Ya está al máximo.">Al máximo</button>';
     detalle = `<div class="bloque vidrio detalle" style="--r:${c}">
       <div class="fila"><strong style="color:${c}">${esc(it.etiqueta)}</strong>${it.equipado ? '<span class="etiq">Equipado</span>' : ''}</div>
-      <p class="peq">${esc(it.desc)}</p><p class="mut peq">${esc(rn)} · nivel ${it.ilvl}</p>${costo}
+      <p class="peq">${esc(it.desc)}</p><p class="mut peq">${esc(rn)} · nivel ${it.ilvl}</p><p class="mut peq">Durabilidad: ${it.dur}/${it.durMax}${it.roto ? ' · roto, sin bonos' : ''}</p>${costo}
       <div class="btns">${poner}${mejorar}
+        ${it.reparar ? botonPost('/api/equipo/reparar', { id: it.id }, 'Reparar ' + fmt(it.reparar.monedas), `aria-disabled="${!it.reparar.puede}" data-motivo="Te faltan monedas."`) : ''}
         ${botonPost('/api/equipo/desmontar', { id: it.id }, 'Desmontar', `data-confirmar="¿Desmontar este equipo? Recibirás ${esc(it.desmonte)}."`)}
         ${botonPost('/api/equipo/vender', { id: it.id }, 'Vender ' + fmt(it.precio), `data-confirmar="¿Vender este equipo por ${fmt(it.precio)} monedas?"`)}
       </div></div>`;
   }
+  const rep = d.reparacion.cantidad
+    ? `<div class="bloque vidrio"><p class="mut peq">${d.reparacion.cantidad} ${d.reparacion.cantidad === 1 ? 'pieza dañada' : 'piezas dañadas'}. El equipo se desgasta al cazar y en la mazmorra; si llega a 0 deja de dar bonos.</p>
+        <div class="btns uno">${botonPost('/api/equipo/reparar', { todo: true }, 'Reparar todo ' + fmt(d.reparacion.total), `aria-disabled="${!d.reparacion.puede}" data-motivo="Te faltan monedas."`)}</div></div>`
+    : '';
   const opciones = d.rarezas.map(r => `<option value="${esc(r.clave)}">${esc(r.emoji)} ${esc(r.nombre)}</option>`).join('');
   const masa = d.items.length
     ? `<div class="bloque vidrio"><p class="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p>
@@ -1218,6 +1223,7 @@ const pintarEquipo = (d, base) => {
     <p class="mut peq">${c.perks.parcelas} parcelas · +${c.perks.bolsa} de bolsa · +${c.perks.ofertas} ofertas · +${c.perks.ingresos}% ingresos</p>${sig}</div>`;
   return `${sec('bonos', 'Bonos activos', '', bonos)}
     ${sec('equipo', 'Tu equipo', 'Bolsa ' + d.bolsa.usados + '/' + d.bolsa.max, `<div class="muneco vidrio">${huecos}</div>${bolsa}${detalle}`)}
+    ${rep ? sec('reparar', 'Reparaciones', '', rep) : ''}
     ${masa ? sec('lote', 'Venta en lote', '', masa) : ''}
     ${sec('casa', 'Tu hogar', esc(c.emoji) + ' ' + esc(c.nombre), casa)}`;
 };
@@ -1513,7 +1519,7 @@ function pintarClan(d, base) {
       ${kv('Miembros', c.miembros.length + '/' + c.cupo)}${kv('Banco del clan', fmt(c.banco))}${kv('Bono de ingresos', '+' + c.bono + '%')}${kv('Guerra', fmt(c.guerra.pts) + ' pts' + (c.guerra.puesto ? ' · puesto ' + c.guerra.puesto : ''))}</div>
       <div class="bloque vidrio">${campo('cl-dep', 'clanDep', 'Cantidad a depositar')}
         <div class="btns uno">${botonPost('/api/clan/depositar', {}, 'Depositar al banco del clan', camposAttr({ cantidad: '#cl-dep' }))}</div></div>
-      ${c.lider ? `<div class="bloque vidrio">${c.costoMejora !== null ? `<p class="mut peq">Mejorar al nivel ${c.nivel + 1} cuesta ${fmt(c.costoMejora)} del banco del clan.</p><div class="btns uno">${botonPost('/api/clan/mejorar', {}, 'Mejorar clan', bloqueado(c.banco < c.costoMejora, 'El banco del clan no alcanza.'))}</div>` : '<p class="mut peq">Tu clan está al nivel máximo.</p>'}${busca}${resultados}</div>` : ''}
+      ${c.lider ? `<div class="bloque vidrio"><p class="mut peq">Mejorar al nivel ${c.nivel + 1} cuesta ${fmt(c.costoMejora)} del banco del clan (sube con el prestigio del líder). El bono de ingresos llega hasta el nivel ${c.bonoMax}; después solo crece el cupo.</p><div class="btns uno">${botonPost('/api/clan/mejorar', {}, 'Mejorar clan', bloqueado(c.banco < c.costoMejora, 'El banco del clan no alcanza.'))}</div>${busca}${resultados}</div>` : ''}
       ${sec('cl-mi', 'Miembros', c.miembros.length + '', miembros)}
       <div class="btns uno">${c.lider ? botonPost('/api/clan/disolver', { confirmar: true }, 'Disolver clan', 'data-confirmar="Se borrará el clan y se pierde el banco. ¿Continuar?"') : botonPost('/api/clan/salir', {}, 'Salir del clan', 'data-confirmar="¿Salir del clan?"')}</div>`;
   } else {
