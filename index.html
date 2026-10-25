@@ -503,6 +503,12 @@ body::before{background:radial-gradient(70vmax 40vmax at 85% -8%,rgba(232,148,10
       <div class="rejilla" id="rejilla"></div>
       <div class="grupo"><h2>Recompensas</h2><span class="mut peq">Una vez cada cierto tiempo</span></div>
       <div id="recompensas"></div>
+      <div class="grupo"><h2>Gacha</h2><span class="mut peq">Se viene pronto</span></div>
+      <div class="ticket espera" id="c-gacha" style="--z:#b69be0">
+        <div class="aro" style="color:var(--z)"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/></svg></div>
+        <div class="tx"><h3>Gacha</h3><p class="mut peq">Invoca y colecciona personajes de anime.</p></div>
+        <span class="etiq nar" style="margin:0">Próximamente</span>
+      </div>
     </div>
     <div id="t-ficha" hidden></div>
     <div id="t-inventario" hidden></div>
@@ -585,7 +591,7 @@ const ACC = {
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
   pescar: { l: 'Lago lunar', n: 'Pescar', ya: 'pescar', p: 'Pescaste', v: 'Pescando…', ic: 'fish', fx: 'pesca',  tot: 2700, z: '#8fb4d6', g: 'r' },
   cazar:  { l: 'Coto de caza', n: 'Cazar',  ya: 'cazar',  p: 'Cazaste',  v: 'Cazando…',  ic: 'hunt', fx: 'apunta', tot: 3600, z: '#e8946a', g: 'r' },
-  crimen: { n: 'Arriesgar', t: 'Crimen', d: 'Arriesga tu cartera por un gran botín.', ya: 'volver a arriesgarte', p: '', v: 'Planeando el golpe…', ic: 'mask', fx: 'sigilo', tot: 7200, z: '#c9626f', g: 'c' },
+  crimen: { n: 'Arriesgar', t: 'Crimen', d: 'Arriesga tu cartera por un gran botín.', ya: 'arriesgarte', p: '', v: 'Planeando el golpe…', ic: 'mask', fx: 'sigilo', tot: 7200, z: '#c9626f', g: 'c' },
   daily:  { n: 'Reclamar', t: 'Recompensa diaria', d: 'Tu premio del día y tu racha.', ya: 'reclamar tu recompensa diaria', p: '', v: 'Abriendo regalo…', ic: 'gift', fx: 'flotar', tot: 86400, z: '#e8a58e', g: 'c' },
   work:   { n: 'Trabajar', t: 'Trabajo', d: 'Monedas según tu empleo.', ya: 'trabajar', p: '', v: 'Trabajando…', ic: 'brief', fx: 'trabajo', tot: 3600, z: '#c3bbdc', g: 'c' }
 };
@@ -610,6 +616,7 @@ function slot(emo, o = {}) {
   return `<div class="slot ${o.cls || ''}" style="--r:${o.col || 'rgba(195,187,220,.4)'}"><span class="si">${esc(emo)}</span>${o.n !== undefined ? `<b class="n">${o.n}</b>` : ''}</div>`;
 }
 const MEDALLA = ['🥇', '🥈', '🥉'];
+const medalla = i => MEDALLA[i] || (i + 1) + '.';
 const escena = u => {
   const ola = (y, a, x0) => `M${x0} ${y} q25 ${a} 50 0${' t50 0'.repeat(11)} V240 H${x0}Z`;
   return `<svg class="esc" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -935,7 +942,11 @@ function hoja(o) {
   $('#h-ok').focus();
 }
 function resumen(k, r) {
-  const [nom, col] = RAREZA[r.rareza] || RAREZA.comun;
+  // La rareza solo aplica a recolectar (minar, talar, pescar, cazar); en crimen, trabajo, diaria y demás no se muestra
+  const recolecta = ACC[k] ? ACC[k].g === 'r' : true;
+  const rr = recolecta && r.rareza ? RAREZA[r.rareza] : null;
+  const nom = rr ? rr[0] : '';
+  const col = rr ? rr[1] : RAREZA.comun[1];
   const chips = [];
   if (r.monedas) chips.push((r.monedas > 0 ? '+' : '−') + fmt(Math.abs(r.monedas)) + ' monedas');
   if (r.xp) chips.push('+' + fmt(r.xp) + ' XP');
@@ -1064,7 +1075,7 @@ function pintarObjetos(d, base) {
   const reliquias = `<div class="rel">${d.reliquias.map(r => `<span class="${r.tiene ? '' : 'no'}">${esc(r.emoji)} ${esc(r.nombre)}</span>`).join('')}</div>
     <p class="mut peq" style="margin-top:8px">Bono de ingresos por reliquias: +${d.bonoReliquias}%. Solo salen de los cofres.</p>`;
   return `${sec('herramientas', 'Herramientas', '', `<div class="lista">${herr}</div>`)}
-    ${sec('cofres', 'Cofres', 'se abren de ' + d.cofresMax + ' en ' + d.cofresMax, `<div class="bloque vidrio">${cofres}</div>`)}
+    ${sec('cofres', 'Cofres', 'hasta ' + d.cofresMax + ' a la vez', `<div class="bloque vidrio">${cofres}</div>`)}
     ${sec('consumibles', 'Consumibles', 'máx. ' + d.tope + ' de cada uno', cons)}
     ${sec('reliquias', 'Reliquias', tengo + '/' + d.reliquias.length, reliquias)}
     ${sec('materiales', 'Materiales', '', mats)}`;
@@ -1165,7 +1176,7 @@ function pintarHogar(d, base) {
 }
 
 function filaRanking(r, extra, valor) {
-  return `<div class="fil ${r.yo || r.mio ? 'yo' : ''}"><span class="pos">${MEDALLA[r.pos - 1] || r.pos}</span>
+  return `<div class="fil ${r.yo || r.mio ? 'yo' : ''}"><span class="pos">${medalla(r.pos - 1)}</span>
     <div class="nom"><strong>${esc(r.nombre)}${r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}</strong>${extra ? `<span class="mut peq">${extra}</span>` : ''}</div>
     <span class="val">${valor}</span></div>`;
 }
@@ -1177,16 +1188,16 @@ function pintarRankings(d, base) {
   if (rankSel === 'monedas') {
     cuerpo = d.monedas.length ? d.monedas.map(r => filaRanking(r, '', fmt(r.valor))).join('') : vacio('Aún no hay datos.');
   } else if (rankSel === 'xp') {
-    cuerpo = `<p class="mut peq" style="margin-top:12px">Se reinicia en ${cuenta(d.cierraXpS, base)}. Premios: ${d.premiosXp.map((p, i) => MEDALLA[i] + ' ' + fmt(p)).join(' · ')}</p>` +
+    cuerpo = `<p class="mut peq" style="margin-top:12px">Se reinicia en ${cuenta(d.cierraXpS, base)}. Premios: ${d.premiosXp.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ')}</p>` +
       (d.xpSemana.length ? d.xpSemana.map(r => filaRanking(r, '', fmt(r.valor) + ' XP')).join('') : vacio('Nadie ha sumado XP esta semana.'));
   } else if (rankSel === 'clanes') {
     cuerpo = d.clanes.length ? d.clanes.map(c => filaRanking(c, `Nv ${c.nivel} · ${c.miembros} miembro${c.miembros === 1 ? '' : 's'}`, fmt(c.banco))).join('') : vacio('Aún no hay clanes.');
   } else {
     const g = d.guerra;
     const mio = g.mio ? `<div class="bloque vidrio">${kv('Tu clan', esc(g.mio.nombre))}${kv('Puesto', '#' + g.mio.puesto)}${kv('Puntos', fmt(g.mio.pts))}</div>` : `<div class="aviso-i">Suma puntos para tu clan minando, talando y pescando.</div>`;
-    cuerpo = `<p class="mut peq" style="margin-top:12px">Semana ${esc(g.semana)} · cierra en ${cuenta(g.cierraS, base)}<br>Premios al banco del clan: ${g.premios.map((p, i) => MEDALLA[i] + ' ' + fmt(p)).join(' · ')} (mínimo ${g.minPuntos} pts)</p>` +
+    cuerpo = `<p class="mut peq" style="margin-top:12px">Semana ${esc(g.semana)} · cierra en ${cuenta(g.cierraS, base)}<br>Premios al banco del clan: ${g.premios.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ')} (mínimo ${g.minPuntos} pts)</p>` +
       mio + (g.ranking.length ? g.ranking.map(c => filaRanking(c, `${c.miembros} miembro${c.miembros === 1 ? '' : 's'}`, fmt(c.pts) + ' pts')).join('') : vacio('Todavía nadie ha puntuado esta semana.')) +
-      (g.ultima && g.ultima.ranking.length ? `<p class="mut peq" style="margin-top:16px">Semana anterior (${esc(g.ultima.semana)}): ${g.ultima.ranking.map((r, i) => MEDALLA[i] + ' ' + esc(r.nombre)).join(' · ')}</p>` : '');
+      (g.ultima && g.ultima.ranking.length ? `<p class="mut peq" style="margin-top:16px">Semana anterior (${esc(g.ultima.semana)}): ${g.ultima.ranking.map((r, i) => medalla(i) + ' ' + esc(r.nombre)).join(' · ')}</p>` : '');
   }
   return `${cab('Rankings', 'Compara tu progreso con el resto de la isla.')}${seg}<div class="lista">${cuerpo}</div>`;
 }
@@ -1202,7 +1213,7 @@ function pintarHistorial(d) {
       <div class="nom"><strong><i class="rd" style="--c:${col}"></i>${esc(i.titulo)}</strong>
         <span class="mut peq">${esc(verbo[i.accion] || 'Actuaste en')} ${esc(i.zona)} · ${hace(i.hace)} · ${i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
         ${extra ? `<span class="peq" style="color:var(--lav)">${extra}</span>` : ''}</div>
-      <span class="val">${i.monedas < 0 ? '−' : '+'}${fmt(Math.abs(i.monedas))}</span></div>`;
+      <span class="val">${(i.monedas || 0) < 0 ? '−' : '+'}${fmt(Math.abs(i.monedas || 0))}</span></div>`;
   }).join('')}</div>`;
 }
 
@@ -1567,7 +1578,7 @@ function pintarClan(d, base) {
   }
   const g = d.guerra;
   const top = d.top.length ? d.top.map(x => filaRanking(x, `Nv ${x.nivel} · ${x.miembros} miembro${x.miembros === 1 ? '' : 's'}`, fmt(x.banco))).join('') : vacio('Aún no hay clanes.');
-  const guerra = `<p class="mut peq" style="margin-top:12px">Semana ${esc(g.semana)} · cierra en ${cuenta(g.cierraS, base)}<br>Premios al banco: ${g.premios.map((p, i) => MEDALLA[i] + ' ' + fmt(p)).join(' · ')} (mínimo ${g.minPuntos} pts)</p>` +
+  const guerra = `<p class="mut peq" style="margin-top:12px">Semana ${esc(g.semana)} · cierra en ${cuenta(g.cierraS, base)}<br>Premios al banco: ${g.premios.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ')} (mínimo ${g.minPuntos} pts)</p>` +
     (g.ranking.length ? g.ranking.map(x => filaRanking(x, `${x.miembros} miembro${x.miembros === 1 ? '' : 's'}`, fmt(x.pts) + ' pts')).join('') : vacio('Todavía nadie ha puntuado esta semana.'));
   return `${titulo('Tu clan')}${propio}${sec('cl-guerra', 'Guerra de clanes', '', `<div class="lista">${guerra}</div>`)}${sec('cl-top', 'Top clanes', '', `<div class="lista">${top}</div>`)}`;
 }
