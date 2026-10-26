@@ -29,7 +29,8 @@ const ICONOS = {
   mask: svg('<path d="M4 8 C4 5 8 4 12 4 C16 4 20 5 20 8 V12 C20 17 16 20 12 20 C8 20 4 17 4 12 Z"/><path d="M8 11 L10.5 12 M16 11 L13.5 12"/><path d="M9 16 C10.5 17 13.5 17 15 16"/>'),
   leaf: svg('<path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z"/><path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z"/>'),
   raid: svg('<path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/>'),
-  gacha: svg('<path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/>')
+  gacha: svg('<path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/>'),
+  clan: svg('<path d="M4 21 V9 L7 7 V4 H9 V7 H11 V4 H13 V7 H15 V4 H17 V7 L20 9 V21"/><path d="M3 21 H21"/><path d="M10 21 V15 A2 2 0 0 1 14 15 V21"/>')
 };
 const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
@@ -39,8 +40,8 @@ const NAV = [
   ['ciudad', 'Ciudad', svg('<path d="M4 21 V9 L10 6 V21"/><path d="M10 21 V4 L20 8 V21"/><path d="M3 21 H21"/><path d="M13 10 H17 M13 14 H17"/>')],
   ['rankings', 'Ranking', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')]
 ];
-const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid'];
-const PADRE = { gacha: 'inicio', raid: 'inicio' };
+const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid', 'mazmorra', 'clan'];
+const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', clan: 'inicio' };
 const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
@@ -649,6 +650,9 @@ const cabEvento = (t, s, icono, st) => {
   const fila = st && st.length ? `<div class="cab-st">${st.map(([n, v]) => `<div><b>${esc(String(v))}</b><span>${esc(n)}</span></div>`).join('')}</div>` : '';
   return `<button type="button" class="atras" data-ir="inicio">← Inicio</button><div class="cabp cab-t"><div class="cab-top"><span class="cab-i" aria-hidden="true">${icono}</span><div><h1 class="pag">${t}</h1><p class="mut">${s}</p></div></div>${fila}</div>`;
 };
+const statsBase = () => me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : [];
+const pintarMazmorraTab = (d, base) => cabEvento('Mazmorra', 'Baja piso a piso, enfrenta jefes y consigue equipo.', ICONOS.hunt, statsBase()) + pintarMazmorra(d, base);
+const pintarClanTab = (d, base) => cabEvento('Clan', 'Banco común, bonos y guerras de clanes.', ICONOS.clan, statsBase()) + pintarClan(d, base);
 const pintarRaidTab = (d, base) => cabEvento('Raid', 'Jefes mundiales de tus grupos.', ICONOS.raid, me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []) + pintarRaid(d, base);
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
@@ -875,8 +879,8 @@ function pintarGacha(d, base) {
 }
 
 function pintarHogar(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra'], ['clan', 'Clan']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mundo', 'Tu mascota, tu granja, la mazmorra y tu clan.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : hogarSel === 'clan' ? pintarClan(d, base) : pintarMazmorra(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mundo', 'Tu mascota y tu granja.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : pintarGranja(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -1307,11 +1311,13 @@ const CARGA = {
   ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[perfilSel] || '/api/ficha'), pintarPerfil],
   inventario: [() => invSel === 'equipo' ? '/api/equipo' : invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
   tienda: [() => tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + tiendaSel, pintarTienda],
-  hogar: [() => hogarSel === 'clan' ? '/api/clan?q=' + encodeURIComponent(clanQ) : '/api/' + hogarSel, pintarHogar],
+  hogar: [() => '/api/' + hogarSel, pintarHogar],
   ciudad: [() => ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(jugQ) : '/api/' + ciudadSel, pintarCiudad],
   rankings: ['/api/rankings', pintarRankings],
   gacha: [() => gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : '/api/gacha', pintarGacha],
-  raid: ['/api/raid', pintarRaidTab]
+  raid: ['/api/raid', pintarRaidTab],
+  mazmorra: ['/api/mazmorra', pintarMazmorraTab],
+  clan: [() => '/api/clan?q=' + encodeURIComponent(clanQ), pintarClanTab]
 };
 
 function dibujar(t) {
@@ -1361,7 +1367,7 @@ async function publicar(b, ruta, cuerpo) {
     if (d.me) aplicar(d.me);
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
-      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
+      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
       hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null });
     } else if (d.mensaje) aviso(d.mensaje);
     await abrir(tabActual, true);
@@ -1414,7 +1420,7 @@ $('#v-panel').addEventListener('click', e => {
   const bs = e.target.closest('button[data-buscar]');
   if (bs) {
     if (bs.dataset.buscar === 'jug') { jugQ = ($('#jg-q') || {}).value || ''; delete cargado.ciudad; return abrir('ciudad', true); }
-    clanQ = ($('#cl-q') || {}).value || ''; delete cargado.hogar; return abrir('hogar', true);
+    clanQ = ($('#cl-q') || {}).value || ''; delete cargado.clan; return abrir('clan', true);
   }
   const h = e.target.closest('button[data-h]');
   if (h) { hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
