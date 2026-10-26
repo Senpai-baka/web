@@ -719,12 +719,12 @@ let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
-function leerProx() { try { return localStorage.getItem('isla_vio_raid') === '1'; } catch (_) { return false; } }
+function leerProx() { try { return localStorage.getItem('isla_aviso_raid') === '1'; } catch (_) { return false; } }
 let vioProx = leerProx();
 function anunciarRaid() {
   if (vioProx) return;
   vioProx = true;
-  try { localStorage.setItem('isla_vio_raid', '1'); } catch (_) {}
+  try { localStorage.setItem('isla_aviso_raid', '1'); } catch (_) {}
   const msg = '👹 ¡Llega el Raid! Un jefe mundial para todo el grupo. Próximamente.';
   setTimeout(() => {
     if (document.hidden && avisosActivos()) {
