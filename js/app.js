@@ -682,21 +682,51 @@ function pintarMazmorra(d, base) {
       ${d.check ? b({ inicio: true }, 'Desde piso 1 · ' + fmt(e.inicio)) : ''}</div>
       <p class="mut peq" style="margin-top:8px">El seguro evita perder monedas y retroceder al caer.</p></div>`;
   }
-  const r = d.run, s = r.siguiente;
+  const r = d.run, s = r.siguiente, c = r.combate, h = d.heroe;
   const pct = r.hpMax ? Math.round(r.hp / r.hpMax * 100) : 0;
-  return cab2 + `<div class="bloque vidrio"><div class="fila"><strong>📍 Piso ${r.piso}</strong>${r.seguro ? '<span class="etiq">Asegurada</span>' : ''}</div>
-      <div class="stat"><div class="fila"><span>Vida</span><span>${r.hp}/${r.hpMax}</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}</div>
-      <p class="peq" style="margin-top:10px">💰 Botín: <b>${fmt(r.botin)}</b> · 🎒 ${r.equipo.length} equipo${r.cofres.length ? ' · ' + r.cofres.join(' ') : ''}</p>
+  const resumenRun = `<div class="bloque vidrio"><div class="fila"><strong>📍 Piso ${r.piso}</strong>${r.seguro ? '<span class="etiq">Asegurada</span>' : ''}</div>
+      <div class="stat"><div class="fila"><span>Tu vida</span><span>${r.hp}/${r.hpMax}</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}</div>
+      ${h ? `<p class="peq" style="margin-top:10px">⚡ Energía: <b>${h.energia.n}/${h.energia.max}</b></p>` : ''}
+      <p class="peq" style="margin-top:6px">💰 Botín: <b>${fmt(r.botin)}</b> · 🎒 ${r.equipo.length} equipo${r.cofres.length ? ' · ' + r.cofres.join(' ') : ''}</p>
       ${r.equipo.length ? `<p class="mut peq">${r.equipo.map(esc).join(' · ')}</p>` : ''}
-      <p class="peq">${r.expirada ? 'La expedición expiró. Cobra tu botín.' : 'Tiempo restante: ' + cuenta(r.restaS, base)}</p></div>
-    <div class="bloque vidrio"><div class="fila"><strong>${s.jefe ? '👑 ' : '👾 '}${esc(s.nombre)}</strong><span class="mut peq">Piso ${s.piso}</span></div>
+      <p class="peq">${r.expirada ? 'La expedición expiró. Cobra tu botín.' : 'Tiempo restante: ' + cuenta(r.restaS, base)}</p></div>`;
+
+  if (c) {
+    const pm = c.hpMax ? Math.round(c.hp / c.hpMax * 100) : 0;
+    const nolog = !c.log.length ? '<p class="mut peq">Elige tu primera acción.</p>' : c.log.map(l => `<p class="cb-l">${esc(l)}</p>`).join('');
+    const habs = h ? h.habilidades.map(x => {
+      const motivo = x.bloqueada ? 'Se desbloquea en el nivel ' + x.nivel + '.' : x.sinEnergia ? 'No tienes energía suficiente.' : '';
+      return botonPost('/api/mazmorra/habilidad', { n: x.n }, '✨ ' + x.nombre + ' · ⚡' + x.costo, `${motivo ? 'aria-disabled="true"' : ''} data-motivo="${esc(motivo)}" title="${esc(x.desc)}"`);
+    }).join('') : '';
+    const descs = h ? h.habilidades.filter(x => !x.bloqueada).map(x => `<li><b>${esc(x.nombre)}</b> <span class="mut">${esc(x.desc || 'ataque potenciado')}</span></li>`).join('') : '';
+    const sinPoc = !d.pociones || r.hp >= r.hpMax;
+    return cab2 + resumenRun + `<div class="vidrio cb ${c.jefe ? 'jefe' : ''}">
+        <div class="cb-in">
+          <div class="fila"><h3>${c.jefe ? '👑 ' : '👾 '}${esc(c.nombre)}</h3><span class="mut peq">Turno ${c.turno + 1}</span></div>
+          <div class="rd-hp ${pm < 30 ? 'bajo' : ''}"><i style="width:${pm}%"></i></div>
+          <div class="fila peq"><span class="mut">Vida del enemigo</span><span><b>${fmt(c.hp)}</b>/${fmt(c.hpMax)} · Ataque ${fmt(c.atk)}</span></div>
+          ${c.buff ? `<p class="cb-buff peq">🔥 Potenciado ${c.buff.texto} · ${c.buff.turnos} ${c.buff.turnos === 1 ? 'turno' : 'turnos'}</p>` : ''}
+          <div class="cb-log" aria-live="polite">${nolog}</div>
+        </div></div>
+      <div class="btns cb-btns">
+        ${botonPost('/api/mazmorra/golpe', {}, '⚔️ Golpe')}
+        ${botonPost('/api/mazmorra/pocion', {}, '🧪 Poción (' + d.pociones + ')', sinPoc ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '')}
+        ${habs}
+      </div>
+      ${descs ? `<details class="cb-det"><summary class="peq mut">¿Qué hace cada habilidad?</summary><ul class="peq">${descs}</ul></details>` : ''}
+      <p class="mut peq" style="margin-top:8px">No puedes salir ni descansar en pleno combate. Si caes, pierdes el ${d.perdida}% de lo reunido.</p>`;
+  }
+
+  return cab2 + resumenRun + `<div class="bloque vidrio"><div class="fila"><strong>${s.jefe ? '👑 ' : '👾 '}${esc(s.nombre)}</strong><span class="mut peq">Piso ${s.piso}</span></div>
       <p class="mut peq">Vida ${fmt(s.hp)} · Ataque ${fmt(s.atk)}${s.jefe ? ' · Jefe' : ''}</p></div>
     <div class="btns">
-      ${botonPost('/api/mazmorra/avanzar', {}, 'Avanzar', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
+      ${botonPost('/api/mazmorra/pelear', {}, '⚔️ Pelear', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
+      ${botonPost('/api/mazmorra/avanzar', {}, '⚡ Auto', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
       ${botonPost('/api/mazmorra/curar', {}, 'Poción (' + d.pociones + ')', r.hp >= r.hpMax || !d.pociones ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '')}
       ${botonPost('/api/mazmorra/descansar', {}, 'Posada · ' + fmt(r.posada), r.hp >= r.hpMax ? 'aria-disabled="true" data-motivo="Ya tienes la vida completa."' : '')}
       ${botonPost('/api/mazmorra/salir', {}, 'Salir y cobrar', 'data-confirmar="Saldrás con lo reunido hasta ahora. ¿Continuar?"')}
-    </div>`;
+    </div>
+    <p class="mut peq" style="margin-top:8px">⚔️ Pelear: tú eliges cada acción. ⚡ Auto: el combate se resuelve solo.</p>`;
 }
 
 function pintarHogar(d, base) {
