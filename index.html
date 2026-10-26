@@ -179,6 +179,20 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .barra{height:6px;border-radius:3px;background:rgba(195,187,220,.2);margin:8px 0 6px}
 .barra div{height:6px;border-radius:3px;background:var(--lav);box-shadow:0 0 8px var(--lav);transition:width .6s}
 .barra.nar div{background:var(--naranja);box-shadow:0 0 8px var(--naranja)}
+.rd{padding:0;overflow:hidden;margin-top:12px;border-color:rgba(201,98,111,.35)}
+.rd-arena{height:168px;position:relative;background:linear-gradient(180deg,var(--c1),var(--c2))}
+.rd-arena svg{width:100%;height:100%;display:block}
+.rd-arena .zn{position:absolute;left:12px;top:10px;font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;background:rgba(16,13,23,.6);color:var(--petal)}
+.rd-ojo{animation:rdbrilla 2.4s ease-in-out infinite}
+@keyframes rdbrilla{50%{opacity:.5}}
+.rd-in{padding:14px}
+.rd-in h3{font-family:var(--serif);font-weight:800;font-size:21px;color:#fff;margin:0}
+.rd-hp{height:15px;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid var(--linea);overflow:hidden;margin:10px 0 6px}
+.rd-hp i{display:block;height:100%;background:linear-gradient(90deg,#9c3b4c,#c9626f);box-shadow:0 0 12px #c9626f;transition:width .6s}
+.rd-hp.bajo i{background:linear-gradient(90deg,#c9702f,var(--naranja));box-shadow:0 0 12px var(--naranja)}
+.rd-top{margin-top:12px}
+.rd-top h4{font:800 12px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--lav);margin:0 0 2px}
+@media (prefers-reduced-motion:reduce){.rd-ojo{animation:none}}
 .plots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
 .plot{padding:10px 6px;border-radius:14px;border:1px dashed rgba(195,187,220,.3);text-align:center;font-size:13px;color:var(--mut)}
 .plot .em{display:block;font-size:26px;line-height:1.2}
@@ -1159,18 +1173,45 @@ function pintarGranja(d, base) {
     ${titulo('Semillas')}${catalogo}`;
 }
 
+const PAL_JEFE = {
+  hielo: ['#10243a', '#1d4a6b', '#7fc4ee', '#162c44', '#cfe8fb', '#bff3ff'],
+  hidra: ['#10281d', '#1f5a3d', '#6fd19a', '#123324', '#9fe3bd', '#f6e27a'],
+  kraken: ['#1c1236', '#4a2a6e', '#a98af0', '#231640', '#c9b6ff', '#ffd1ec'],
+  otro: ['#1b1426', '#6a2a45', '#c9626f', '#1a1022', '#e8946a', '#ff8f7a']
+};
+function arteJefe(nombre) {
+  const n = String(nombre).toLowerCase();
+  const k = n.includes('hidra') ? 'hidra' : n.includes('kraken') ? 'kraken' : n.includes('hielo') || n.includes('tit') ? 'hielo' : 'otro';
+  const [c1, c2, aura, cu, ac, oj] = PAL_JEFE[k];
+  const fig = {
+    hielo: `<path d="M130 190V120C130 86 160 68 200 68S270 86 270 120V190Z" fill="${cu}"/><path d="M146 92L128 40L172 76Z M254 92L272 40L228 76Z M192 70L200 28L208 70Z" fill="${ac}"/><path d="M168 120H232L224 150H176Z" fill="#0b1020"/><g class="rd-ojo"><path d="M168 104L188 110L168 114Z M232 104L212 110L232 114Z" fill="${oj}"/></g>`,
+    hidra: `<ellipse cx="200" cy="176" rx="62" ry="30" fill="${cu}"/><g fill="none" stroke="${cu}" stroke-width="16" stroke-linecap="round"><path d="M180 160C150 150 130 120 122 84"/><path d="M200 160V76"/><path d="M220 160C250 150 270 120 278 84"/></g><g fill="${cu}"><ellipse cx="122" cy="78" rx="19" ry="13"/><ellipse cx="200" cy="66" rx="20" ry="14"/><ellipse cx="278" cy="78" rx="19" ry="13"/></g><g class="rd-ojo" fill="${oj}"><circle cx="116" cy="74" r="3.5"/><circle cx="194" cy="62" r="3.5"/><circle cx="206" cy="62" r="3.5"/><circle cx="272" cy="74" r="3.5"/></g>`,
+    kraken: `<path d="M140 130C140 66 170 46 200 46S260 66 260 130Z" fill="${cu}"/><g fill="none" stroke="${cu}" stroke-width="13" stroke-linecap="round"><path d="M150 128C128 158 160 168 140 190"/><path d="M178 130C168 164 194 170 184 190"/><path d="M222 130C232 164 206 170 216 190"/><path d="M250 128C272 158 240 168 260 190"/></g><g class="rd-ojo" fill="${oj}"><circle cx="178" cy="96" r="8"/><circle cx="222" cy="96" r="8"/></g>`,
+    otro: `<path d="M138 190V128C138 92 162 74 200 74S262 92 262 128V190Z" fill="${cu}"/><path d="M150 88L128 38L170 76Z M250 88L272 38L230 76Z" fill="${ac}"/><g class="rd-ojo"><path d="M170 104L188 110L170 114Z M230 104L212 110L230 114Z" fill="${oj}"/></g>`
+  }[k];
+  return `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><circle cx="200" cy="104" r="92" fill="${aura}" opacity=".28"/>${fig}<rect y="182" width="400" height="8" fill="#0b0810" opacity=".7"/></svg>`;
+}
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
-  const intro = `<div class="bloque vidrio"><p class="mut peq">Un jefe por grupo: todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins lo invocan en WhatsApp con /raid start.</p></div>`;
+  const intro = `<p class="mut peq" style="margin-top:10px">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
   if (!d.raids.length) return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.');
   const tarjeta = r => {
     const pct = Math.round(r.hp / r.hpMax * 100);
+    const [c1, c2] = PAL_JEFE[String(r.nombre).toLowerCase().includes('hidra') ? 'hidra' : String(r.nombre).toLowerCase().includes('kraken') ? 'kraken' : String(r.nombre).toLowerCase().includes('hielo') ? 'hielo' : 'otro'];
     const bloq = r.dormido ? 'Grupo en modo nocturno' : '';
-    return `<div class="bloque vidrio">
-      <div class="fila"><strong>👹 ${esc(r.nombre)}</strong><span class="mut peq">${esc(r.grupo)}</span></div>
-      <div class="fila peq" style="margin-top:8px"><span>Vida</span><span>${fmt(r.hp)}/${fmt(r.hpMax)} · ${pct}%</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}
-      <p class="peq" style="margin-top:6px">Se retira en ${cuenta(r.restaS, base)} · 👥 ${r.atacantes} atacante${r.atacantes === 1 ? '' : 's'} · Tu daño: <b>${fmt(r.miDaño)}</b></p>
-      <div class="btns uno">${botonListo('/api/raid/atacar', { id: r.id }, '⚔️ Atacar', base + r.esperaS * 1000, bloq)}</div></div>`;
+    const top = (r.top || []).length ? `<div class="rd-top"><h4>Top atacantes</h4>${r.top.map(t => `<div class="fil ${t.yo ? 'yo' : ''}"><span class="pos">${medalla(t.pos - 1)}</span><div class="nom"><strong>${esc(t.nombre)}</strong></div><span class="val">${fmt(t.daño)}</span></div>`).join('')}</div>` : '';
+    return `<div class="vidrio rd" style="--c1:${c1};--c2:${c2}">
+      <div class="rd-arena">${arteJefe(r.nombre)}<span class="zn">${esc(r.grupo)}</span></div>
+      <div class="rd-in">
+        <h3>${esc(r.nombre)}</h3>
+        <div class="rd-hp ${pct < 30 ? 'bajo' : ''}"><i style="width:${pct}%"></i></div>
+        <div class="fila peq"><span>Vida</span><span><b>${fmt(r.hp)}</b>/${fmt(r.hpMax)} · ${pct}%</span></div>
+        <div class="fila peq" style="margin-top:2px"><span class="mut">Se retira en</span><span>${cuenta(r.restaS, base)}</span></div>
+        ${cifras([['Atacantes', fmt(r.atacantes)], ['Tu daño', fmt(r.miDaño)], ['Tu puesto', r.miPos ? '#' + r.miPos : '—']])}
+        <p class="mut peq" style="margin-top:10px;text-align:center">Bote de <b>${fmt(r.bote || 0)}</b> repartido según el daño, más bonos al que más daño haga y al golpe final.</p>
+        ${top}
+        <div class="btns uno" style="margin-top:10px">${botonListo('/api/raid/atacar', { id: r.id }, '⚔️ Atacar', base + r.esperaS * 1000, bloq)}</div>
+      </div></div>`;
   };
   return intro + d.raids.map(tarjeta).join('');
 }
