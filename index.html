@@ -201,7 +201,7 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .rel{display:flex;flex-wrap:wrap;gap:8px}
 .rel span{padding:5px 10px;border-radius:99px;border:1px solid rgba(195,187,220,.35);font-size:13px}
 .rel .no{opacity:.35}
-.rd{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
+.pto{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
 .equi.puesto{border-color:var(--sakura)}
 label{display:block;margin:24px 0 8px;font-size:14px;color:var(--mut)}
 .campo{display:flex;gap:10px}
@@ -1289,7 +1289,7 @@ function pintarHistorial(d) {
     const col = (RAREZA[i.rareza] || RAREZA.comun)[1];
     const extra = [i.evento, i.guardian ? (i.guardian.gana ? 'Derrotaste a ' + i.guardian.nombre : i.guardian.nombre + ' te hizo retroceder') : ''].filter(Boolean).map(esc).join(' · ');
     return `<div class="fil"><span class="pt">${ICONOS[icono[i.accion]] || ICONOS.mine}</span>
-      <div class="nom"><strong><i class="rd" style="--c:${col}"></i>${esc(i.titulo)}</strong>
+      <div class="nom"><strong><i class="pto" style="--c:${col}"></i>${esc(i.titulo)}</strong>
         <span class="mut peq">${esc(verbo[i.accion] || 'Actuaste en')} ${esc(i.zona)} · ${hace(i.hace)} · ${i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
         ${extra ? `<span class="peq" style="color:var(--lav)">${extra}</span>` : ''}</div>
       <span class="val">${(i.monedas || 0) < 0 ? '−' : '+'}${fmt(Math.abs(i.monedas || 0))}</span></div>`;
