@@ -666,6 +666,79 @@ function pintarRaid(d, base) {
   return intro + d.raids.map(tarjeta).join('');
 }
 
+let cbVisto = '';
+const hashStr = t => { let h = 0; for (const ch of String(t)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+const PAL_MON = [
+  ['#3f8f5c', '#a9e6b8', '#7fe0a0', '#fff7c2'],
+  ['#6b5aa8', '#c6b8f5', '#a98af0', '#ffd1ec'],
+  ['#a8553f', '#f2b69b', '#ff8f7a', '#ffe27a'],
+  ['#4a6f9e', '#a9cdf5', '#7fc4ee', '#bff3ff'],
+  ['#8a7f5a', '#e5dcb4', '#d6b87a', '#ff8f7a']
+];
+const COL_CLASE = { guerrero: ['#c9626f', '#e8d3c0'], mago: ['#7e63d6', '#e8dcff'], ladron: ['#3f8f75', '#cfeee1'], mercader: ['#c9a25a', '#fff1cf'] };
+
+function arteMonstruo(nombre, jefe) {
+  const h = hashStr(nombre), [c, a, , oj] = PAL_MON[h % PAL_MON.length];
+  const n = String(nombre).toLowerCase();
+  const forma = /slime|limo|gelatin|baba|moco/.test(n) ? 0 : /murci|bat|vampir|cuervo|ave\b|arpia/.test(n) ? 1 : /esquel|calavera|hueso|orco|goblin|bandid|caballer|guerrer|gigante|golem|troll|minotauro/.test(n) ? 2 : /espectro|fantasma|alma|sombra|wraith|banshee|lich|spectro|espiritu|espíritu/.test(n) ? 3 : (h >> 3) % 4;
+  const ojo = jefe ? '#ff5a6a' : oj;
+  const sombra = '<ellipse cx="300" cy="178" rx="40" ry="5" fill="#000" opacity=".4"/>';
+  const f = [
+    `<path d="M262 176C246 176 240 150 252 128C264 104 336 104 348 128C360 150 354 176 338 176Z" fill="${c}"/><ellipse cx="282" cy="126" rx="14" ry="7" fill="#fff" opacity=".22"/><g class="cb-ojo" fill="${ojo}"><circle cx="284" cy="142" r="6"/><circle cx="316" cy="142" r="6"/></g><g fill="#10141a"><circle cx="285" cy="143" r="2.6"/><circle cx="317" cy="143" r="2.6"/></g><path d="M290 160Q300 168 310 160" stroke="#10141a" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    `<g class="cb-vuela"><path d="M300 124C280 98 248 94 228 112C244 114 250 124 248 138C262 128 276 130 286 144Z" fill="${a}" opacity=".9"/><path d="M300 124C320 98 352 94 372 112C356 114 350 124 352 138C338 128 324 130 314 144Z" fill="${a}" opacity=".9"/><ellipse cx="300" cy="140" rx="23" ry="30" fill="${c}"/><path d="M285 116L280 96L297 110Z M315 116L320 96L303 110Z" fill="${c}"/><g class="cb-ojo" fill="${ojo}"><circle cx="291" cy="134" r="4.5"/><circle cx="309" cy="134" r="4.5"/></g><path d="M294 152L297 162L300 152Z M300 152L303 162L306 152Z" fill="#fff"/></g>`,
+    `<path d="M276 176V142C276 126 286 120 300 120S324 126 324 142V176Z" fill="${c}"/><path d="M286 138H314M286 150H314M286 162H314" stroke="${a}" stroke-width="3" opacity=".65"/><path d="M276 140L252 124" stroke="${c}" stroke-width="9" stroke-linecap="round"/><path d="M248 128L236 94" stroke="#7a5a3a" stroke-width="8" stroke-linecap="round"/><circle cx="300" cy="100" r="20" fill="${a}"/><rect x="288" y="112" width="24" height="11" rx="3" fill="${a}"/><circle cx="292" cy="99" r="5.5" fill="#10141a"/><circle cx="308" cy="99" r="5.5" fill="#10141a"/><g class="cb-ojo" fill="${ojo}"><circle cx="292" cy="99" r="2.4"/><circle cx="308" cy="99" r="2.4"/></g><path d="M292 115V122M300 115V122M308 115V122" stroke="#10141a" stroke-width="1.8"/>`,
+    `<g class="cb-flota"><path d="M266 178V120C266 94 282 80 300 80S334 94 334 120V178L322 166L311 178L300 166L289 178L278 166Z" fill="${c}" opacity=".92"/><ellipse cx="300" cy="104" rx="22" ry="14" fill="#fff" opacity=".1"/><g class="cb-ojo" fill="${ojo}"><ellipse cx="289" cy="112" rx="5" ry="8"/><ellipse cx="311" cy="112" rx="5" ry="8"/></g><ellipse cx="300" cy="136" rx="7" ry="10" fill="#10141a" opacity=".8"/></g>`
+  ][forma];
+  const aura = jefe ? `<defs><radialGradient id="cbAuraE"><stop offset="0" stop-color="#ff5a6a" stop-opacity=".42"/><stop offset="1" stop-color="#ff5a6a" stop-opacity="0"/></radialGradient></defs><circle cx="300" cy="130" r="96" fill="url(#cbAuraE)" class="cb-aura"/>` : '';
+  const fig = `${sombra}<g class="cb-idle">${f}</g>`;
+  return aura + (jefe ? `<g transform="translate(300 176) scale(1.2) translate(-300 -176)">${fig}</g>` : fig);
+}
+
+function arteHeroe(clase, buff) {
+  const [c, a] = COL_CLASE[clase] || ['#8f87a8', '#ece6f3'];
+  const gorro = {
+    guerrero: `<path d="M64 104C64 88 96 88 96 104Z" fill="#9aa3b8"/><rect x="78" y="90" width="4" height="12" fill="${c}"/>`,
+    mago: `<path d="M60 106L80 58L100 106Z" fill="${c}"/><rect x="56" y="104" width="48" height="6" rx="3" fill="${a}" opacity=".85"/>`,
+    ladron: `<path d="M62 116C58 86 102 86 98 116L80 102Z" fill="${c}"/>`,
+    mercader: `<rect x="60" y="97" width="40" height="6" rx="3" fill="${a}"/><path d="M68 98C68 84 92 84 92 98Z" fill="${c}"/>`
+  }[clase] || `<path d="M65 104C65 90 95 90 95 104Z" fill="${c}"/>`;
+  const arma = {
+    guerrero: `<path d="M106 142L140 94" stroke="#d6dcea" stroke-width="6" stroke-linecap="round"/><path d="M99 137L112 148" stroke="#b08a50" stroke-width="6" stroke-linecap="round"/>`,
+    mago: `<path d="M114 180V88" stroke="#8a6a4a" stroke-width="5" stroke-linecap="round"/><circle cx="114" cy="82" r="15" fill="${a}" fill-opacity=".35" class="cb-orbe"/><circle cx="114" cy="82" r="8" fill="${a}"/>`,
+    ladron: `<path d="M106 146L132 124" stroke="#d6dcea" stroke-width="5" stroke-linecap="round"/><path d="M100 150L110 142" stroke="${a}" stroke-width="5" stroke-linecap="round"/>`,
+    mercader: `<ellipse cx="112" cy="158" rx="14" ry="16" fill="#5a4630"/><path d="M104 144Q112 138 120 144" stroke="${a}" stroke-width="3" fill="none"/><circle cx="112" cy="160" r="5" fill="${a}"/>`
+  }[clase] || '';
+  const aura = buff ? `<circle cx="80" cy="144" r="50" fill="${a}" fill-opacity=".1"/><circle cx="80" cy="144" r="50" fill="none" stroke="${a}" stroke-width="2" stroke-dasharray="6 5" class="cb-aura"/>` : '';
+  return `${aura}<ellipse cx="80" cy="178" rx="32" ry="5" fill="#000" opacity=".4"/><g class="cb-idle h"><path d="M56 178C56 144 64 126 80 126S104 144 104 178Z" fill="${c}"/><path d="M70 130H90L88 142H72Z" fill="${a}" opacity=".4"/><circle cx="80" cy="110" r="15" fill="#e9cdb6"/>${gorro}<circle cx="86" cy="111" r="2" fill="#1a1020"/>${arma}</g>`;
+}
+
+function escenaCombate(o) {
+  const u = o.anim && o.u ? o.u : null;
+  const pal = PAL_MON[hashStr(o.nombre) % PAL_MON.length];
+  const pH = o.hpMax ? Math.round(o.hp / o.hpMax * 100) : 0, pE = o.ehpMax ? Math.round(o.ehp / o.ehpMax * 100) : 0;
+  const golpeE = u && u.dano > 0, golpeH = u && u.recibido > 0;
+  const nums = u ? [
+    u.hab ? `<span class="cb-hab-t">✨ ${esc(u.hab)}</span>` : '',
+    u.dano > 0 ? `<span class="cb-num dano" style="left:74%;top:50%">-${fmt(u.dano)}</span>` : '',
+    u.cura > 0 ? `<span class="cb-num cura" style="left:21%;top:46%">+${fmt(u.cura)}</span>` : '',
+    u.recibido > 0 ? `<span class="cb-num recibe" style="left:14%;top:56%">-${fmt(u.recibido)}</span>` : ''
+  ].join('') : '';
+  return `<div class="cb-arena ${o.jefe ? 'jefe' : ''}" style="--z:${pal[2]}">
+    <svg viewBox="0 0 400 200" aria-hidden="true">
+      <rect y="176" width="400" height="24" fill="#0b0810" opacity=".75"/><rect y="176" width="400" height="1.5" fill="#fff" opacity=".08"/>
+      <g class="cb-her ${u && u.hab ? 'cast' : ''} ${golpeH ? 'golpeado' : ''}">${arteHeroe(o.clase, o.buff)}</g>
+      <g class="cb-mon ${golpeE ? 'golpeado' : ''}">${arteMonstruo(o.nombre, o.jefe)}</g>
+      ${golpeE ? '<path class="cb-tajo" d="M262 96L346 164" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path class="cb-tajo t2" d="M346 100L266 166" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' : ''}
+    </svg>
+    ${u && u.hab ? '<i class="cb-flash"></i>' : ''}
+    <div class="cb-hud h"><span>Tú${o.buff ? ' 🔥' : ''}</span><div class="cb-hp tu ${pH < 30 ? 'bajo' : ''}"><i style="width:${pH}%"></i></div><b>${fmt(o.hp)}/${fmt(o.hpMax)}</b></div>
+    <div class="cb-hud e"><span>${o.jefe ? '👑 ' : ''}${esc(o.nombre)}</span><div class="cb-hp ${pE < 30 ? 'bajo' : ''}"><i style="width:${pE}%"></i></div><b>${fmt(o.ehp)}/${fmt(o.ehpMax)}</b></div>
+    ${nums}
+  </div>`;
+}
+
+const botonAcc = (ruta, cuerpo, html, extra, cls) => `<button type="button" class="mini cb-acc ${cls || ''}" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" ${extra || ''}>${html}</button>`;
+
 function pintarMazmorra(d, base) {
   const cab2 = `<p class="peq mut" style="margin-top:8px">Cartera: <b>${fmt(d.cartera)}</b> · Récord: piso <b>${d.record}</b> · Pociones: <b>${d.pociones}</b></p>`;
   if (d.nivel < d.nivelMin) return cab2 + `<div class="bloque vidrio"><p class="mut peq">Se desbloquea en el nivel ${d.nivelMin}. Tu nivel: ${d.nivel}.</p></div>`;
@@ -683,42 +756,33 @@ function pintarMazmorra(d, base) {
       <p class="mut peq" style="margin-top:8px">El seguro evita perder monedas y retroceder al caer.</p></div>`;
   }
   const r = d.run, s = r.siguiente, c = r.combate, h = d.heroe;
-  const pct = r.hpMax ? Math.round(r.hp / r.hpMax * 100) : 0;
-  const resumenRun = `<div class="bloque vidrio"><div class="fila"><strong>📍 Piso ${r.piso}</strong>${r.seguro ? '<span class="etiq">Asegurada</span>' : ''}</div>
-      <div class="stat"><div class="fila"><span>Tu vida</span><span>${r.hp}/${r.hpMax}</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}</div>
-      ${h ? `<p class="peq" style="margin-top:10px">⚡ Energía: <b>${h.energia.n}/${h.energia.max}</b></p>` : ''}
-      <p class="peq" style="margin-top:6px">💰 Botín: <b>${fmt(r.botin)}</b> · 🎒 ${r.equipo.length} equipo${r.cofres.length ? ' · ' + r.cofres.join(' ') : ''}</p>
-      ${r.equipo.length ? `<p class="mut peq">${r.equipo.map(esc).join(' · ')}</p>` : ''}
-      <p class="peq">${r.expirada ? 'La expedición expiró. Cobra tu botín.' : 'Tiempo restante: ' + cuenta(r.restaS, base)}</p></div>`;
+  const clase = h && h.clase;
+  const barraRun = `<div class="cb-run"><span>📍 Piso <b>${r.piso}</b>${r.seguro ? ' <em class="etiq">Asegurada</em>' : ''}</span><span>💰 <b>${fmt(r.botin)}</b></span><span>🎒 <b>${r.equipo.length}</b>${r.cofres.length ? ' ' + r.cofres.join(' ') : ''}</span><span>⏳ ${r.expirada ? 'Expiró' : cuenta(r.restaS, base)}</span></div>`;
+  const energia = h ? `<div class="cb-ener"><span>Energía</span>${Array.from({ length: h.energia.max }, (_, i) => `<i class="pip ${i < h.energia.n ? 'on' : ''}"></i>`).join('')}</div>` : '';
 
   if (c) {
-    const pm = c.hpMax ? Math.round(c.hp / c.hpMax * 100) : 0;
-    const nolog = !c.log.length ? '<p class="mut peq">Elige tu primera acción.</p>' : c.log.map(l => `<p class="cb-l">${esc(l)}</p>`).join('');
+    const clave = r.piso + ':' + c.turno, anim = cbVisto !== clave;
+    cbVisto = clave;
+    const arena = escenaCombate({ nombre: c.nombre, jefe: c.jefe, clase, buff: c.buff, hp: r.hp, hpMax: r.hpMax, ehp: c.hp, ehpMax: c.hpMax, u: c.ultimo, anim });
+    const log = c.log.slice(-3).map((l, i, a) => `<p class="${i === a.length - 1 ? 'nuevo' : ''}">${esc(l)}</p>`).join('') || '<p>Elige tu primera acción.</p>';
     const habs = h ? h.habilidades.map(x => {
       const motivo = x.bloqueada ? 'Se desbloquea en el nivel ' + x.nivel + '.' : x.sinEnergia ? 'No tienes energía suficiente.' : '';
-      return botonPost('/api/mazmorra/habilidad', { n: x.n }, '✨ ' + x.nombre + ' · ⚡' + x.costo, `${motivo ? 'aria-disabled="true"' : ''} data-motivo="${esc(motivo)}" title="${esc(x.desc)}"`);
+      const pips = x.bloqueada ? `<span class="cb-lock">🔒 Nv ${x.nivel}</span>` : `<span class="cb-hc">${'⚡'.repeat(x.costo)}</span>`;
+      return botonAcc('/api/mazmorra/habilidad', { n: x.n }, `<span class="cb-hn">${esc(x.nombre)}</span>${pips}<span class="cb-hd">${esc(x.desc || 'Ataque potenciado')}</span>`, `${motivo ? 'aria-disabled="true"' : ''} data-motivo="${esc(motivo)}"`, 'cb-hab-b');
     }).join('') : '';
-    const descs = h ? h.habilidades.filter(x => !x.bloqueada).map(x => `<li><b>${esc(x.nombre)}</b> <span class="mut">${esc(x.desc || 'ataque potenciado')}</span></li>`).join('') : '';
     const sinPoc = !d.pociones || r.hp >= r.hpMax;
-    return cab2 + resumenRun + `<div class="vidrio cb ${c.jefe ? 'jefe' : ''}">
-        <div class="cb-in">
-          <div class="fila"><h3>${c.jefe ? '👑 ' : '👾 '}${esc(c.nombre)}</h3><span class="mut peq">Turno ${c.turno + 1}</span></div>
-          <div class="rd-hp ${pm < 30 ? 'bajo' : ''}"><i style="width:${pm}%"></i></div>
-          <div class="fila peq"><span class="mut">Vida del enemigo</span><span><b>${fmt(c.hp)}</b>/${fmt(c.hpMax)} · Ataque ${fmt(c.atk)}</span></div>
-          ${c.buff ? `<p class="cb-buff peq">🔥 Potenciado ${c.buff.texto} · ${c.buff.turnos} ${c.buff.turnos === 1 ? 'turno' : 'turnos'}</p>` : ''}
-          <div class="cb-log" aria-live="polite">${nolog}</div>
-        </div></div>
-      <div class="btns cb-btns">
-        ${botonPost('/api/mazmorra/golpe', {}, '⚔️ Golpe')}
-        ${botonPost('/api/mazmorra/pocion', {}, '🧪 Poción (' + d.pociones + ')', sinPoc ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '')}
-        ${habs}
+    return cab2 + barraRun + arena + `<div class="cb-log vidrio" aria-live="polite">${log}</div>
+      ${energia}
+      <div class="cb-prim">
+        ${botonAcc('/api/mazmorra/golpe', {}, '<b>⚔️ Golpe</b><small>Ataque básico</small>', '', 'cb-golpe')}
+        ${botonAcc('/api/mazmorra/pocion', {}, `<b>🧪 Poción</b><small>${d.pociones} en la bolsa</small>`, sinPoc ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '', 'cb-poc')}
       </div>
-      ${descs ? `<details class="cb-det"><summary class="peq mut">¿Qué hace cada habilidad?</summary><ul class="peq">${descs}</ul></details>` : ''}
-      <p class="mut peq" style="margin-top:8px">No puedes salir ni descansar en pleno combate. Si caes, pierdes el ${d.perdida}% de lo reunido.</p>`;
+      ${habs ? `<div class="cb-habs">${habs}</div>` : ''}
+      <p class="mut peq" style="margin-top:10px">No puedes salir ni descansar en pleno combate. Si caes, pierdes el ${d.perdida}% de lo reunido.</p>`;
   }
 
-  return cab2 + resumenRun + `<div class="bloque vidrio"><div class="fila"><strong>${s.jefe ? '👑 ' : '👾 '}${esc(s.nombre)}</strong><span class="mut peq">Piso ${s.piso}</span></div>
-      <p class="mut peq">Vida ${fmt(s.hp)} · Ataque ${fmt(s.atk)}${s.jefe ? ' · Jefe' : ''}</p></div>
+  const arena = escenaCombate({ nombre: s.nombre, jefe: s.jefe, clase, buff: null, hp: r.hp, hpMax: r.hpMax, ehp: s.hp, ehpMax: s.hp, u: null, anim: false });
+  return cab2 + barraRun + arena + `${energia}
     <div class="btns">
       ${botonPost('/api/mazmorra/pelear', {}, '⚔️ Pelear', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
       ${botonPost('/api/mazmorra/avanzar', {}, '⚡ Auto', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
