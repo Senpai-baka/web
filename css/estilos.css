@@ -630,3 +630,20 @@ label{margin:var(--e4) 0 var(--e1)}
 .esq-b.corto{height:64px;width:70%}
 @keyframes brilla{from{background-position:100% 0}to{background-position:-100% 0}}
 @media (prefers-reduced-motion:reduce){.esq-cab,.esq-b,.esq-fila i{animation:none}}
+
+/* Mazmorra interactiva */
+.cb{margin-top:12px;padding:1px;--c1:#9c3b4c;background:linear-gradient(135deg,rgba(201,98,111,.7),rgba(195,187,220,.06) 60%)}
+.cb.jefe{background:linear-gradient(135deg,rgba(224,185,106,.8),rgba(195,187,220,.06) 60%)}
+.cb-in{padding:14px 16px}
+.cb-in h3{margin:0}
+.cb-buff{margin-top:6px;color:var(--oro)}
+.cb-log{margin-top:10px;padding-top:8px;border-top:1px solid var(--linea);display:grid;gap:3px;min-height:48px}
+.cb-l{font-size:14px;color:var(--petal)}
+.cb-l:last-child{color:#fff;font-weight:700}
+.cb-btns{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cb-btns .mini{height:auto;min-height:44px;padding:8px 10px;line-height:1.25}
+.mini[data-post$="/golpe"],.mini[data-post$="/pelear"]{background:#c9626f;border-color:#c9626f;color:#1a1020;font-weight:900}
+.mini[data-post$="/habilidad"]{background:rgba(195,187,220,.14);border-color:rgba(195,187,220,.55)}
+.mini[data-post$="/habilidad"][aria-disabled="true"],.mini[data-post$="/pocion"][aria-disabled="true"]{background:transparent;border-color:rgba(195,187,220,.2);color:var(--mut)}
+.cb-det{margin-top:10px}
+.cb-det ul{margin:8px 0 0 18px;display:grid;gap:4px}
