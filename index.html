@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Isla · Panel</title>
-<meta name="description" content="Panel web de Isla: minar, talar, pescar, cazar, banco, negocios, clan y más, ficha, inventario y rankings con tu cuenta de WhatsApp.">
+<meta name="description" content="Panel web de Isla: minar, talar, pescar, cazar, banco, negocios, clan, gacha y más, ficha, inventario y rankings con tu cuenta de WhatsApp.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="/logo-favicon.svg">
 <link rel="icon" type="image/png" href="/logo-favicon.png">
@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/estilos.css?v=1">
+<link rel="stylesheet" href="css/estilos.css?v=2">
 </head>
 <body>
 <noscript><p style="padding:24px;text-align:center">Este panel necesita JavaScript.</p></noscript>
@@ -95,10 +95,10 @@
         <div class="tx"><h3>Raid</h3><p class="mut peq">Jefe mundial del grupo: todos atacan juntos y se reparten el botín.</p></div>
         <button class="accion" type="button" data-ir-raid>Ver jefes</button>
       </div>
-      <div class="ticket espera evento" id="c-gacha" style="--z:#b69be0">
+      <div class="ticket evento" id="c-gacha" style="--z:#b69be0">
         <div class="aro" style="color:var(--z)"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/></svg></div>
         <div class="tx"><h3>Gacha</h3><p class="mut peq">Invoca y colecciona personajes de anime.</p></div>
-        <span class="etiq nar" style="margin:0">Próximamente</span>
+        <button class="accion" type="button" data-ir-gacha>Invocar</button>
       </div>
       </div>
       <div class="grupo"><h2>Explorar</h2><span class="mut peq">Todo el panel a un toque</span></div>
@@ -135,6 +135,7 @@
 
 <div class="sheet" id="hoja" hidden role="dialog" aria-modal="true" aria-labelledby="h-titulo">
   <div class="hoja vidrio">
+    <img class="h-carta" id="h-carta" alt="" referrerpolicy="no-referrer" hidden>
     <div class="halo" id="halo"><span id="h-icono"></span></div>
     <p class="mut peq" id="h-zona" style="margin:0"></p>
     <h2 id="h-titulo"></h2>
@@ -145,6 +146,6 @@
   </div>
 </div>
 <div id="toast" role="status" hidden></div>
-<script src="js/app.js?v=1"></script>
+<script src="js/app.js?v=2"></script>
 </body>
 </html>
