@@ -164,6 +164,7 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .mini:active{transform:scale(.97)}
 .mini[data-post$="/comprar"],.mini[data-post$="/pujar"],.mini[data-post$="/publicar"],.mini[data-post$="/crear"],.mini[data-post$="/mejorar"],.mini[data-post$="/equipar"]{background:var(--sakura);border-color:var(--sakura);color:#231713}
 .mini[data-post$="/expulsar"],.mini[data-post$="/disolver"],.mini[data-post$="/salir"],.mini[data-post$="/robar"],.mini[data-post$="/cancelar"],.mini[data-post$="/vender"],.mini[data-post$="/desmontar"],.mini[data-post$="/vender-hasta"]{background:transparent;border-color:rgba(221,133,145,.4);color:#dd8591}
+.mini[data-post$="/atacar"]{background:#c9626f;border-color:#c9626f;color:#1a1020;font-weight:900}
 .mini[aria-disabled="true"],.mini[aria-disabled="true"][data-post]{border-color:rgba(195,187,220,.2);background:transparent;color:var(--mut);cursor:default}
 .btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
 .btns.uno{grid-template-columns:1fr}
@@ -509,11 +510,11 @@ body::before{background:radial-gradient(70vmax 40vmax at 85% -8%,rgba(232,148,10
         <div class="tx"><h3>Gacha</h3><p class="mut peq">Invoca y colecciona personajes de anime.</p></div>
         <span class="etiq nar" style="margin:0">Próximamente</span>
       </div>
-      <div class="grupo"><h2>Raid</h2><span class="mut peq">Se viene pronto</span></div>
-      <div class="ticket espera" id="c-raid" style="--z:#c9626f">
+      <div class="grupo"><h2>Raid</h2><span class="mut peq">Jefes de tus grupos</span></div>
+      <div class="ticket" id="c-raid" style="--z:#c9626f">
         <div class="aro" style="color:var(--z)"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/></svg></div>
         <div class="tx"><h3>Raid</h3><p class="mut peq">Jefe mundial del grupo: todos atacan juntos y se reparten el botín.</p></div>
-        <span class="etiq nar" style="margin:0">Próximamente</span>
+        <button class="accion" type="button" data-ir-raid>Ver jefes</button>
       </div>
     </div>
     <div id="t-ficha" hidden></div>
@@ -581,7 +582,8 @@ const ICONOS = {
   dado: svg('<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>'),
   moneda: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7 V17"/><path d="M15 9.5 C14 8.5 10 8.5 9.5 10.5 C9 12.5 15 11.5 14.5 13.5 C14 15.5 10 15.5 9 14.5"/>'),
   mask: svg('<path d="M4 8 C4 5 8 4 12 4 C16 4 20 5 20 8 V12 C20 17 16 20 12 20 C8 20 4 17 4 12 Z"/><path d="M8 11 L10.5 12 M16 11 L13.5 12"/><path d="M9 16 C10.5 17 13.5 17 15 16"/>'),
-  leaf: svg('<path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z"/><path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z"/>')
+  leaf: svg('<path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z"/><path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z"/>'),
+  raid: svg('<path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/>')
 };
 const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
@@ -725,7 +727,7 @@ function anunciarRaid() {
   if (vioProx) return;
   vioProx = true;
   try { localStorage.setItem('isla_aviso_raid', '1'); } catch (_) {}
-  const msg = '👹 ¡Llega el Raid! Un jefe mundial para todo el grupo. Próximamente.';
+  const msg = '👹 ¡Llegó el Raid! Ataca al jefe de tu grupo desde Mundo › Raid.';
   setTimeout(() => {
     if (document.hidden && avisosActivos()) {
       try { new Notification('Isla', { body: msg, icon: '/logo-favicon.png', tag: 'isla-raid' }); } catch (_) {}
@@ -1157,6 +1159,22 @@ function pintarGranja(d, base) {
     ${titulo('Semillas')}${catalogo}`;
 }
 
+function pintarRaid(d, base) {
+  if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
+  const intro = `<div class="bloque vidrio"><p class="mut peq">Un jefe por grupo: todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins lo invocan en WhatsApp con /raid start.</p></div>`;
+  if (!d.raids.length) return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.');
+  const tarjeta = r => {
+    const pct = Math.round(r.hp / r.hpMax * 100);
+    const bloq = r.dormido ? 'Grupo en modo nocturno' : '';
+    return `<div class="bloque vidrio">
+      <div class="fila"><strong>👹 ${esc(r.nombre)}</strong><span class="mut peq">${esc(r.grupo)}</span></div>
+      <div class="fila peq" style="margin-top:8px"><span>Vida</span><span>${fmt(r.hp)}/${fmt(r.hpMax)} · ${pct}%</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}
+      <p class="peq" style="margin-top:6px">Se retira en ${cuenta(r.restaS, base)} · 👥 ${r.atacantes} atacante${r.atacantes === 1 ? '' : 's'} · Tu daño: <b>${fmt(r.miDaño)}</b></p>
+      <div class="btns uno">${botonListo('/api/raid/atacar', { id: r.id }, '⚔️ Atacar', base + r.esperaS * 1000, bloq)}</div></div>`;
+  };
+  return intro + d.raids.map(tarjeta).join('');
+}
+
 function pintarMazmorra(d, base) {
   const cab2 = `<p class="peq mut" style="margin-top:8px">Cartera: <b>${fmt(d.cartera)}</b> · Récord: piso <b>${d.record}</b> · Pociones: <b>${d.pociones}</b></p>`;
   if (d.nivel < d.nivelMin) return cab2 + `<div class="bloque vidrio"><p class="mut peq">Se desbloquea en el nivel ${d.nivelMin}. Tu nivel: ${d.nivel}.</p></div>`;
@@ -1191,8 +1209,8 @@ function pintarMazmorra(d, base) {
 }
 
 function pintarHogar(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra'], ['clan', 'Clan']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mundo', 'Tu mascota, tu granja, la mazmorra y tu clan.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : hogarSel === 'clan' ? pintarClan(d, base) : pintarMazmorra(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra'], ['clan', 'Clan'], ['raid', 'Raid']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mundo', 'Tu mascota, tu granja, la mazmorra, tu clan y los jefes de tus grupos.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : hogarSel === 'clan' ? pintarClan(d, base) : hogarSel === 'raid' ? pintarRaid(d, base) : pintarMazmorra(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -1658,8 +1676,8 @@ async function publicar(b, ruta, cuerpo) {
     if (d.me) aplicar(d.me);
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
-      const ico = ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
-      hoja({ icono: ico, col, mal, nivel, rareza: nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo' });
+      const ico = ruta.includes('/raid') ? ICONOS.raid : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
+      hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo' });
     } else if (d.mensaje) aviso(d.mensaje);
     await abrir(tabActual, true);
   } catch (e) {
@@ -1682,6 +1700,7 @@ $('#v-panel').addEventListener('click', e => {
     delete cargado.tienda;
     return abrir('tienda', true);
   }
+  if (e.target.closest('[data-ir-raid]')) { hogarSel = 'raid'; delete cargado.hogar; return abrir('hogar', true); }
   if (e.target.closest('[data-salir]')) return salir();
   const sl = e.target.closest('button[data-sel]');
   if (sl) { selEq = Number(sl.dataset.sel); return dibujar('inventario'); }
