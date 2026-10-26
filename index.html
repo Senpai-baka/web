@@ -455,6 +455,120 @@ body::before{background:radial-gradient(70vmax 40vmax at 85% -8%,rgba(232,148,10
 #app.con-nav{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
 #toast{bottom:calc(104px + env(safe-area-inset-bottom))}
 #petalas i{opacity:.55}
+
+/* ===== Tema Aire: espaciado, jerarquía y accesibilidad (capa final, no toca la lógica) ===== */
+:root{
+  --mut:#aba3be;
+  --e1:8px;--e2:12px;--e3:16px;--e4:24px;--e5:36px;
+}
+body{background-image:none;line-height:1.6}
+.peq{font-size:15px;line-height:1.5}
+.mut.peq,.peq.mut{line-height:1.5}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--lav);outline-offset:3px}
+#app{--g:20px}
+.hero,.login-esc,.perfil{margin-left:-20px;margin-right:-20px}
+.hero-in{left:20px;right:20px}
+#app{padding-left:20px;padding-right:20px}
+@media (min-width:720px){#app{max-width:600px}.nav{max-width:572px}}
+
+/* Cabeceras de página y de sección */
+.top{padding-bottom:var(--e2)}
+h1{margin:var(--e4) 0 var(--e1)}
+.cabp{margin:var(--e2) 0 var(--e1)}
+.cabp h1.pag{margin:var(--e3) 0 var(--e1)}
+.cabp p{font-size:16px;line-height:1.55;color:var(--mut)}
+.grupo{flex-wrap:wrap;margin:var(--e5) 0 var(--e3);row-gap:4px}
+.grupo>.mut{flex-basis:100%;order:3;font-size:14px}
+.sec,summary.sec{margin-top:var(--e5);margin-bottom:var(--e2)}
+.sec h2,.sd summary h2,.grupo h2{font-size:13px;letter-spacing:.14em;color:var(--petal)}
+.sd{margin-top:var(--e3);padding-bottom:var(--e1)}
+.sd summary{min-height:52px;padding:var(--e2) 0}
+.sd .cuerpo{padding-bottom:var(--e2)}
+.sd .cuerpo>.bloque:first-child,.sd .cuerpo>.lista>.bloque:first-child{margin-top:var(--e1)}
+
+/* Tarjetas y bloques */
+.bloque{padding:var(--e3) 18px;margin-top:var(--e3)}
+.hud{gap:10px;padding:var(--e3) 18px;margin-top:var(--e2)}
+.chip-s{padding:7px 12px}
+.chip-s span{font-size:13px}
+.clima{padding:18px;gap:var(--e3);margin-top:var(--e2)}
+.rejilla{gap:var(--e3)}
+.zc{padding:var(--e2) 14px 16px}
+.est{font-size:15px;margin-top:2px}
+.accion{height:48px;margin-top:var(--e2);border-radius:12px}
+.zona:not(.espera) .accion,.ticket:not(.espera) .accion,.zona:not(.espera) .aro{animation:none}
+.ticket{padding:18px;gap:var(--e3);margin-top:var(--e2)}
+.ticket .tx p.peq{line-height:1.45;margin-top:2px}
+.ticket .accion{min-width:112px;height:46px}
+.mx,.etiq{font-size:13px;padding:2px 10px}
+@media (max-width:460px){
+  .ticket{grid-template-columns:auto 1fr;row-gap:var(--e2)}
+  .ticket>.accion,.ticket>.etiq{grid-column:1/-1;width:100%;text-align:center;justify-self:stretch}
+  .ticket>.etiq{padding:10px;font-size:14px}
+}
+
+/* Listas, pares clave-valor y cifras */
+.kv{padding:11px 0}
+.kv span:first-child{font-size:15px}
+.fil{padding:14px 4px;gap:14px}
+.fil.yo{padding:14px}
+.cifras{gap:10px;margin-top:var(--e1)}
+.cifras>div{padding:16px 10px 14px}
+.cifras span{font-size:14px;margin-top:4px}
+.mats{gap:var(--e2)}
+.tals,.clases,.kpis{gap:var(--e2);margin-top:var(--e2)}
+.tal{padding:var(--e2) 14px}
+.habs{gap:var(--e2)}
+.stat{margin-top:var(--e3)}
+.stat-r{padding:var(--e1) 0}
+.barra{margin:10px 0 8px}
+.bolsa-g{gap:10px;margin-top:var(--e3)}
+.muneco{gap:var(--e3);padding:20px 16px 16px}
+.herr{padding:var(--e3) 18px}
+.herr .costo{margin-top:var(--e2)}
+.aviso-i{margin-top:var(--e3);padding:var(--e2) var(--e3);font-size:15px}
+.vacio{padding:var(--e5) var(--e3)}
+
+/* Botones y controles: objetivo táctil mínimo 44px */
+.mini{height:auto;min-height:44px;padding:8px 14px;font-size:15px;line-height:1.25}
+.btns{gap:var(--e2);margin-top:18px}
+.btnrow{gap:var(--e2);margin-top:var(--e3)}
+.btn,.btn2{height:52px}
+input,select.txt{height:52px}
+input.txt.corto{height:44px}
+label{margin:var(--e4) 0 var(--e1)}
+.link{min-height:44px;padding:var(--e1) var(--e2)}
+.ico{width:44px;height:44px}
+.seg{flex-wrap:nowrap;gap:2px;margin:var(--e4) 0 var(--e1);padding:5px;scroll-snap-type:x proximity}
+.seg button{flex:1 1 auto;min-height:44px;padding:10px 9px;font-size:14px;scroll-snap-align:center}
+@media (max-width:380px){.seg button{padding:10px 6px;font-size:13.5px}}
+@media (min-width:430px){.seg button{padding:10px 12px;font-size:15px}}
+.cartera{margin:var(--e3) 0 var(--e1);padding:8px 14px}
+
+/* Navegación inferior */
+.nav button{font-size:12px;padding:10px 2px 6px;min-height:58px}
+.nav svg{width:24px;height:24px}
+#app.con-nav{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+
+/* Tarjeta del jefe Raid */
+.rd{margin-top:20px}
+.rd-arena{height:180px}
+.rd-arena .zn{font-size:13px;padding:4px 12px;left:14px;top:12px}
+.rd-in{display:flex;flex-direction:column;gap:18px;padding:20px 18px 22px}
+.rd-in h3{font-size:23px;line-height:1.2}
+.rd-cab{display:flex;align-items:baseline;justify-content:space-between;gap:var(--e2);flex-wrap:wrap}
+.rd-cab .rd-t{font-size:14px;color:var(--mut)}
+.rd-cab .rd-t b{color:var(--petal)}
+.rd-hp{margin:0 0 10px;height:16px}
+.rd-vida .fila{font-size:15px}
+.rd-in .cifras{margin:0}
+.rd-bote{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(232,148,106,.08);border:1px solid rgba(232,148,106,.25);font-size:14px;line-height:1.45;color:var(--mut)}
+.rd-bote b{color:var(--petal)}
+.rd-top{margin:0}
+.rd-top h4{font-size:13px;margin:0 0 var(--e1)}
+.rd-in .btns{margin-top:0}
+.rd-in .mini{min-height:52px;font-size:16px}
+.rd-intro{margin:var(--e2) 0 0;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -1193,7 +1307,7 @@ function arteJefe(nombre) {
 }
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
-  const intro = `<p class="mut peq" style="margin-top:10px">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
+  const intro = `<p class="mut peq rd-intro">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
   if (!d.raids.length) return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.');
   const tarjeta = r => {
     const pct = Math.round(r.hp / r.hpMax * 100);
@@ -1203,14 +1317,15 @@ function pintarRaid(d, base) {
     return `<div class="vidrio rd" style="--c1:${c1};--c2:${c2}">
       <div class="rd-arena">${arteJefe(r.nombre)}<span class="zn">${esc(r.grupo)}</span></div>
       <div class="rd-in">
-        <h3>${esc(r.nombre)}</h3>
-        <div class="rd-hp ${pct < 30 ? 'bajo' : ''}"><i style="width:${pct}%"></i></div>
-        <div class="fila peq"><span>Vida</span><span><b>${fmt(r.hp)}</b>/${fmt(r.hpMax)} · ${pct}%</span></div>
-        <div class="fila peq" style="margin-top:2px"><span class="mut">Se retira en</span><span>${cuenta(r.restaS, base)}</span></div>
+        <div class="rd-cab"><h3>${esc(r.nombre)}</h3><span class="rd-t">Se retira en ${cuenta(r.restaS, base)}</span></div>
+        <div class="rd-vida">
+          <div class="rd-hp ${pct < 30 ? 'bajo' : ''}"><i style="width:${pct}%"></i></div>
+          <div class="fila"><span class="mut">Vida</span><span><b>${fmt(r.hp)}</b>/${fmt(r.hpMax)} · ${pct}%</span></div>
+        </div>
         ${cifras([['Atacantes', fmt(r.atacantes)], ['Tu daño', fmt(r.miDaño)], ['Tu puesto', r.miPos ? '#' + r.miPos : '—']])}
-        <p class="mut peq" style="margin-top:10px;text-align:center">Bote de <b>${fmt(r.bote || 0)}</b> repartido según el daño, más bonos al que más daño haga y al golpe final.</p>
+        <p class="rd-bote"><span>🎁</span><span>Bote de <b>${fmt(r.bote || 0)}</b> repartido según el daño, más bonos al que más daño haga y al golpe final.</span></p>
         ${top}
-        <div class="btns uno" style="margin-top:10px">${botonListo('/api/raid/atacar', { id: r.id }, '⚔️ Atacar', base + r.esperaS * 1000, bloq)}</div>
+        <div class="btns uno">${botonListo('/api/raid/atacar', { id: r.id }, '⚔️ Atacar', base + r.esperaS * 1000, bloq)}</div>
       </div></div>`;
   };
   return intro + d.raids.map(tarjeta).join('');
@@ -1676,6 +1791,7 @@ function dibujar(t) {
   if (!c) return;
   const y = window.scrollY;
   $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
+  document.querySelectorAll('#t-' + t + ' .seg').forEach(g => { const a = g.querySelector('[aria-pressed="true"]'); if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2; });
   if (t === tabActual) window.scrollTo(0, y);
 }
 async function abrir(t, forzar) {
