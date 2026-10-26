@@ -449,7 +449,10 @@ $('#campana').addEventListener('click', alternarAvisos);
 const kv = (k, v) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`;
 const cuenta = (s, base) => `<b data-fin="${base + s * 1000}">${dur(s)}</b>`;
 const barra = (v, m, cls) => `<div class="barra ${cls || ''}"><div style="width:${m ? Math.min(100, v / m * 100) : 0}%"></div></div>`;
-const vacio = txt => `<p class="vacio">${txt}</p>`;
+const vacio = txt => `<p class="vacio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18 C6 15 9 15 12 18 C15 21 18 21 21 18"/><path d="M12 15 V8"/><path d="M12 8 C10 5.5 8 5.5 6.5 6.5 M12 8 C14 5.5 16 5.5 17.5 6.5"/></svg>${txt}</p>`;
+const esqueleto = () => '<div class="vacio esq" role="status" aria-busy="true" aria-label="Cargando"><div class="esq-cab"></div><div class="esq-fila"><i></i><i></i><i></i></div><div class="esq-b"></div><div class="esq-b"></div><div class="esq-b corto"></div></div>';
+const chipsF = (attr, ops, sel, aria) => `<div class="filtros" role="group" aria-label="${aria}">${ops.map(([k, n, c]) => `<button type="button" class="fch" data-${attr}="${k}" aria-pressed="${k === sel}">${esc(n)}${c !== undefined ? ` <i>${c}</i>` : ''}</button>`).join('')}</div>`;
+let invFiltro = 'todo', eqFiltro = 'todo';
 const titulo = (t, extra) => `<div class="sec"><h2>${t}</h2>${extra || ''}</div>`;
 
 function pintarFicha(d, base) {
@@ -551,11 +554,16 @@ function pintarObjetos(d, base) {
   const tengo = d.reliquias.filter(r => r.tiene).length;
   const reliquias = `<div class="rel">${d.reliquias.map(r => `<span class="${r.tiene ? '' : 'no'}">${esc(r.emoji)} ${esc(r.nombre)}</span>`).join('')}</div>
     <p class="mut peq" style="margin-top:8px">Bono de ingresos por reliquias: +${d.bonoReliquias}%. Solo salen de los cofres.</p>`;
-  return `${sec('herramientas', 'Herramientas', '', `<div class="lista">${herr}</div>`)}
-    ${sec('cofres', 'Cofres', 'hasta ' + d.cofresMax + ' a la vez', `<div class="bloque vidrio">${cofres}</div>`)}
-    ${sec('consumibles', 'Consumibles', 'máx. ' + d.tope + ' de cada uno', cons)}
-    ${sec('reliquias', 'Reliquias', tengo + '/' + d.reliquias.length, reliquias)}
-    ${sec('materiales', 'Materiales', '', mats)}`;
+  const partes = [
+    ['herramientas', 'Herramientas', sec('herramientas', 'Herramientas', '', `<div class="lista">${herr}</div>`), d.herramientas.length],
+    ['cofres', 'Cofres', sec('cofres', 'Cofres', 'hasta ' + d.cofresMax + ' a la vez', `<div class="bloque vidrio">${cofres}</div>`), d.cofres.length],
+    ['consumibles', 'Consumibles', sec('consumibles', 'Consumibles', 'máx. ' + d.tope + ' de cada uno', cons), d.consumibles.length],
+    ['reliquias', 'Reliquias', sec('reliquias', 'Reliquias', tengo + '/' + d.reliquias.length, reliquias), d.reliquias.length],
+    ['materiales', 'Materiales', sec('materiales', 'Materiales', '', mats), d.materiales.length]
+  ];
+  const filtro = partes.some(p => p[0] === invFiltro) ? invFiltro : 'todo';
+  return chipsF('fo', [['todo', 'Todo'], ...partes.map(p => [p[0], p[1], p[3]])], filtro, 'Filtrar objetos')
+    + partes.filter(p => filtro === 'todo' || p[0] === filtro).map(p => p[2]).join('');
 }
 
 const barraEstado = (nombre, v, cls) => `<div class="stat"><div class="fila"><span>${nombre}</span><span>${v}%</span></div>${barra(v, 100, cls)}</div>`;
@@ -749,12 +757,29 @@ const pintarEquipo = (d, base) => {
     const it = d.items.find(i => i.equipado && i.tipo === t);
     return `<div class="hueco">${it ? celda(it) : `<div class="slot vacio"><span class="si">${emo}</span></div>`}<span>${nom}</span></div>`;
   }).join('');
-  const vacios = Math.min(10, Math.max(0, d.bolsa.max - d.items.length));
-  const bolsa = `<div class="bolsa-g">${d.items.map(celda).join('')}${'<div class="slot vacio"></div>'.repeat(vacios)}</div>`;
+  if (eqFiltro !== 'todo' && !TIPOS_W[eqFiltro]) eqFiltro = 'todo';
+  const vistos = eqFiltro === 'todo' ? d.items : d.items.filter(i => i.tipo === eqFiltro);
+  const vacios = eqFiltro === 'todo' ? Math.min(10, Math.max(0, d.bolsa.max - d.items.length)) : 0;
+  const filtrosEq = chipsF('fe', [['todo', 'Todo', d.items.length], ...Object.entries(TIPOS_W).map(([t, [n]]) => [t, n, d.items.filter(i => i.tipo === t).length])], eqFiltro, 'Filtrar equipo');
+  const bolsa = `${filtrosEq}<div class="bolsa-g">${vistos.map(celda).join('')}${'<div class="slot vacio"></div>'.repeat(vacios)}</div>${vistos.length ? '' : vacio('No tienes piezas de este tipo.')}`;
   const it = d.items.find(i => i.id === selEq);
   let detalle = '';
   if (it) {
     const [rn, c] = RAREZA[it.rareza] || RAREZA.comun;
+    let comp = '';
+    if (!it.equipado) {
+      const eq = d.items.find(i => i.equipado && i.tipo === it.tipo);
+      if (eq) {
+        const ord = Object.keys(RAREZA);
+        const nomR = x => (RAREZA[x.rareza] || RAREZA.comun)[0];
+        const fila = (n, a, b, fa, fb) => `<div class="cmp-f ${a > b ? 'sube' : a < b ? 'baja' : ''}"><span>${n}</span><b>${fa}</b><i aria-hidden="true">${a > b ? '▲' : a < b ? '▼' : '='}</i><span class="mut">${fb}</span></div>`;
+        comp = `<div class="cmp"><p class="mut peq">Frente a lo que llevas puesto (${esc(eq.etiqueta)})</p>`
+          + fila('Nivel', it.ilvl, eq.ilvl, it.ilvl, eq.ilvl)
+          + fila('Mejora', it.plus || 0, eq.plus || 0, '+' + (it.plus || 0), '+' + (eq.plus || 0))
+          + fila('Rareza', ord.indexOf(it.rareza), ord.indexOf(eq.rareza), esc(nomR(it)), esc(nomR(eq)))
+          + fila('Durabilidad', it.dur, eq.dur, it.dur + '/' + it.durMax, eq.dur + '/' + eq.durMax) + '</div>';
+      } else comp = `<p class="peq" style="margin-top:8px">Tu hueco de ${esc(TIPOS_W[it.tipo] ? TIPOS_W[it.tipo][0].toLowerCase() : 'equipo')} está libre.</p>`;
+    }
     const m = it.mejora;
     const costo = m ? `<p class="mut peq">Mejora: ${fmt(m.monedas)} monedas · ${m.hierro} hierro${m.oro ? ' · ' + m.oro + ' oro' : ''} · ${m.prob}% de éxito</p>` : '<p class="mut peq">Mejora al máximo (+' + d.maxPlus + ').</p>';
     const poner = it.equipado ? botonPost('/api/equipo/desequipar', { tipo: it.tipo }, 'Quitar', '') : botonPost('/api/equipo/equipar', { id: it.id }, 'Equipar', '');
@@ -763,7 +788,7 @@ const pintarEquipo = (d, base) => {
       : '<button type="button" class="mini" aria-disabled="true" data-motivo="Ya está al máximo.">Al máximo</button>';
     detalle = `<div class="bloque vidrio detalle" style="--r:${c}">
       <div class="fila"><strong style="color:${c}">${esc(it.etiqueta)}</strong>${it.equipado ? '<span class="etiq">Equipado</span>' : ''}</div>
-      <p class="peq">${esc(it.desc)}</p><p class="mut peq">${esc(rn)} · nivel ${it.ilvl}</p><p class="mut peq">Durabilidad: ${it.dur}/${it.durMax}${it.roto ? ' · roto, sin bonos' : ''}</p>${costo}
+      <p class="peq">${esc(it.desc)}</p><p class="mut peq">${esc(rn)} · nivel ${it.ilvl}</p><p class="mut peq">Durabilidad: ${it.dur}/${it.durMax}${it.roto ? ' · roto, sin bonos' : ''}</p>${costo}${comp}
       <div class="btns">${poner}${mejorar}
         ${it.reparar ? botonPost('/api/equipo/reparar', { id: it.id }, 'Reparar ' + fmt(it.reparar.monedas), `aria-disabled="${!it.reparar.puede}" data-motivo="Te faltan monedas."`) : ''}
         ${botonPost('/api/equipo/desmontar', { id: it.id }, 'Desmontar', `data-confirmar="¿Desmontar este equipo? Recibirás ${esc(it.desmonte)}."`)}
@@ -1136,7 +1161,7 @@ async function abrir(t, forzar) {
   const viejo = !cargado[t] || Date.now() - cargado[t].t > 20000;
   if (!forzar && !viejo) return dibujar(t);
   const el = $('#t-' + t);
-  if (!el.childElementCount) el.innerHTML = vacio('Recuperando recuerdos…');
+  if (!el.childElementCount) el.innerHTML = esqueleto();
   try {
     const ruta = typeof CARGA[t][0] === 'function' ? CARGA[t][0]() : CARGA[t][0];
     const d = await api(ruta);
@@ -1187,6 +1212,10 @@ $('#v-panel').addEventListener('click', e => {
   if (ir) return abrir(ir.dataset.ir);
   if (e.target.closest('[data-ir-raid]')) { hogarSel = 'raid'; delete cargado.hogar; return abrir('hogar', true); }
   if (e.target.closest('[data-salir]')) return salir();
+  const fo = e.target.closest('button[data-fo]');
+  if (fo) { invFiltro = fo.dataset.fo; return dibujar('inventario'); }
+  const fe = e.target.closest('button[data-fe]');
+  if (fe) { eqFiltro = fe.dataset.fe; return dibujar('inventario'); }
   const sl = e.target.closest('button[data-sel]');
   if (sl) { selEq = Number(sl.dataset.sel); return dibujar('inventario'); }
   const pf = e.target.closest('button[data-p]');
