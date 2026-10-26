@@ -919,6 +919,7 @@ function tick() {
     setTimeout(() => { refrescar().finally(() => { refrescandoClima = false; }); }, 1500);
   }
 }
+window.addEventListener('error', e => { try { aviso('Error: ' + (e.message || 'desconocido'), 6000); } catch (_) {} });
 setInterval(tick, 1000);
 
 async function refrescar() {
@@ -1679,7 +1680,10 @@ function dibujar(t) {
   const c = cargado[t];
   if (!c) return;
   const y = window.scrollY;
-  $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
+  let html;
+  try { html = CARGA[t][1](c.d, c.t); }
+  catch (e) { html = vacio('No pude mostrar esta sección: ' + esc(e && e.message ? e.message : String(e))) + '<button class="btn2" style="margin:0 auto;display:block" data-reintentar type="button">Reintentar</button>'; }
+  $('#t-' + t).innerHTML = html;
   if (t === tabActual) window.scrollTo(0, y);
 }
 async function abrir(t, forzar) {
