@@ -1194,7 +1194,11 @@ function arteJefe(nombre) {
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
   const intro = `<p class="mut peq" style="margin-top:10px">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
-  if (!d.raids.length) return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.');
+  if (!d.raids.length) {
+    const g = d.diag || {};
+    const det = g.activos === undefined ? '' : `<p class="mut peq" style="text-align:center;margin-top:6px">Jefes activos en el bot: <b>${g.activos}</b>${(g.motivos || []).length ? ' · ' + esc(g.motivos.join(', ')) : ''}</p>`;
+    return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.') + det;
+  }
   const tarjeta = r => {
     const pct = Math.round(r.hp / r.hpMax * 100);
     const [c1, c2] = PAL_JEFE[String(r.nombre).toLowerCase().includes('hidra') ? 'hidra' : String(r.nombre).toLowerCase().includes('kraken') ? 'kraken' : String(r.nombre).toLowerCase().includes('hielo') ? 'hielo' : 'otro'];
