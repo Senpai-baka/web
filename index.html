@@ -332,7 +332,6 @@ input.txt.corto{margin-top:0;height:40px}
 .nav button[aria-current="page"]{color:var(--petal)}
 .nav button[aria-current="page"]::before{content:"";position:absolute;top:-5px;left:50%;width:26px;height:3px;margin-left:-13px;border-radius:0 0 4px 4px;background:var(--sakura);box-shadow:0 0 12px var(--sakura)}
 .nav .pt{position:absolute;top:6px;right:calc(50% - 20px);width:8px;height:8px;border-radius:50%;background:var(--menta);box-shadow:0 0 8px var(--menta)}
-.nav .pt.nuevo{background:var(--naranja);box-shadow:0 0 8px var(--naranja)}
 .vidrio{position:relative;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(214,184,122,.07)}
 .vidrio::before{content:"";position:absolute;inset:4px;border:1px solid rgba(214,184,122,.17);border-radius:8px;pointer-events:none}
 .vidrio::after{content:"";position:absolute;inset:2px;pointer-events:none;opacity:.75;background:radial-gradient(circle at 3px 3px,var(--oro) 0 1.7px,transparent 2.1px),radial-gradient(circle at calc(100% - 3px) 3px,var(--oro) 0 1.7px,transparent 2.1px),radial-gradient(circle at 3px calc(100% - 3px),var(--oro) 0 1.7px,transparent 2.1px),radial-gradient(circle at calc(100% - 3px) calc(100% - 3px),var(--oro) 0 1.7px,transparent 2.1px)}
@@ -722,11 +721,16 @@ function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
 function leerProx() { try { return localStorage.getItem('isla_vio_raid') === '1'; } catch (_) { return false; } }
 let vioProx = leerProx();
-function verProx() {
+function anunciarRaid() {
   if (vioProx) return;
   vioProx = true;
   try { localStorage.setItem('isla_vio_raid', '1'); } catch (_) {}
-  tick();
+  const msg = '👹 ¡Llega el Raid! Un jefe mundial para todo el grupo. Próximamente.';
+  setTimeout(() => {
+    if (document.hidden && avisosActivos()) {
+      try { new Notification('Isla', { body: msg, icon: '/logo-favicon.png', tag: 'isla-raid' }); } catch (_) {}
+    } else aviso(msg, 6000);
+  }, 1500);
 }
 const avisosActivos = () => avisosOn && 'Notification' in window && Notification.permission === 'granted';
 function pintarCampana() {
@@ -756,9 +760,9 @@ function vista(v) {
   quitarAmbiente();
   if (v === 'login') { petalos(14, 'ambiente'); document.title = TITULO; }
 }
-function aviso(txt) {
+function aviso(txt, ms) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
-  clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), 3500);
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
 function limpiarTabs() { for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
 function sesionCaducada() {
@@ -816,6 +820,7 @@ function aplicar(d) {
   if (d.clima) pintarClima(d.clima);
   montarMultiplicadores();
   tick();
+  anunciarRaid();
 }
 function pintarHud(d) {
   const h = $('#hud');
@@ -891,11 +896,7 @@ function tick() {
   document.querySelectorAll('[data-fin]').forEach(e => { e.textContent = dur((Number(e.dataset.fin) - ahora) / 1000); });
   document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
   const pt = $('#pt-inicio');
-  if (pt) {
-    const nuevo = !listas && !vioProx;
-    pt.hidden = !listas && !nuevo;
-    pt.classList.toggle('nuevo', nuevo);
-  }
+  if (pt) pt.hidden = !listas;
   const cf = Number($('#cc-resta').dataset.fin);
   if (cf && ahora >= cf && !refrescandoClima && !ocupado) {
     refrescandoClima = true;
@@ -903,12 +904,6 @@ function tick() {
   }
 }
 setInterval(tick, 1000);
-if ('IntersectionObserver' in window) {
-  const cr = $('#c-raid');
-  if (cr) new IntersectionObserver((es, ob) => {
-    if (es.some(e => e.isIntersecting)) { verProx(); ob.disconnect(); }
-  }, { threshold: 0.6 }).observe(cr);
-}
 
 async function refrescar() {
   try { aplicar(await api('/api/me')); }
