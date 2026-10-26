@@ -39,7 +39,8 @@ const NAV = [
   ['ciudad', 'Ciudad', svg('<path d="M4 21 V9 L10 6 V21"/><path d="M10 21 V4 L20 8 V21"/><path d="M3 21 H21"/><path d="M13 10 H17 M13 14 H17"/>')],
   ['rankings', 'Ranking', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')]
 ];
-const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings'];
+const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid'];
+const PADRE = { gacha: 'inicio', raid: 'inicio' };
 const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
@@ -179,7 +180,7 @@ function anunciarRaid() {
   if (vioProx) return;
   vioProx = true;
   try { localStorage.setItem('isla_aviso_raid', '1'); } catch (_) {}
-  const msg = '👹 ¡Llegó el Raid! Ataca al jefe de tu grupo desde Mundo › Raid.';
+  const msg = '👹 ¡Llegó el Raid! Ataca al jefe de tu grupo desde Inicio › Raid.';
   setTimeout(() => {
     if (document.hidden && avisosActivos()) {
       try { new Notification('Isla', { body: msg, icon: '/logo-favicon.png', tag: 'isla-raid' }); } catch (_) {}
@@ -644,6 +645,11 @@ function arteJefe(nombre) {
   }[k];
   return `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><circle cx="200" cy="104" r="92" fill="${aura}" opacity=".28"/>${fig}<rect y="182" width="400" height="8" fill="#0b0810" opacity=".7"/></svg>`;
 }
+const cabEvento = (t, s, icono, st) => {
+  const fila = st && st.length ? `<div class="cab-st">${st.map(([n, v]) => `<div><b>${esc(String(v))}</b><span>${esc(n)}</span></div>`).join('')}</div>` : '';
+  return `<button type="button" class="atras" data-ir="inicio">← Inicio</button><div class="cabp cab-t"><div class="cab-top"><span class="cab-i" aria-hidden="true">${icono}</span><div><h1 class="pag">${t}</h1><p class="mut">${s}</p></div></div>${fila}</div>`;
+};
+const pintarRaidTab = (d, base) => cabEvento('Raid', 'Jefes mundiales de tus grupos.', ICONOS.raid, me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []) + pintarRaid(d, base);
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
   const intro = `<p class="mut peq rd-intro">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
@@ -846,7 +852,6 @@ function pintarGachaInvocar(d, base) {
     ? `${titulo('Mayores coleccionistas')}<div class="bloque vidrio">${d.ranking.map(r => filaRanking(r, fmt(r.cartas) + ' cartas', '💎 ' + fmt(r.valor))).join('')}</div>`
     : '';
   return `${introGacha(d)}
-    ${cifras([['Cartas', fmt(d.mia.total)], ['Valor', fmt(d.mia.valor)]])}
     ${chipsRarezaGacha(d.mia.porRareza)}
     <div class="btns uno" style="margin-top:14px">${botonListo('/api/gacha/tirar', {}, '✨ Invocar', base + d.esperaS * 1000)}</div>
     ${pendiente}${mundo}${ranking}`;
@@ -860,16 +865,18 @@ function pintarGachaColeccion(d) {
   const cuerpo = d.cartas.length
     ? `<div class="gc-rejilla">${d.cartas.map(miniGacha).join('')}</div>${pie}`
     : vacio('Aún no tienes cartas. Invoca y reclama la primera.');
-  return `${cifras([['Cartas', fmt(d.total)], ['Valor', fmt(d.valor)]])}${chipsRarezaGacha(d.porRareza)}${titulo('Tu colección')}${cuerpo}`;
+  return `${chipsRarezaGacha(d.porRareza)}${titulo('Tu colección')}${cuerpo}`;
 }
 function pintarGacha(d, base) {
   const seg = segHtml('Sección del gacha', [['invocar', 'Invocar'], ['coleccion', 'Colección']], gachaSel, 'gs');
-  return seg + (gachaSel === 'coleccion' ? pintarGachaColeccion(d) : pintarGachaInvocar(d, base));
+  const mia = gachaSel === 'coleccion' ? { total: d.total, valor: d.valor } : d.mia;
+  return cabEvento('Gacha', 'Invoca y colecciona personajes de anime.', ICONOS.gacha, [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]])
+    + seg + (gachaSel === 'coleccion' ? pintarGachaColeccion(d) : pintarGachaInvocar(d, base));
 }
 
 function pintarHogar(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra'], ['clan', 'Clan'], ['raid', 'Raid'], ['gacha', 'Gacha']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mundo', 'Tu mascota, tu granja, la mazmorra, tu clan, los jefes de tus grupos y el gacha.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : hogarSel === 'clan' ? pintarClan(d, base) : hogarSel === 'raid' ? pintarRaid(d, base) : hogarSel === 'gacha' ? pintarGacha(d, base) : pintarMazmorra(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra'], ['clan', 'Clan']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mundo', 'Tu mascota, tu granja, la mazmorra y tu clan.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : hogarSel === 'clan' ? pintarClan(d, base) : pintarMazmorra(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -1300,9 +1307,11 @@ const CARGA = {
   ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[perfilSel] || '/api/ficha'), pintarPerfil],
   inventario: [() => invSel === 'equipo' ? '/api/equipo' : invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
   tienda: [() => tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + tiendaSel, pintarTienda],
-  hogar: [() => hogarSel === 'clan' ? '/api/clan?q=' + encodeURIComponent(clanQ) : hogarSel === 'gacha' && gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : '/api/' + hogarSel, pintarHogar],
+  hogar: [() => hogarSel === 'clan' ? '/api/clan?q=' + encodeURIComponent(clanQ) : '/api/' + hogarSel, pintarHogar],
   ciudad: [() => ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(jugQ) : '/api/' + ciudadSel, pintarCiudad],
-  rankings: ['/api/rankings', pintarRankings]
+  rankings: ['/api/rankings', pintarRankings],
+  gacha: [() => gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : '/api/gacha', pintarGacha],
+  raid: ['/api/raid', pintarRaidTab]
 };
 
 function dibujar(t) {
@@ -1321,7 +1330,7 @@ async function abrir(t, forzar) {
   for (const k of TABS) $('#t-' + k).hidden = k !== t;
   for (const [k] of NAV) {
     const b = $('#nav [data-t="' + k + '"]');
-    if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    if (k === (PADRE[t] || t)) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
   try { history.replaceState(null, '', t === 'inicio' ? location.pathname : '#' + t); } catch (_) {}
   if (cambio) window.scrollTo(0, 0);
@@ -1378,16 +1387,16 @@ $('#v-panel').addEventListener('click', e => {
   }
   const ir = e.target.closest('[data-ir]');
   if (ir) return abrir(ir.dataset.ir);
-  if (e.target.closest('[data-ir-raid]')) { hogarSel = 'raid'; delete cargado.hogar; return abrir('hogar', true); }
-  if (e.target.closest('[data-ir-gacha]')) { hogarSel = 'gacha'; gachaSel = 'invocar'; delete cargado.hogar; return abrir('hogar', true); }
+  if (e.target.closest('[data-ir-raid]')) return abrir('raid', true);
+  if (e.target.closest('[data-ir-gacha]')) { hogarSel = 'gacha'; gachaSel = 'invocar'; gachaPag = 1; return abrir('gacha', true); }
   const gs = e.target.closest('button[data-gs]');
-  if (gs) { gachaSel = gs.dataset.gs; gachaPag = 1; delete cargado.hogar; return abrir('hogar', true); }
+  if (gs) { gachaSel = gs.dataset.gs; gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); }
   const gp = e.target.closest('button[data-gp]');
   if (gp) {
     if (gp.getAttribute('aria-disabled') === 'true') return;
     gachaPag = Math.max(1, gachaPag + Number(gp.dataset.gp));
-    delete cargado.hogar;
-    return abrir('hogar', true);
+    delete cargado.gacha;
+    return abrir('gacha', true);
   }
   if (e.target.closest('[data-salir]')) return salir();
   const fo = e.target.closest('button[data-fo]');
