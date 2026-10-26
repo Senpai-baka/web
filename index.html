@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/estilos.css?v=4">
+<link rel="stylesheet" href="css/estilos.css?v=5">
 </head>
 <body>
 <noscript><p style="padding:24px;text-align:center">Este panel necesita JavaScript.</p></noscript>
@@ -92,13 +92,13 @@
       <div class="eventos">
       <div class="ticket evento" id="c-raid" style="--z:#c9626f">
         <div class="aro" style="color:var(--z)"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/></svg></div>
-        <div class="tx"><h3>Raid</h3><p class="mut peq">Jefe mundial del grupo: todos atacan juntos y se reparten el botín.</p></div>
-        <button class="accion" type="button" data-ir-raid>Ver jefes</button>
+        <div class="tx"><h3>Raid</h3><p class="mut peq" id="p-raid">Jefe mundial del grupo: todos atacan juntos y se reparten el botín.</p></div>
+        <button class="accion" type="button" id="b-raid" data-ir-raid>Ver jefes</button>
       </div>
       <div class="ticket evento" id="c-gacha" style="--z:#b69be0">
         <div class="aro" style="color:var(--z)"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/></svg></div>
-        <div class="tx"><h3>Gacha</h3><p class="mut peq">Invoca y colecciona personajes de anime.</p></div>
-        <button class="accion" type="button" data-ir-gacha>Invocar</button>
+        <div class="tx"><h3>Gacha</h3><p class="mut peq" id="p-gacha">Invoca y colecciona personajes de anime.</p></div>
+        <button class="accion" type="button" id="b-gacha" data-ir-gacha>Invocar</button>
       </div>
       <div class="ticket evento" id="c-mazmorra" style="--z:#9fb4c8">
         <div class="aro" style="color:var(--z)"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pista" cx="32" cy="32" r="29"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 1 V5 M12 19 V23 M1 12 H5 M19 12 H23"/></svg></div>
@@ -160,6 +160,6 @@
   </div>
 </div>
 <div id="toast" role="status" hidden></div>
-<script src="js/app.js?v=4"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>
