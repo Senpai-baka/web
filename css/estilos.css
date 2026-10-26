@@ -580,3 +580,28 @@ label{margin:var(--e4) 0 var(--e1)}
 .at-t small{font-size:13px;line-height:1.35;color:var(--mut)}
 @media (prefers-reduced-motion:reduce){.atajo:active{transform:none}}
 
+/* ===== Cabecera de cada pestaña ===== */
+.cab-t{position:relative;isolation:isolate;margin:var(--e2) 0 var(--e1);padding:var(--e3);clip-path:var(--ch);background:linear-gradient(135deg,rgba(195,187,220,.35),rgba(195,187,220,.05) 60%)}
+.cab-t::before{content:"";position:absolute;inset:1px;z-index:-1;clip-path:var(--ch1);background:radial-gradient(120% 90% at 0 0,rgba(232,148,106,.16),transparent 60%),linear-gradient(160deg,#1d1727,#151119)}
+.cab-top{display:flex;align-items:center;gap:14px}
+.cab-i{flex:none;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:var(--sakura);background:rgba(232,148,106,.12);border:1px solid rgba(232,148,106,.4)}
+.cab-i svg{width:26px;height:26px}
+.cab-t h1.pag{margin:0;font-size:28px}
+.cab-t p{font-size:14px;line-height:1.45;margin-top:2px}
+.cab-st{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px;margin-top:var(--e3)}
+.cab-st>div{padding:10px 8px;text-align:center;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--linea)}
+.cab-st b{display:block;font:800 19px/1.2 var(--serif);color:var(--petal);font-variant-numeric:tabular-nums}
+.cab-st span{font-size:12.5px;color:var(--mut)}
+
+/* ===== Respuesta al tocar y entrada de pestañas ===== */
+.accion,.mini,.btn,.btn2,.atajo,.seg button,.nav button{transition:transform .12s ease,filter .15s,background .15s,opacity .15s}
+.accion:active,.mini:active,.btn:active,.btn2:active,.seg button:active{transform:scale(.97)}
+.nav button:active{transform:scale(.92)}
+@keyframes toco{from{box-shadow:0 0 0 0 color-mix(in srgb,var(--z,#e8946a) 50%,transparent)}to{box-shadow:0 0 0 14px transparent}}
+.toco{animation:toco .5s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#v-panel>div:not([hidden]){animation:entra .28s ease-out}
+@media (prefers-reduced-motion:reduce){
+  .accion:active,.mini:active,.btn:active,.btn2:active,.seg button:active,.nav button:active{transform:none}
+  .toco,#v-panel>div:not([hidden]){animation:none}
+}
