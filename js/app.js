@@ -171,7 +171,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -220,7 +220,7 @@ function aviso(txt, ms) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
-function limpiarTabs() { for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
+function limpiarTabs() { eventos = {}; eventosT = 0; for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
 function sesionCaducada() {
   me = null; cargado = {}; limpiarTabs();
   aviso('Tu sesión caducó. Conéctate de nuevo.');
@@ -277,6 +277,7 @@ function aplicar(d) {
   montarMultiplicadores();
   tick();
   anunciarRaid();
+  cargarEventos();
 }
 function pintarHud(d) {
   const h = $('#hud');
@@ -325,6 +326,51 @@ function notificar(k) {
   }
 }
 
+async function cargarEventos(forzar) {
+  if (!me || cargandoEventos || (!forzar && Date.now() - eventosT < 10000)) return;
+  cargandoEventos = true;
+  try {
+    const [g, r] = await Promise.all([api('/api/gacha').catch(() => null), api('/api/raid').catch(() => null)]);
+    const base = Date.now();
+    if (g) eventos.gacha = { fin: base + g.esperaS * 1000, pend: g.pendiente ? base + g.pendiente.restaS * 1000 : 0 };
+    if (r) {
+      const vivos = (r.raids || []).filter(x => !x.dormido);
+      eventos.raid = { n: vivos.length, fin: vivos.length ? Math.min(...vivos.map(x => base + x.esperaS * 1000)) : 0 };
+    }
+    eventosT = Date.now();
+    gachaVencida = false;
+  } finally { cargandoEventos = false; }
+}
+function tickEventos(ahora) {
+  let n = 0;
+  const g = eventos.gacha, r = eventos.raid;
+  if (g) {
+    const pend = g.pend > ahora;
+    const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
+    const lista = pend || rest === 0;
+    const p = $('#p-gacha');
+    if (p.dataset.base === undefined) p.dataset.base = p.textContent;
+    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : p.dataset.base;
+    $('#c-gacha').classList.toggle('espera', !lista);
+    $('#b-gacha').textContent = pend ? 'Reclamar' : rest === 0 ? 'Invocar' : dur(rest);
+    if (lista) n++;
+    if (g.pend && !pend && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
+  }
+  if (r) {
+    const rest = Math.max(0, Math.ceil((r.fin - ahora) / 1000));
+    const lista = r.n > 0 && rest === 0;
+    $('#c-raid').classList.toggle('espera', !lista);
+    $('#b-raid').textContent = r.n === 0 ? 'Ver jefes' : rest === 0 ? 'Atacar' : dur(rest);
+    if (lista) n++;
+  }
+  const fin = document.querySelector('[data-gc-fin]');
+  if (fin && tabActual === 'gacha' && ahora >= Number(fin.dataset.gcFin) && !ocupado && !publicando) {
+    fin.removeAttribute('data-gc-fin');
+    delete cargado.gacha;
+    abrir('gacha', true);
+  }
+  return n;
+}
 function tick() {
   if (!me) return;
   const ahora = Date.now();
@@ -348,6 +394,7 @@ function tick() {
     if (previa[k] === false && lista) notificar(k);
     previa[k] = lista;
   }
+  listas += tickEventos(ahora);
   const vis = [...document.querySelectorAll('#rejilla .zona:not([hidden])')];
   vis.forEach(z => z.classList.remove('ancha'));
   if (vis.length % 2) vis[vis.length - 1].classList.add('ancha');
@@ -846,7 +893,7 @@ function pintarGachaInvocar(d, base) {
   const p = d.pendiente;
   const pendiente = p
     ? `${titulo('Carta pendiente', `<span class="mut peq">se escapa en ${cuenta(p.restaS, base)}</span>`)}
-       <div class="bloque vidrio">${cartaGacha(p.carta)}<p class="mut peq" style="margin-top:10px">Reclámala antes de que se acabe el tiempo o volverá al mazo.</p>
+       <div class="bloque vidrio" data-gc-fin="${base + p.restaS * 1000}">${cartaGacha(p.carta)}<p class="mut peq" style="margin-top:10px">Reclámala antes de que se acabe el tiempo o volverá al mazo.</p>
        <div class="btns uno">${botonPost('/api/gacha/reclamar', { id: p.carta.id }, 'Reclamar carta')}</div></div>`
     : '';
   const mundo = d.mundo.length
@@ -1365,6 +1412,7 @@ async function publicar(b, ruta, cuerpo) {
     const d = await api(ruta, cuerpo);
     cargado = {};
     if (d.me) aplicar(d.me);
+    if (ruta.includes('/gacha') || ruta.includes('/raid')) cargarEventos(true);
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
       const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
