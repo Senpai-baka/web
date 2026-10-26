@@ -605,3 +605,28 @@ label{margin:var(--e4) 0 var(--e1)}
   .accion:active,.mini:active,.btn:active,.btn2:active,.seg button:active,.nav button:active{transform:none}
   .toco,#v-panel>div:not([hidden]){animation:none}
 }
+
+/* ===== Filtros, comparación y estados de carga ===== */
+.filtros{display:flex;gap:8px;overflow-x:auto;padding:4px 20px 8px;margin:var(--e2) -20px 0;scrollbar-width:none;scroll-snap-type:x proximity}
+.filtros::-webkit-scrollbar{display:none}
+.cuerpo .filtros{margin-left:0;margin-right:0;padding-left:0;padding-right:0}
+.fch{flex:none;min-height:44px;padding:8px 14px;border-radius:99px;border:1px solid var(--linea);background:rgba(255,255,255,.04);color:var(--mut);font:700 14px var(--font);scroll-snap-align:start;cursor:pointer}
+.fch i{font-style:normal;margin-left:4px;opacity:.8}
+.fch[aria-pressed="true"]{color:var(--petal);border-color:rgba(232,148,106,.6);background:rgba(232,148,106,.14)}
+.cmp{margin-top:var(--e2);padding:var(--e2);border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--linea)}
+.cmp-f{display:grid;grid-template-columns:1fr auto 22px minmax(64px,auto);gap:8px;align-items:center;padding:5px 0;font-size:14px}
+.cmp-f b{text-align:right}
+.cmp-f i{font-style:normal;text-align:center;color:var(--mut)}
+.cmp-f span.mut{text-align:right}
+.cmp-f.sube i{color:#8fc4ad}
+.cmp-f.baja i{color:#dd8591}
+.vacio svg{display:block;margin:0 auto 10px;width:44px;height:44px;color:var(--lav);opacity:.7}
+.vacio.esq{padding:0;margin-top:var(--e2);text-align:left}
+.esq-cab,.esq-b,.esq-fila i{border-radius:14px;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.11) 45%,rgba(255,255,255,.05) 65%);background-size:300% 100%;animation:brilla 1.4s linear infinite}
+.esq-cab{height:132px}
+.esq-fila{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:var(--e3) 0}
+.esq-fila i{height:44px;border-radius:99px}
+.esq-b{height:96px;margin-top:var(--e2)}
+.esq-b.corto{height:64px;width:70%}
+@keyframes brilla{from{background-position:100% 0}to{background-position:-100% 0}}
+@media (prefers-reduced-motion:reduce){.esq-cab,.esq-b,.esq-fila i{animation:none}}
