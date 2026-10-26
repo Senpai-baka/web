@@ -919,7 +919,6 @@ function tick() {
     setTimeout(() => { refrescar().finally(() => { refrescandoClima = false; }); }, 1500);
   }
 }
-window.addEventListener('error', e => { try { aviso('Error: ' + (e.message || 'desconocido'), 6000); } catch (_) {} });
 setInterval(tick, 1000);
 
 async function refrescar() {
@@ -1195,11 +1194,7 @@ function arteJefe(nombre) {
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
   const intro = `<p class="mut peq" style="margin-top:10px">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
-  if (!d.raids.length) {
-    const g = d.diag || {};
-    const det = g.activos === undefined ? '' : `<p class="mut peq" style="text-align:center;margin-top:6px">Jefes activos en el bot: <b>${g.activos}</b>${(g.motivos || []).length ? ' · ' + esc(g.motivos.join(', ')) : ''}</p>`;
-    return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.') + det;
-  }
+  if (!d.raids.length) return intro + vacio('Ningún grupo tuyo tiene un jefe ahora mismo.');
   const tarjeta = r => {
     const pct = Math.round(r.hp / r.hpMax * 100);
     const [c1, c2] = PAL_JEFE[String(r.nombre).toLowerCase().includes('hidra') ? 'hidra' : String(r.nombre).toLowerCase().includes('kraken') ? 'kraken' : String(r.nombre).toLowerCase().includes('hielo') ? 'hielo' : 'otro'];
@@ -1680,10 +1675,7 @@ function dibujar(t) {
   const c = cargado[t];
   if (!c) return;
   const y = window.scrollY;
-  let html;
-  try { html = CARGA[t][1](c.d, c.t); }
-  catch (e) { html = vacio('No pude mostrar esta sección: ' + esc(e && e.message ? e.message : String(e))) + '<button class="btn2" style="margin:0 auto;display:block" data-reintentar type="button">Reintentar</button>'; }
-  $('#t-' + t).innerHTML = html;
+  $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
   if (t === tabActual) window.scrollTo(0, y);
 }
 async function abrir(t, forzar) {
