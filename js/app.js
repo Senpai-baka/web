@@ -105,7 +105,13 @@ document.addEventListener('toggle', e => {
   const d = e.target;
   if (d.matches && d.matches('details.sd')) { if (d.open) cerrados.delete(d.dataset.k); else cerrados.add(d.dataset.k); }
 }, true);
-const cab = (t, s) => `<div class="cabp"><h1 class="pag">${t}</h1>${s ? `<p class="mut">${s}</p>` : ''}</div>`;
+const TAB_DE = { Mochila: 'inventario', Tienda: 'tienda', Mundo: 'hogar', Ciudad: 'ciudad', Rankings: 'rankings' };
+const cab = (t, s, st) => {
+  const nav = NAV.find(n => n[0] === TAB_DE[t]);
+  const cifrasT = st || (me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []);
+  const fila = cifrasT.length ? `<div class="cab-st">${cifrasT.map(([n, v]) => `<div><b>${esc(String(v))}</b><span>${esc(n)}</span></div>`).join('')}</div>` : '';
+  return `<div class="cabp cab-t"><div class="cab-top">${nav ? `<span class="cab-i" aria-hidden="true">${nav[2]}</span>` : ''}<div><h1 class="pag">${t}</h1>${s ? `<p class="mut">${s}</p>` : ''}</div></div>${fila}</div>`;
+};
 const cifras = lista => `<div class="cifras">${lista.map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}</div>`;
 const segHtml = (aria, ops, sel, attr) => `<div class="seg" role="group" aria-label="${aria}">${ops.map(([k, n]) => `<button type="button" data-${attr}="${k}" aria-pressed="${k === sel}">${esc(n)}</button>`).join('')}</div>`;
 
@@ -429,6 +435,7 @@ function resumen(k, r) {
 }
 function mostrar(k, r) {
   const { chips, nom, col, mal, nivel } = resumen(k, r);
+  vibra(mal ? 70 : nivel ? [20, 40, 20, 40, 30] : [18, 40, 18]);
   hoja({
     icono: ICONOS[ACC[k].ic], col, mal, nivel, rareza: nom, chips, titulo: r.titulo,
     zona: ACC[k].p ? ACC[k].p + ' en ' + r.zona : r.zona,
@@ -858,14 +865,13 @@ const vSubastas = (d, base) => {
 const SECCIONES_TIENDA = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
 function pintarTienda(d, base) {
   const seg = `<div class="seg" role="group" aria-label="Sección de la tienda">${SECCIONES_TIENDA.map(([k, n]) => `<button type="button" data-s="${k}" aria-pressed="${k === tiendaSel}">${n}</button>`).join('')}</div>`;
-  const cart = `<div class="cartera">Cartera <b>${fmt(d.cartera)}</b> monedas</div>`;
   const v = { tienda: vTienda, bazar: vBazar, mercado: vMercado, subastas: vSubastas }[tiendaSel];
-  return cab('Tienda', 'Compra, vende y subasta con otros jugadores.') + seg + cart + v(d, base);
+  return cab('Tienda', 'Compra, vende y subasta con otros jugadores.', [['Cartera', fmt(d.cartera)], ['Nivel', me.nivel]]) + seg + v(d, base);
 }
 
 function pintarInventario(d, base) {
   const seg = `<div class="seg" role="group" aria-label="Sección del inventario">${[['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']].map(([k, n]) => `<button type="button" data-i="${k}" aria-pressed="${k === invSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mochila', 'Tus herramientas, equipo y materiales.') + seg + (invSel === 'objetos' ? pintarObjetos(d, base) : invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base));
+  return cab('Mochila', 'Tus herramientas, equipo y materiales.', invSel === 'objetos' && d.bolsa && d.items ? [['Monedas', fmt(me.monedas)], ['Espacios', d.items.length + '/' + d.bolsa.max], ['Nivel', me.nivel]] : undefined) + seg + (invSel === 'objetos' ? pintarObjetos(d, base) : invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base));
 }
 
 const pips = (n, m) => `<span class="pips">${'<i class="pip on"></i>'.repeat(n)}${'<i class="pip"></i>'.repeat(Math.max(0, m - n))}</span>`;
@@ -1268,3 +1274,15 @@ $('#top-ava').addEventListener('click', () => abrir('ficha'));
     abrir(location.hash.slice(1) || 'inicio');
   } catch (_) { vista('login'); }
 })();
+
+/* ---- Respuesta al tocar: destello y vibración corta ---- */
+const sinMov = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function vibra(p) { if (!sinMov && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } }
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('button:not(:disabled):not([aria-disabled="true"]), .atajo');
+  if (!b || !b.matches('.accion,.mini,.btn,.btn2,.atajo,.seg button,.nav button')) return;
+  vibra(8);
+  if (!b.matches('.accion,.mini,.btn,.btn2')) return;
+  b.classList.remove('toco'); void b.offsetWidth; b.classList.add('toco');
+  setTimeout(() => b.classList.remove('toco'), 500);
+}, { passive: true });
