@@ -1,6 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import legacyMarkup from './legacy.html?raw';
+import * as lib from './lib/index.js';
+import { setMe } from './bridge/store.js';
+import { migradas, render, unmount } from './bridge/islands.jsx';
+
+// Lo que app.js (script clásico) comparte con el mundo React. Debe existir ANTES de cargar /js/app.js.
+window.IslaLib = lib;
+window.IslaBridge = { setMe, migradas, render, unmount };
 
 /**
  * Puente de compatibilidad: React monta el DOM de la web existente.
