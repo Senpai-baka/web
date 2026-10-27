@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Cab, Seg, Sec, Titulo, Vacio, Accion, Cifras } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
-import { htmlInventarioCuerpo, inventarioSeccion, cambiarInventario } from '../bridge/acciones.js';
+import { inventarioSeccion, cambiarInventario } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
 import { aviso } from '../bridge/acciones.js';
 
@@ -150,17 +150,48 @@ function EquipoReact({ d }) {
 }
 
 
-/** Mochila: Objetos y Equipo usan React; Forja sigue temporalmente en el renderizador existente. */
+function ForjaReact({ d }) {
+  const materiales = (d.materiales || []).filter(m => Number(m.cantidad) > 0);
+  const recetas = d.recetas || [];
+  const valor = Number(d.valorMateriales || 0);
+  return <>
+    <Sec k="forja-recetas-react" titulo="Recetas" extra={`${recetas.length} disponibles`}>
+      {recetas.length ? <div className="lista">{recetas.map(r => <div className="bloque vidrio" key={r.clave}>
+        <div className="fila"><strong>{r.emoji || '🛠️'} {r.nombre}</strong><span className="mut peq">Tienes {r.stock || 0}/{d.tope ?? '—'}</span></div>
+        <div className="mats" style={{ marginTop: 10 }}>{(r.reqs || []).map((x, i) => <div className="mat" key={`${x.clave || x.nombre || i}`}>
+          <span className="slot" aria-hidden="true"><span>{x.emoji || '📦'}</span></span>
+          <span className="peq">{x.nombre ? `${x.nombre}: ` : ''}{x.tengo}/{x.necesita}</span>
+        </div>)}</div>
+        <div className="btns uno"><Accion ruta="/api/forja/fabricar" cuerpo={{ clave: r.clave }} motivo={!r.puede ? 'Te faltan materiales o tu inventario está lleno.' : null}>Fabricar</Accion></div>
+      </div>)}</div> : <Vacio>No hay recetas disponibles por ahora.</Vacio>}
+    </Sec>
+    <Sec k="forja-materiales-react" titulo="Vender materiales" extra={materiales.length ? `${materiales.length} tipos` : ''}>
+      {materiales.length ? <>
+        <div className="mats">{materiales.map(m => <div className="mat" key={m.clave}>
+          <ItemIcon emoji={m.emoji} cantidad={fmt(m.cantidad)} color="#8fb4d6" />
+          <span className="peq">{m.nombre}</span>
+        </div>)}</div>
+        <p className="mut peq" style={{ marginTop: 10 }}>Valor aproximado: {fmt(valor)} monedas.</p>
+        <div className="lista">{materiales.map(m => <div className="fil" key={m.clave}>
+          <div className="nom"><strong>{m.emoji || '📦'} {m.nombre}</strong><span className="mut peq">{fmt(m.precio || 0)} monedas por unidad · tienes {fmt(m.cantidad)}</span></div>
+          <Accion ruta="/api/forja/vender" cuerpo={{ material: m.clave, cantidad: 'todo' }} confirmar={`¿Vender ${m.cantidad} ${m.nombre} por ${fmt(m.cantidad * (m.precio || 0))} monedas?`}>Vender todo</Accion>
+        </div>)}</div>
+        <div className="btns uno"><Accion ruta="/api/forja/vender" cuerpo={{ material: 'todo' }} confirmar={`¿Vender todos tus materiales por ${fmt(valor)} monedas?`}>Vender todos los materiales</Accion></div>
+      </> : <Vacio>Aún no tienes materiales. Mina, tala o pesca para conseguirlos.</Vacio>}
+    </Sec>
+  </>;
+}
+
+/** Mochila: Objetos, Equipo y Forja se renderizan con componentes React. */
 export default function Inventario({ d, base }) {
   const me = useMe();
   const seccion = inventarioSeccion();
   const stats = seccion === 'objetos' && d.bolsa && d.items
     ? [['Monedas', Number(me?.monedas || 0).toLocaleString('es-MX')], ['Espacios', `${d.items.length}/${d.bolsa.max}`], ['Nivel', me?.nivel ?? '—']]
     : undefined;
-  const html = htmlInventarioCuerpo(d, base);
   return <>
     <Cab titulo="Mochila" sub="Tus herramientas, equipo y materiales." stats={stats}/>
     <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario}/>
-    {seccion === 'objetos' ? <ObjetosReact d={d}/> : seccion === 'equipo' ? <EquipoReact d={d}/> : <div className="inventario-contenido" dangerouslySetInnerHTML={{ __html: html }} />}
+    {seccion === 'objetos' ? <ObjetosReact d={d}/> : seccion === 'equipo' ? <EquipoReact d={d}/> : <ForjaReact d={d}/>}
   </>;
 }
