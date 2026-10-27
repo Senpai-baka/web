@@ -135,8 +135,8 @@ export function Sec({ k, titulo, extra, children }) {
   );
 }
 
-/** Equivale a titulo(t) */
-export const Titulo = ({ children }) => <div className="sec"><h2>{children}</h2></div>;
+/** Equivale a titulo(t, extra) */
+export const Titulo = ({ children, extra }) => <div className="sec"><h2>{children}</h2>{extra}</div>;
 
 /** Equivale a campo(): input de texto o número. */
 export function Campo({ valor, onCambio, ph, texto, corto, onEnter }) {
