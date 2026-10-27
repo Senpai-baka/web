@@ -171,7 +171,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, gtQ = '', gtRef = '', gtPm = 1, gtPs = 1, gtMia = 0, gtSuya = 0, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -332,7 +332,7 @@ async function cargarEventos(forzar) {
   try {
     const [g, r] = await Promise.all([api('/api/gacha').catch(() => null), api('/api/raid').catch(() => null)]);
     const base = Date.now();
-    if (g) eventos.gacha = { fin: base + g.esperaS * 1000, pend: g.pendiente ? base + g.pendiente.restaS * 1000 : 0 };
+    if (g) eventos.gacha = { fin: base + g.esperaS * 1000, pend: g.pendiente ? base + g.pendiente.restaS * 1000 : 0, trato: g.trato ? base + g.trato.restaS * 1000 : 0 };
     if (r) {
       const vivos = (r.raids || []).filter(x => !x.dormido);
       eventos.raid = { n: vivos.length, fin: vivos.length ? Math.min(...vivos.map(x => base + x.esperaS * 1000)) : 0 };
@@ -346,15 +346,16 @@ function tickEventos(ahora) {
   const g = eventos.gacha, r = eventos.raid;
   if (g) {
     const pend = g.pend > ahora;
+    const trato = g.trato > ahora;
     const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
-    const lista = pend || rest === 0;
+    const lista = pend || trato || rest === 0;
     const p = $('#p-gacha');
     if (p.dataset.base === undefined) p.dataset.base = p.textContent;
-    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : p.dataset.base;
+    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
     $('#c-gacha').classList.toggle('espera', !lista);
-    $('#b-gacha').textContent = pend ? 'Reclamar' : rest === 0 ? 'Invocar' : dur(rest);
+    $('#b-gacha').textContent = pend ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest);
     if (lista) n++;
-    if (g.pend && !pend && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
+    if ((g.pend && !pend || g.trato && !trato) && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
   }
   if (r) {
     const rest = Math.max(0, Math.ceil((r.fin - ahora) / 1000));
@@ -884,9 +885,11 @@ const cartaGacha = c => `<div class="gc-carta" style="--c:${colGacha(c.rareza)}"
   <div class="gc-img">${imgGacha(c)}<span class="gc-em">${esc(c.rareza ? c.rareza.emoji : '🎴')}</span></div>
   <div class="gc-in"><strong>${esc(c.nombre)}</strong>${c.nombreNativo ? `<span class="mut peq">${esc(c.nombreNativo)}</span>` : ''}${c.serie ? `<span class="mut peq">${esc(c.serie)}</span>` : ''}
     <span class="peq">${c.rareza ? esc(c.rareza.emoji + ' ' + c.rareza.nombre) + ' · ' : ''}💎 ${fmt(c.valor)}</span>${c.ranking ? `<span class="mut peq">Top #${fmt(c.ranking)} · ⭐ ${fmt(c.favoritos)}</span>` : ''}</div></div>`;
-const miniGacha = c => `<div class="gc-mini" style="--c:${colGacha(c.rareza)}" title="${esc(c.nombre)}">
+const miniDe = (c, tag, attrs) => `<${tag} class="gc-mini" ${attrs} style="--c:${colGacha(c.rareza)}" title="${esc(c.nombre)}">
   <div class="gc-img">${imgGacha(c)}<span class="gc-em">${esc(c.rareza ? c.rareza.emoji : '🎴')}</span></div>
-  <b>${esc(c.nombre)}</b><span class="mut">💎 ${fmt(c.valor)}</span></div>`;
+  <b>${esc(c.nombre)}</b><span class="mut">💎 ${fmt(c.valor)}</span></${tag}>`;
+const miniGacha = c => miniDe(c, 'div', '');
+const miniSel = (c, attr, sel) => miniDe(c, 'button', `type="button" data-${attr}="${c.id}" aria-pressed="${sel === c.id}"`);
 const chipsRarezaGacha = lista => `<div class="gc-raros">${lista.map(r => `<span style="--c:${COL_GACHA[r.clave] || COL_GACHA.comun}">${esc(r.emoji)} ${esc(r.nombre)} <b>${fmt(r.n)}</b></span>`).join('')}</div>`;
 
 function pintarGachaInvocar(d, base) {
@@ -902,8 +905,9 @@ function pintarGachaInvocar(d, base) {
   const ranking = d.ranking.length
     ? `${titulo('Mayores coleccionistas')}<div class="bloque vidrio">${d.ranking.map(r => filaRanking(r, fmt(r.cartas) + ' cartas', '💎 ' + fmt(r.valor))).join('')}</div>`
     : '';
+  const aviso = d.trato ? `<div class="bloque vidrio"><p class="peq">🔁 Tienes una propuesta de cambio esperando. Caduca en ${cuenta(d.trato.restaS, base)}.</p><div class="btns uno"><button type="button" class="mini" data-gs="tratos">Ver propuesta</button></div></div>` : '';
   return `${introGacha(d)}
-    ${chipsRarezaGacha(d.mia.porRareza)}
+    ${aviso}${chipsRarezaGacha(d.mia.porRareza)}
     <div class="btns uno" style="margin-top:14px">${botonListo('/api/gacha/tirar', {}, '✨ Invocar', base + d.esperaS * 1000)}</div>
     ${pendiente}${mundo}${ranking}`;
 }
@@ -918,11 +922,56 @@ function pintarGachaColeccion(d) {
     : vacio('Aún no tienes cartas. Invoca y reclama la primera.');
   return `${chipsRarezaGacha(d.porRareza)}${titulo('Tu colección')}${cuerpo}`;
 }
+const parCartas = (a, b, tA, tB) => `<div class="gt-par"><div><p class="mut peq">${tA}</p>${cartaGacha(a)}</div><span class="gt-flecha" aria-hidden="true">⇄</span><div><p class="mut peq">${tB}</p>${cartaGacha(b)}</div></div>`;
+const pagerGt = (k, c) => c.paginas > 1
+  ? `<div class="btnrow" style="align-items:center;margin-top:8px"><button type="button" class="mini" data-gt-pg="${k}" data-dir="-1" aria-disabled="${c.pagina <= 1}">Anterior</button><span class="mut peq" style="flex:none">${c.pagina} de ${c.paginas}</span><button type="button" class="mini" data-gt-pg="${k}" data-dir="1" aria-disabled="${c.pagina >= c.paginas}">Siguiente</button></div>`
+  : '';
+function pintarGachaTratos(d, base) {
+  let pendiente = '';
+  if (d.recibido) {
+    const r = d.recibido;
+    pendiente += `${titulo('Propuesta recibida', `<span class="mut peq">caduca en ${cuenta(r.restaS, base)}</span>`)}
+      <div class="bloque vidrio"><p class="peq"><b>${esc(r.alias)}</b> quiere cambiar contigo.</p>${parCartas(r.ofrece, r.pide, 'Recibes', 'Entregas')}
+      <div class="btnrow" style="margin-top:12px">${botonPost('/api/gacha/aceptar', {}, 'Aceptar cambio')}${botonPost('/api/gacha/rechazar', {}, 'Rechazar')}</div></div>`;
+  }
+  if (d.enviado) {
+    const e = d.enviado;
+    pendiente += `${titulo('Propuesta enviada', `<span class="mut peq">caduca en ${cuenta(e.restaS, base)}</span>`)}
+      <div class="bloque vidrio"><p class="peq">Esperando respuesta de <b>${esc(e.alias)}</b>.</p>${parCartas(e.ofrece, e.pide, 'Entregas', 'Recibes')}
+      <div class="btns uno">${botonPost('/api/gacha/cancelar', {}, 'Cancelar propuesta')}</div></div>`;
+  }
+
+  const busca = `<div class="campo" style="margin-top:6px"><input class="txt corto" id="gt-q" data-v="gtq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador por nombre" aria-label="Buscar jugador" value="${esc(gtQ)}"><button type="button" class="mini" data-buscar="gacha">Buscar</button></div>`;
+  let cuerpo;
+  if (d.objetivo) {
+    const o = d.objetivo;
+    const mia = o.mias.cartas.find(c => c.id === gtMia) || null;
+    const suya = o.suyas.cartas.find(c => c.id === gtSuya) || null;
+    const resumen = `<p class="peq" style="margin-top:12px">Tu carta: <b>${gtMia ? '#' + gtMia + (mia ? ' ' + esc(mia.nombre) : '') : 'sin elegir'}</b> · De ${esc(o.alias)}: <b>${gtSuya ? '#' + gtSuya + (suya ? ' ' + esc(suya.nombre) : '') : 'sin elegir'}</b></p>`;
+    const sinMia = 'Elige una carta tuya.', sinAmbas = 'Elige una carta tuya y una de ' + o.alias + '.';
+    cuerpo = `<div class="bloque vidrio"><div class="fila"><strong>Trato con ${esc(o.alias)}</strong><button type="button" class="mini" data-gt-quitar>Cambiar</button></div>
+      <p class="mut peq">Elige una carta tuya y una suya para proponer un cambio, o regala la tuya.</p></div>
+      ${titulo('Tus cartas')}${o.mias.cartas.length ? `<div class="gc-rejilla">${o.mias.cartas.map(c => miniSel(c, 'gt-mia', gtMia)).join('')}</div>${pagerGt('m', o.mias)}` : vacio('No tienes cartas para ofrecer.')}
+      ${titulo('Cartas de ' + esc(o.alias))}${o.suyas.cartas.length ? `<div class="gc-rejilla">${o.suyas.cartas.map(c => miniSel(c, 'gt-suya', gtSuya)).join('')}</div>${pagerGt('s', o.suyas)}` : vacio('Todavía no tiene cartas.')}
+      ${resumen}
+      <div class="btns">
+        ${botonPost('/api/gacha/proponer', { ref: o.ref, mia: gtMia, suya: gtSuya }, 'Proponer cambio', !gtMia || !gtSuya ? `aria-disabled="true" data-motivo="${esc(sinAmbas)}"` : '')}
+        ${botonPost('/api/gacha/regalar', { ref: o.ref, id: gtMia }, 'Regalar mi carta', !gtMia ? `aria-disabled="true" data-motivo="${esc(sinMia)}"` : `data-confirmar="¿Regalar ${esc(mia ? mia.nombre : 'esta carta')} a ${esc(o.alias)}? No se puede deshacer."`)}
+      </div>
+      <p class="mut peq" style="margin-top:8px">${esc(o.alias)} tiene ${dur(d.ventanaS)} para aceptar o rechazar la propuesta.</p>`;
+  } else {
+    const lista = d.resultados.length
+      ? `<div class="bloque vidrio">${d.resultados.map(j => `<div class="fil"><div class="nom"><strong>${esc(j.alias)}</strong></div><button type="button" class="mini" data-gt-elegir="${esc(j.ref)}">Elegir</button></div>`).join('')}</div>`
+      : gtQ ? vacio('No encontré a nadie con ese nombre.') : '';
+    cuerpo = `${titulo('Nuevo trato')}<p class="mut peq">Busca a otro jugador para cambiar o regalarle una carta.</p>${busca}${lista}`;
+  }
+  return pendiente + cuerpo;
+}
 function pintarGacha(d, base) {
-  const seg = segHtml('Sección del gacha', [['invocar', 'Invocar'], ['coleccion', 'Colección']], gachaSel, 'gs');
-  const mia = gachaSel === 'coleccion' ? { total: d.total, valor: d.valor } : d.mia;
-  return cabEvento('Gacha', 'Invoca y colecciona personajes de anime.', ICONOS.gacha, [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]])
-    + seg + (gachaSel === 'coleccion' ? pintarGachaColeccion(d) : pintarGachaInvocar(d, base));
+  const seg = segHtml('Sección del gacha', [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']], gachaSel, 'gs');
+  const mia = gachaSel === 'coleccion' ? { total: d.total, valor: d.valor } : gachaSel === 'tratos' ? null : d.mia;
+  return cabEvento('Gacha', 'Invoca, colecciona y cambia personajes de anime.', ICONOS.gacha, mia ? [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]] : statsBase())
+    + seg + (gachaSel === 'coleccion' ? pintarGachaColeccion(d) : gachaSel === 'tratos' ? pintarGachaTratos(d, base) : pintarGachaInvocar(d, base));
 }
 
 function pintarHogar(d, base) {
@@ -1361,7 +1410,7 @@ const CARGA = {
   hogar: [() => '/api/' + hogarSel, pintarHogar],
   ciudad: [() => ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(jugQ) : '/api/' + ciudadSel, pintarCiudad],
   rankings: ['/api/rankings', pintarRankings],
-  gacha: [() => gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : '/api/gacha', pintarGacha],
+  gacha: [() => gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : gachaSel === 'tratos' ? '/api/gacha/trato?q=' + encodeURIComponent(gtQ) + '&ref=' + encodeURIComponent(gtRef) + '&pm=' + gtPm + '&ps=' + gtPs : '/api/gacha', pintarGacha],
   raid: ['/api/raid', pintarRaidTab],
   mazmorra: ['/api/mazmorra', pintarMazmorraTab],
   clan: [() => '/api/clan?q=' + encodeURIComponent(clanQ), pintarClanTab]
@@ -1413,6 +1462,7 @@ async function publicar(b, ruta, cuerpo) {
     cargado = {};
     if (d.me) aplicar(d.me);
     if (ruta.includes('/gacha') || ruta.includes('/raid')) cargarEventos(true);
+    if (ruta.includes('/gacha/')) { gtMia = 0; gtSuya = 0; }
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
       const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
@@ -1442,7 +1492,27 @@ $('#v-panel').addEventListener('click', e => {
   const ir = e.target.closest('[data-ir]');
   if (ir) return abrir(ir.dataset.ir);
   if (e.target.closest('[data-ir-raid]')) return abrir('raid', true);
-  if (e.target.closest('[data-ir-gacha]')) { hogarSel = 'gacha'; gachaSel = 'invocar'; gachaPag = 1; return abrir('gacha', true); }
+  if (e.target.closest('[data-ir-gacha]')) {
+    const g = eventos.gacha;
+    gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) ? 'tratos' : 'invocar';
+    gachaPag = 1;
+    return abrir('gacha', true);
+  }
+  const ge = e.target.closest('button[data-gt-elegir]');
+  if (ge) { gtRef = ge.dataset.gtElegir; gtPm = 1; gtPs = 1; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+  if (e.target.closest('[data-gt-quitar]')) { gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+  const gm = e.target.closest('button[data-gt-mia]');
+  if (gm) { const v = Number(gm.dataset.gtMia); gtMia = gtMia === v ? 0 : v; return dibujar('gacha'); }
+  const gu = e.target.closest('button[data-gt-suya]');
+  if (gu) { const v = Number(gu.dataset.gtSuya); gtSuya = gtSuya === v ? 0 : v; return dibujar('gacha'); }
+  const gtp = e.target.closest('button[data-gt-pg]');
+  if (gtp) {
+    if (gtp.getAttribute('aria-disabled') === 'true') return;
+    const dir = Number(gtp.dataset.dir);
+    if (gtp.dataset.gtPg === 'm') gtPm = Math.max(1, gtPm + dir); else gtPs = Math.max(1, gtPs + dir);
+    delete cargado.gacha;
+    return abrir('gacha', true);
+  }
   const gs = e.target.closest('button[data-gs]');
   if (gs) { gachaSel = gs.dataset.gs; gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); }
   const gp = e.target.closest('button[data-gp]');
@@ -1467,6 +1537,7 @@ $('#v-panel').addEventListener('click', e => {
   if (sg) { progSel = sg.dataset.g; return dibujar('ficha'); }
   const bs = e.target.closest('button[data-buscar]');
   if (bs) {
+    if (bs.dataset.buscar === 'gacha') { gtQ = ($('#gt-q') || {}).value || ''; gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
     if (bs.dataset.buscar === 'jug') { jugQ = ($('#jg-q') || {}).value || ''; delete cargado.ciudad; return abrir('ciudad', true); }
     clanQ = ($('#cl-q') || {}).value || ''; delete cargado.clan; return abrir('clan', true);
   }
@@ -1498,8 +1569,9 @@ document.addEventListener('input', e => {
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   const id = e.target && e.target.id;
-  if (id !== 'jg-q' && id !== 'cl-q') return;
-  const b = document.querySelector('button[data-buscar="' + (id === 'jg-q' ? 'jug' : 'clan') + '"]');
+  const destino = { 'jg-q': 'jug', 'cl-q': 'clan', 'gt-q': 'gacha' }[id];
+  if (!destino) return;
+  const b = document.querySelector('button[data-buscar="' + destino + '"]');
   if (b) b.click();
 });
 $('#codigo').addEventListener('input', e => {
