@@ -1,20 +1,156 @@
-import React from 'react';
-import { Cab, Seg } from './ui.jsx';
+import React, { useMemo, useState } from 'react';
+import { Cab, Seg, Sec, Titulo, Vacio, Accion, Cifras } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { htmlInventarioCuerpo, inventarioSeccion, cambiarInventario } from '../bridge/acciones.js';
+import { fmt } from '../lib/format.js';
+import { aviso } from '../bridge/acciones.js';
 
-const OPCIONES = [
-  ['objetos', 'Objetos'],
-  ['equipo', 'Equipo'],
-  ['forja', 'Forja'],
+const OPCIONES = [['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']];
+const FILTROS = [
+  ['todo', 'Todo'], ['herramientas', 'Herramientas'], ['cofres', 'Cofres'],
+  ['consumibles', 'Consumibles'], ['reliquias', 'Reliquias'], ['materiales', 'Materiales'],
 ];
+const rarezaCofre = { comun: '#a9b0c4', raro: '#77b7ef', epico: '#bd91f3', legendario: '#f0c66e', mitico: '#f08ab5' };
 
-/**
- * Primera fase de migración de Mochila:
- * React controla el encabezado y la navegación de sección. El contenido detallado
- * se conserva temporalmente desde los renderizadores probados del panel anterior,
- * de modo que las acciones existentes siguen usando sus rutas y validaciones.
- */
+function ItemIcon({ emoji, cantidad, color }) {
+  return <span className="slot" style={{ background: color ? `${color}22` : undefined, "--r": color }} aria-hidden="true">
+    <span>{emoji || '📦'}</span>{cantidad !== undefined && <i className="n">{cantidad}</i>}
+  </span>;
+}
+function Filtro({ valor, onCambio, cantidades }) {
+  return <div className="filtros" role="group" aria-label="Filtrar objetos">
+    {FILTROS.filter(([key]) => key === 'todo' || cantidades[key] > 0).map(([key, label]) =>
+      <button key={key} type="button" className="fch" aria-pressed={valor === key} onClick={() => onCambio(key)}>
+        {label}{key !== 'todo' && <i>{cantidades[key]}</i>}
+      </button>)}
+  </div>;
+}
+function Herramientas({ lista }) {
+  if (!lista.length) return <Vacio>No tienes herramientas todavía.</Vacio>;
+  return <div className="lista">{lista.map(h => {
+    const m = h.mejora;
+    return <div key={h.clave} className={`herr bloque vidrio ${h.activa ? '' : 'off'}`}>
+      <div className="cab"><ItemIcon emoji={h.emoji} color="#c3bbdc"/><div style={{ flex: 1, minWidth: 0 }}>
+        <strong>{h.nombre}</strong> <span className="mut peq">Nv {h.nivel}/{h.nivelMax} · x{h.mult}</span><br/>
+        <span className="mut peq">Se usa en {h.usoEn}</span>
+      </div></div>
+      {h.usos > 0 ? <><div className="barra nar"><div style={{ width: `${Math.min(100, h.usos / Math.max(1, h.usosMax) * 100)}%` }}/></div>
+        <div className="fila peq"><span>{h.usos} uso{h.usos === 1 ? '' : 's'} restante{h.usos === 1 ? '' : 's'}</span><span className="mut">{h.repuestos ? `${h.repuestos} de repuesto` : 'Sin repuestos'}</span></div></>
+        : h.repuestos > 0 ? <p className="peq" style={{ marginTop: 8 }}>Se estrenará una nueva en tu próximo uso ({h.repuestos} en reserva · {h.usosMax} usos).</p>
+        : <p className="mut peq" style={{ marginTop: 8 }}>Sin herramienta. Compra una en /shop o fabrícala con /craft.</p>}
+      {m ? <><p className="costo mut">Nv {m.siguiente.nivel}: x{m.siguiente.mult} · {m.siguiente.usosMax} usos<br/>Costo: {fmt(m.monedas)} monedas · {m.mats.map(x => `${x.emoji} ${x.tengo}/${x.necesita}`).join(' ')}</p>
+        <div className="btns uno"><Accion ruta="/api/herramientas/mejorar" cuerpo={{ clave: h.clave }} motivo={!m.puede ? 'Te faltan monedas o materiales.' : null}>Mejorar</Accion></div></>
+        : <p className="mut peq" style={{ marginTop: 10 }}>Nivel máximo alcanzado.</p>}
+    </div>;
+  })}</div>;
+}
+function Cofres({ lista, max }) {
+  if (!lista.length) return <Vacio>No tienes cofres. Puedes conseguirlos jugando y explorando.</Vacio>;
+  return <div className="bloque vidrio">{lista.map(c => {
+    const n = Math.min(c.cantidad, max);
+    return <div key={c.clave} style={{ padding: '8px 0' }}>
+      <div className="fil"><ItemIcon emoji={c.emoji} cantidad={c.cantidad} color={rarezaCofre[c.clave] || '#a9b0c4'}/>
+        <div className="nom"><strong>{c.nombre}</strong><span className="mut peq">{fmt(c.monedas[0])}–{fmt(c.monedas[1])} monedas, materiales y más</span></div>
+      </div>
+      <div className="btnrow"><Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n: 1 }} motivo={c.cantidad < 1 ? 'No tienes cofres de este tipo.' : null}>Abrir</Accion>
+        <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n }} motivo={c.cantidad < 2 ? 'Necesitas al menos 2 para abrir varios.' : null}>Abrir varios (x{n})</Accion></div>
+    </div>;
+  })}</div>;
+}
+function Consumibles({ lista, tope }) {
+  if (!lista.length) return <Vacio>No tienes consumibles.</Vacio>;
+  return <div className="lista">{lista.map(c => <div className="fil" key={c.clave || c.nombre}>
+    <ItemIcon emoji={c.emoji} cantidad={c.cantidad} color="#8fb4d6"/>
+    <div className="nom"><strong>{c.nombre}</strong><span className="mut peq">{c.desc}</span></div>
+    {c.activoS > 0 && <span className="val"><span className="etiq" style={{ margin: 0 }}>Activo</span></span>}
+  </div>)}<p className="mut peq">Máximo {tope} de cada consumible.</p></div>;
+}
+function Materiales({ lista, valor }) {
+  if (!lista.length) return <Vacio>Aún no tienes materiales. Mina, tala o pesca para conseguirlos.</Vacio>;
+  return <><div className="mats">{lista.map(m => <div className="mat" key={m.clave}><ItemIcon emoji={m.emoji} cantidad={fmt(m.cantidad)}/><span className="peq">{m.nombre}</span></div>)}</div>
+    <p className="mut peq" style={{ marginTop: 10 }}>Valor aproximado de venta: {fmt(valor)} monedas.</p></>;
+}
+function Reliquias({ lista, bono }) {
+  const tengo = lista.filter(r => r.tiene).length;
+  return <><div className="rel">{lista.map(r => <span key={r.clave || r.nombre} className={r.tiene ? '' : 'no'}>{r.emoji} {r.nombre}</span>)}</div>
+    <p className="mut peq" style={{ marginTop: 8 }}>Colección: {tengo}/{lista.length}. Bono de ingresos por reliquias: +{bono}%. Solo salen de los cofres.</p></>;
+}
+function ObjetosReact({ d }) {
+  const [filtro, setFiltro] = useState('todo');
+  const partes = useMemo(() => [
+    ['herramientas', 'Herramientas', d.herramientas || [], (items) => <Herramientas lista={items}/>],
+    ['cofres', 'Cofres', d.cofres || [], (items) => <Cofres lista={items} max={d.cofresMax || 1}/>],
+    ['consumibles', 'Consumibles', d.consumibles || [], (items) => <Consumibles lista={items} tope={d.tope || 0}/>],
+    ['reliquias', 'Reliquias', d.reliquias || [], (items) => <Reliquias lista={items} bono={d.bonoReliquias || 0}/>],
+    ['materiales', 'Materiales', d.materiales || [], (items) => <Materiales lista={items} valor={d.valorMateriales || 0}/>],
+  ], [d]);
+  const cantidades = Object.fromEntries(partes.map(([key, , items]) => [key, items.length]));
+  const visible = partes.filter(([key]) => filtro === 'todo' || filtro === key);
+  return <><Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades}/>
+    {visible.map(([key, titulo, items, render]) => <Sec key={key} k={key} titulo={titulo} extra={key === 'cofres' ? `hasta ${d.cofresMax} a la vez` : key === 'consumibles' ? `máx. ${d.tope} de cada uno` : key === 'reliquias' ? `${items.filter(x => x.tiene).length}/${items.length}` : ''}>
+      {render(items)}
+    </Sec>)}
+  </>;
+}
+
+
+const TIPOS_EQUIPO = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
+const RAREZAS_EQUIPO = {
+  comun: ['Común', '#a9b0c4'], poco_comun: ['Poco común', '#8bcf9b'], raro: ['Raro', '#77b7ef'],
+  epico: ['Épico', '#bd91f3'], legendario: ['Legendario', '#f0c66e'], mitico: ['Mítico', '#f08ab5']
+};
+function EquipoReact({ d }) {
+  const items = Array.isArray(d.items) ? d.items : [];
+  const [filtro, setFiltro] = useState('todo');
+  const [seleccion, setSeleccion] = useState(null);
+  const [rarezaLote, setRarezaLote] = useState(d.rarezas?.[0]?.clave || 'comun');
+  const activo = items.find(i => String(i.id) === String(seleccion)) || items.find(i => i.equipado) || items[0] || null;
+  const filtros = [['todo', 'Todo', items.length], ...Object.entries(TIPOS_EQUIPO).map(([k, [n]]) => [k, n, items.filter(i => i.tipo === k).length])];
+  const vistos = filtro === 'todo' ? items : items.filter(i => i.tipo === filtro);
+  const color = it => (RAREZAS_EQUIPO[it.rareza] || RAREZAS_EQUIPO.comun)[1];
+  const huecos = Object.entries(TIPOS_EQUIPO).map(([tipo, [nombre, emoji]]) => {
+    const it = items.find(i => i.equipado && i.tipo === tipo);
+    return <div className="hueco" key={tipo}>
+      {it ? <button type="button" className={`slot celda ${String(it.id) === String(activo?.id) ? 'sel' : ''}`} style={{ '--r': color(it) }} onClick={() => setSeleccion(it.id)} aria-label={it.etiqueta} aria-pressed={String(it.id) === String(activo?.id)}><span className="si">{it.emoji || emoji}</span>{it.plus > 0 && <b className="mas">+{it.plus}</b>}<i className="eq">E</i></button> : <div className="slot vacio"><span className="si">{emoji}</span></div>}
+      <span>{nombre}</span>
+    </div>;
+  });
+  const m = activo?.mejora;
+  const actual = activo && !activo.equipado ? items.find(i => i.equipado && i.tipo === activo.tipo) : null;
+  const stat = (label, a, b, fa = a, fb = b) => <div className={`cmp-f ${Number(a) > Number(b) ? 'sube' : Number(a) < Number(b) ? 'baja' : ''}`} key={label}><span>{label}</span><b>{fa}</b><i aria-hidden="true">{Number(a) > Number(b) ? '▲' : Number(a) < Number(b) ? '▼' : '='}</i><span className="mut">{fb}</span></div>;
+  const b = d.bonos || {};
+  return <>
+    <Cifras lista={[["Daño", `+${b.dano || 0}%`], ["Vida", `+${b.vida || 0}%`], ["Ingresos", `+${b.ingresos || 0}%`], ["Suerte", `+${b.suerte || 0}`]]}/>
+    <Sec k="equipo-react" titulo="Tu equipo" extra={`Bolsa ${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
+      <div className="muneco vidrio">{huecos}</div>
+      <div className="filtros" role="group" aria-label="Filtrar equipo">
+        {filtros.map(([key, label, count]) => <button key={key} type="button" className="fch" aria-pressed={filtro === key} onClick={() => setFiltro(key)}>{label}<i>{count}</i></button>)}
+      </div>
+      {items.length ? <div className="bolsa-g">{vistos.map(it => <button key={it.id} type="button" className={`slot celda ${String(it.id) === String(activo?.id) ? 'sel' : ''} ${it.rareza === 'legendaria' ? 'leg' : ''}`} style={{ '--r': color(it) }} aria-label={it.etiqueta} aria-pressed={String(it.id) === String(activo?.id)} onClick={() => setSeleccion(it.id)}><span className="si">{it.emoji || '🎒'}</span>{it.plus > 0 && <b className="mas">+{it.plus}</b>}{it.equipado && <i className="eq">E</i>}</button>)}{filtro === 'todo' && Array.from({ length: Math.min(10, Math.max(0, (d.bolsa?.max || 0) - items.length)) }, (_, i) => <div className="slot vacio" key={`vacio-${i}`}/>)}</div> : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
+      {activo && <div className="bloque vidrio detalle" style={{ '--r': color(activo) }}>
+        <div className="fila"><strong style={{ color: color(activo) }}>{activo.emoji} {activo.etiqueta}</strong>{activo.equipado && <span className="etiq">Equipado</span>}</div>
+        <p className="peq">{activo.desc}</p>
+        <p className="mut peq">{(RAREZAS_EQUIPO[activo.rareza] || RAREZAS_EQUIPO.comun)[0]} · Nivel {activo.ilvl} · Mejora +{activo.plus || 0}</p>
+        <p className="mut peq">Durabilidad: {activo.dur}/{activo.durMax}{activo.roto ? ' · roto, sin bonos' : ''}</p>
+        {m ? <p className="mut peq">Siguiente mejora: {fmt(m.monedas)} monedas · {m.hierro} hierro{m.oro ? ` · ${m.oro} oro` : ''} · {m.prob}% de éxito</p> : <p className="mut peq">Mejora al máximo (+{d.maxPlus ?? '—'}).</p>}
+        {actual ? <div className="cmp"><p className="mut peq">Comparado con lo que llevas puesto ({actual.etiqueta})</p>{stat('Nivel', activo.ilvl, actual.ilvl)}{stat('Mejora', activo.plus || 0, actual.plus || 0, `+${activo.plus || 0}`, `+${actual.plus || 0}`)}{stat('Rareza', Object.keys(RAREZAS_EQUIPO).indexOf(activo.rareza), Object.keys(RAREZAS_EQUIPO).indexOf(actual.rareza), (RAREZAS_EQUIPO[activo.rareza] || RAREZAS_EQUIPO.comun)[0], (RAREZAS_EQUIPO[actual.rareza] || RAREZAS_EQUIPO.comun)[0])}{stat('Durabilidad', activo.dur, actual.dur, `${activo.dur}/${activo.durMax}`, `${actual.dur}/${actual.durMax}`)}</div> : null}
+        <div className="btns">
+          {activo.equipado ? <Accion ruta="/api/equipo/desequipar" cuerpo={{ tipo: activo.tipo }}>Quitar</Accion> : <Accion ruta="/api/equipo/equipar" cuerpo={{ id: activo.id }}>Equipar</Accion>}
+          {m ? <Accion ruta="/api/equipo/mejorar" cuerpo={{ id: activo.id }} motivo={!m.puede ? 'Te faltan monedas o materiales.' : null}>Mejorar +{(activo.plus || 0) + 1}</Accion> : <button className="mini" type="button" aria-disabled="true" onClick={() => aviso('Esta pieza ya alcanzó su mejora máxima.')}>Al máximo</button>}
+          {activo.reparar && <Accion ruta="/api/equipo/reparar" cuerpo={{ id: activo.id }} motivo={!activo.reparar.puede ? 'Te faltan monedas.' : null}>Reparar {fmt(activo.reparar.monedas)}</Accion>}
+          <Accion ruta="/api/equipo/desmontar" cuerpo={{ id: activo.id }} confirmar={`¿Desmontar este equipo? Recibirás ${activo.desmonte}.`}>Desmontar</Accion>
+          <Accion ruta="/api/equipo/vender" cuerpo={{ id: activo.id }} confirmar={`¿Vender este equipo por ${fmt(activo.precio)} monedas?`}>Vender {fmt(activo.precio)}</Accion>
+        </div>
+      </div>}
+    </Sec>
+    {d.reparacion?.cantidad > 0 && <Sec k="reparar-react" titulo="Reparaciones" extra={`${d.reparacion.cantidad} piezas dañadas`}><p className="mut peq">El equipo se desgasta al cazar y en la mazmorra; si llega a 0 deja de dar bonos.</p><div className="btns uno"><Accion ruta="/api/equipo/reparar" cuerpo={{ todo: true }} motivo={!d.reparacion.puede ? 'Te faltan monedas.' : null}>Reparar todo · {fmt(d.reparacion.total)} monedas</Accion></div></Sec>}
+    {items.length > 0 && <Sec k="lote-react" titulo="Venta en lote"><p className="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p><select className="txt" aria-label="Rareza máxima para vender" value={rarezaLote} onChange={e => setRarezaLote(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select><div className="btns uno"><Accion ruta="/api/equipo/vender-hasta" cuerpo={{ rareza: rarezaLote }} confirmar="¿Vender en lote? No se puede deshacer.">Vender en lote</Accion></div></Sec>}
+    {d.casa && <Sec k="casa-react" titulo="Tu hogar" extra={`${d.casa.emoji} ${d.casa.nombre}`}><div className="bloque vidrio"><div className="fila"><strong>{d.casa.emoji} {d.casa.nombre}</strong><span className="mut peq">Nv {d.casa.nivel}/{d.casa.max}</span></div><p className="mut peq">{d.casa.perks.parcelas} parcelas · +{d.casa.perks.bolsa} de bolsa · +{d.casa.perks.ofertas} ofertas · +{d.casa.perks.ingresos}% ingresos</p>{d.casa.siguiente ? <><p className="mut peq">Siguiente: {d.casa.siguiente.emoji} {d.casa.siguiente.nombre} · {fmt(d.casa.siguiente.costo)} monedas</p><p className="mut peq">+{d.casa.siguiente.perks.parcelas} parcelas · +{d.casa.siguiente.perks.bolsa} bolsa · +{d.casa.siguiente.perks.ofertas} ofertas · +{d.casa.siguiente.perks.ingresos}% ingresos</p><div className="btns uno"><Accion ruta="/api/casa/mejorar" cuerpo={{}} motivo={(d.cartera || 0) < d.casa.siguiente.costo ? 'Te faltan monedas.' : null}>Mejorar hogar</Accion></div></> : <p className="mut peq">Tu hogar está al máximo.</p>}</div></Sec>}
+  </>;
+}
+
+
+/** Mochila: Objetos y Equipo usan React; Forja sigue temporalmente en el renderizador existente. */
 export default function Inventario({ d, base }) {
   const me = useMe();
   const seccion = inventarioSeccion();
@@ -22,12 +158,9 @@ export default function Inventario({ d, base }) {
     ? [['Monedas', Number(me?.monedas || 0).toLocaleString('es-MX')], ['Espacios', `${d.items.length}/${d.bolsa.max}`], ['Nivel', me?.nivel ?? '—']]
     : undefined;
   const html = htmlInventarioCuerpo(d, base);
-
-  return (
-    <>
-      <Cab titulo="Mochila" sub="Tus herramientas, equipo y materiales." stats={stats} />
-      <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario} />
-      <div className="inventario-contenido" dangerouslySetInnerHTML={{ __html: html }} />
-    </>
-  );
+  return <>
+    <Cab titulo="Mochila" sub="Tus herramientas, equipo y materiales." stats={stats}/>
+    <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario}/>
+    {seccion === 'objetos' ? <ObjetosReact d={d}/> : seccion === 'equipo' ? <EquipoReact d={d}/> : <div className="inventario-contenido" dangerouslySetInnerHTML={{ __html: html }} />}
+  </>;
 }
