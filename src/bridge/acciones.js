@@ -17,3 +17,8 @@ export const gachaPagina = dir => puente().gachaPagina?.(dir);
 export const abiertasGacha = () => puente().abiertas?.() ?? [];
 /** Provisional: HTML de la sección Tratos (aún sin migrar). */
 export const htmlGachaTratos = (d, base) => puente().htmlGachaTratos?.(d, base) ?? '';
+
+// Inventario: estado temporal conservado por el panel legacy mientras se migran sus subsecciones.
+export const inventarioSeccion = () => puente().invSel?.() ?? 'objetos';
+export const cambiarInventario = s => puente().invCambiar?.(s);
+export const htmlInventarioCuerpo = (d, base) => puente().htmlInventarioCuerpo?.(d, base) ?? '';
