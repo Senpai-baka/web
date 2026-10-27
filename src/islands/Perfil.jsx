@@ -3,6 +3,10 @@ import { Cab, Sec, Cifras, Accion, Countdown, Vacio } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';
 import Progreso from './Progreso.jsx';
+import PerfilTop, { Salir } from './PerfilTop.jsx';
+import PerfilHeroe from './PerfilHeroe.jsx';
+import PerfilHistorial from './PerfilHistorial.jsx';
+import PerfilOwner from './PerfilOwner.jsx';
 
 const fmtN = v => fmt(Number(v || 0));
 const porcentaje = (v, max) => max > 0 ? Math.max(0, Math.min(100, Number(v || 0) / max * 100)) : 0;
@@ -42,12 +46,21 @@ function PerfilFicha({ d, base }) {
   </>;
 }
 
+// Héroe, Recuerdos y Owner comparten el mismo marco (resumen + selector + "Cerrar sesión") que tenía el legacy.
+const VISTAS = { heroe: PerfilHeroe, historial: PerfilHistorial, owner: PerfilOwner };
+
 export default function Perfil({ d, base }) {
   const selected = window.IslaBridge?.perfilSel?.() || 'ficha';
   if (selected === 'progreso') return <Progreso d={d || {}} base={base || Date.now()} />;
-  if (selected !== 'ficha') {
-    const html = window.IslaBridge?.htmlPerfilLegacy?.(d, base) || '<p class="vacio">Esta sección sigue en migración.</p>';
-    return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  const Vista = VISTAS[selected];
+  if (Vista) {
+    return (
+      <>
+        <PerfilTop activo={selected} />
+        <Vista d={d || {}} base={base || Date.now()} />
+        <Salir />
+      </>
+    );
   }
   return <PerfilFicha d={d || {}} base={base || Date.now()}/>;
 }

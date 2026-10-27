@@ -1,10 +1,10 @@
-// Pestaña Gacha: port de pintarGacha(), pintarGachaInvocar() y pintarGachaColeccion() de public/js/app.js.
-// La sección "Tratos" todavía la dibuja el código viejo (pintarGachaTratos) y se incrusta aquí hasta migrarla.
+// Pestaña Gacha: port de pintarGacha() y sus tres secciones (Invocar, Colección y Tratos) de public/js/app.js.
 import React from 'react';
 import { fmt, dur } from '../lib/format.js';
-import { gachaSel, gachaIr, gachaPagina, abiertasGacha, htmlGachaTratos } from '../bridge/acciones.js';
+import { gachaSel, gachaIr, gachaPagina, abiertasGacha } from '../bridge/acciones.js';
 import { Cab, Seg, Vacio, Countdown, BotonListo, Accion, Fila, Titulo } from './ui.jsx';
 import { Carta, Mini, ChipsRareza, Pager } from './gachaUi.jsx';
+import GachaTratos from './GachaTratos.jsx';
 
 const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']];
 
@@ -100,9 +100,6 @@ function Coleccion({ d }) {
   );
 }
 
-// Provisional: Tratos aún se dibuja con el HTML del legacy; sus botones los atiende el delegado de clics de app.js.
-const TratosLegacy = ({ d, base }) => <div dangerouslySetInnerHTML={{ __html: htmlGachaTratos(d, base) }} />;
-
 export default function Gacha({ d, base }) {
   // La sección y la página viven en app.js porque deciden qué datos se piden a la API.
   const sel = gachaSel();
@@ -112,7 +109,7 @@ export default function Gacha({ d, base }) {
     <>
       <Cab atras titulo="Gacha" sub="Invoca, colecciona y cambia personajes de anime." icono={ICONO} stats={stats} />
       <Seg aria="Sección del gacha" opciones={OPCIONES} valor={sel} onCambio={gachaIr} />
-      {sel === 'coleccion' ? <Coleccion d={d} /> : sel === 'tratos' ? <TratosLegacy d={d} base={base} /> : <Invocar d={d} base={base} />}
+      {sel === 'coleccion' ? <Coleccion d={d} /> : sel === 'tratos' ? <GachaTratos d={d} base={base} /> : <Invocar d={d} base={base} />}
     </>
   );
 }

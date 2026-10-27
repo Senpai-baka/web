@@ -1,0 +1,32 @@
+// Encabezado común del Perfil (resumen + selector de sección) para Héroe, Recuerdos y Owner.
+// Mismo marcado que usan Ficha y Progreso: el cambio de sección lo atiende el delegado data-p de app.js.
+import React from 'react';
+import { useMe } from '../bridge/store.js';
+import { fmt } from '../lib/format.js';
+
+const num = v => fmt(Number(v || 0));
+
+export default function PerfilTop({ activo }) {
+  const me = useMe();
+  const pct = me?.xpSig ? Math.min(100, Number(me.xp || 0) / me.xpSig * 100) : 0;
+  const ops = [['ficha', 'Ficha'], ['heroe', 'Héroe'], ['progreso', 'Progreso'], ['historial', 'Recuerdos'], ...(me?.owner ? [['owner', 'Owner']] : [])];
+  return (
+    <>
+      <section className="perfil">
+        <div className="hero-in">
+          <div className="quien">
+            <h1>{me?.alias || 'Aventurero'}</h1>
+            <span className="peq mut">Nivel {me?.nivel ?? '—'}</span>
+            <div className="xpb"><div style={{ width: pct + '%' }} /></div>
+            <span className="peq mut">{num(me?.xp)} / {num(me?.xpSig)} XP</span>
+          </div>
+        </div>
+      </section>
+      <div className="seg" role="group" aria-label="Sección del perfil">
+        {ops.map(([k, n]) => <button key={k} type="button" data-p={k} aria-pressed={k === activo}>{n}</button>)}
+      </div>
+    </>
+  );
+}
+
+export const Salir = () => <button type="button" className="link salir" data-salir>Cerrar sesión</button>;

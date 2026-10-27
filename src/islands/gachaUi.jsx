@@ -1,5 +1,5 @@
-// Piezas del gacha compartidas por Invocar, Colección y (próximamente) Tratos.
-// Port de COL_GACHA, imgGacha, cartaGacha, miniGacha y chipsRarezaGacha de public/js/app.js.
+// Piezas del gacha compartidas por Invocar, Colección y Tratos.
+// Port de COL_GACHA, imgGacha, cartaGacha, miniGacha, miniSel y chipsRarezaGacha de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 
@@ -44,6 +44,16 @@ export function Mini({ c }) {
       <Imagen c={c} />
       <b>{c.nombre}</b><span className="mut">💎 {fmt(c.valor)}</span>
     </div>
+  );
+}
+
+/** Equivale a miniSel(c, attr, sel): mini carta que se puede marcar (aria-pressed). */
+export function MiniSel({ c, activa, onClick }) {
+  return (
+    <button type="button" className="gc-mini" aria-pressed={activa} onClick={onClick} style={{ '--c': colGacha(c.rareza) }} title={c.nombre}>
+      <Imagen c={c} />
+      <b>{c.nombre}</b><span className="mut">💎 {fmt(c.valor)}</span>
+    </button>
   );
 }
 

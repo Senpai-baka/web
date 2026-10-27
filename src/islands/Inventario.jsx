@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Cab, Seg, Sec, Titulo, Vacio, Accion, Cifras } from './ui.jsx';
+import { Cab, Seg, Sec, Titulo, Vacio, Accion, Cifras, Countdown } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { inventarioSeccion, cambiarInventario } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
@@ -10,7 +10,7 @@ const FILTROS = [
   ['todo', 'Todo'], ['herramientas', 'Herramientas'], ['cofres', 'Cofres'],
   ['consumibles', 'Consumibles'], ['reliquias', 'Reliquias'], ['materiales', 'Materiales'],
 ];
-const rarezaCofre = { comun: '#a9b0c4', raro: '#77b7ef', epico: '#bd91f3', legendario: '#f0c66e', mitico: '#f08ab5' };
+const rarezaCofre = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' }; // RAR_COFRE de app.js
 
 function ItemIcon({ emoji, cantidad, color }) {
   return <span className="slot" style={{ background: color ? `${color}22` : undefined, "--r": color }} aria-hidden="true">
@@ -57,12 +57,12 @@ function Cofres({ lista, max }) {
     </div>;
   })}</div>;
 }
-function Consumibles({ lista, tope }) {
+function Consumibles({ lista, tope, base }) {
   if (!lista.length) return <Vacio>No tienes consumibles.</Vacio>;
   return <div className="lista">{lista.map(c => <div className="fil" key={c.clave || c.nombre}>
     <ItemIcon emoji={c.emoji} cantidad={c.cantidad} color="#8fb4d6"/>
     <div className="nom"><strong>{c.nombre}</strong><span className="mut peq">{c.desc}</span></div>
-    {c.activoS > 0 && <span className="val"><span className="etiq" style={{ margin: 0 }}>Activo</span></span>}
+    {c.activoS > 0 && <span className="val"><span className="etiq" style={{ margin: 0 }}>Activo <Countdown fin={base + c.activoS * 1000} /></span></span>}
   </div>)}<p className="mut peq">Máximo {tope} de cada consumible.</p></div>;
 }
 function Materiales({ lista, valor }) {
@@ -75,15 +75,15 @@ function Reliquias({ lista, bono }) {
   return <><div className="rel">{lista.map(r => <span key={r.clave || r.nombre} className={r.tiene ? '' : 'no'}>{r.emoji} {r.nombre}</span>)}</div>
     <p className="mut peq" style={{ marginTop: 8 }}>Colección: {tengo}/{lista.length}. Bono de ingresos por reliquias: +{bono}%. Solo salen de los cofres.</p></>;
 }
-function ObjetosReact({ d }) {
+function ObjetosReact({ d, base }) {
   const [filtro, setFiltro] = useState('todo');
   const partes = useMemo(() => [
     ['herramientas', 'Herramientas', d.herramientas || [], (items) => <Herramientas lista={items}/>],
     ['cofres', 'Cofres', d.cofres || [], (items) => <Cofres lista={items} max={d.cofresMax || 1}/>],
-    ['consumibles', 'Consumibles', d.consumibles || [], (items) => <Consumibles lista={items} tope={d.tope || 0}/>],
+    ['consumibles', 'Consumibles', d.consumibles || [], (items) => <Consumibles lista={items} tope={d.tope || 0} base={base}/>],
     ['reliquias', 'Reliquias', d.reliquias || [], (items) => <Reliquias lista={items} bono={d.bonoReliquias || 0}/>],
     ['materiales', 'Materiales', d.materiales || [], (items) => <Materiales lista={items} valor={d.valorMateriales || 0}/>],
-  ], [d]);
+  ], [d, base]);
   const cantidades = Object.fromEntries(partes.map(([key, , items]) => [key, items.length]));
   const visible = partes.filter(([key]) => filtro === 'todo' || filtro === key);
   return <><Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades}/>
@@ -95,9 +95,9 @@ function ObjetosReact({ d }) {
 
 
 const TIPOS_EQUIPO = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
-const RAREZAS_EQUIPO = {
-  comun: ['Común', '#a9b0c4'], poco_comun: ['Poco común', '#8bcf9b'], raro: ['Raro', '#77b7ef'],
-  epico: ['Épico', '#bd91f3'], legendario: ['Legendario', '#f0c66e'], mitico: ['Mítico', '#f08ab5']
+const RAREZAS_EQUIPO = { // RAREZA de app.js: claves que envía la API, de menor a mayor rareza
+  comun: ['Común', '#a9b0c4'], poco: ['Poco común', '#8fc4ad'], rara: ['Rara', '#8fb4d6'],
+  epica: ['Épica', '#b69be0'], legendaria: ['Legendaria', '#e0b96a']
 };
 function EquipoReact({ d }) {
   const items = Array.isArray(d.items) ? d.items : [];
@@ -192,6 +192,6 @@ export default function Inventario({ d, base }) {
   return <>
     <Cab titulo="Mochila" sub="Tus herramientas, equipo y materiales." stats={stats}/>
     <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario}/>
-    {seccion === 'objetos' ? <ObjetosReact d={d}/> : seccion === 'equipo' ? <EquipoReact d={d}/> : <ForjaReact d={d}/>}
+    {seccion === 'objetos' ? <ObjetosReact d={d} base={base}/> : seccion === 'equipo' ? <EquipoReact d={d}/> : <ForjaReact d={d}/>}
   </>;
 }
