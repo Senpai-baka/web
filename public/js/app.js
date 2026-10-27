@@ -11,6 +11,11 @@ IslaBridge.publicar = (b, ruta, cuerpo) => publicar(b, ruta, cuerpo);
 IslaBridge.aviso = (txt, ms) => aviso(txt, ms);
 IslaBridge.buscarClan = q => { clanQ = q || ''; delete cargado.clan; return abrir('clan', true); };
 IslaBridge.consultaClan = () => clanQ;
+IslaBridge.gachaSel = () => gachaSel;
+IslaBridge.gachaIr = s => { gachaSel = s; gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); };
+IslaBridge.gachaPagina = dir => { gachaPag = Math.max(1, gachaPag + dir); delete cargado.gacha; return abrir('gacha', true); };
+IslaBridge.abiertas = () => abiertas;
+IslaBridge.htmlGachaTratos = (d, base) => pintarGachaTratos(d, base);
 const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
