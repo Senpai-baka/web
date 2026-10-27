@@ -2,6 +2,7 @@ import React from 'react';
 import { Cab, Sec, Cifras, Accion, Countdown, Vacio } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';
+import Progreso from './Progreso.jsx';
 
 const fmtN = v => fmt(Number(v || 0));
 const porcentaje = (v, max) => max > 0 ? Math.max(0, Math.min(100, Number(v || 0) / max * 100)) : 0;
@@ -43,6 +44,7 @@ function PerfilFicha({ d, base }) {
 
 export default function Perfil({ d, base }) {
   const selected = window.IslaBridge?.perfilSel?.() || 'ficha';
+  if (selected === 'progreso') return <Progreso d={d || {}} base={base || Date.now()} />;
   if (selected !== 'ficha') {
     const html = window.IslaBridge?.htmlPerfilLegacy?.(d, base) || '<p class="vacio">Esta sección sigue en migración.</p>';
     return <div dangerouslySetInnerHTML={{ __html: html }} />;
