@@ -10,9 +10,12 @@ import Mazmorra from '../islands/Mazmorra.jsx';
 import Gacha from '../islands/Gacha.jsx';
 import Inventario from '../islands/Inventario.jsx';
 import Perfil from '../islands/Perfil.jsx';
+import Ciudad from '../islands/Ciudad.jsx';
+import Tienda from '../islands/Tienda.jsx';
+import Hogar from '../islands/Hogar.jsx';
 import { Seguro } from '../islands/ui.jsx';
 
-const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, gacha: Gacha, inventario: Inventario, ficha: Perfil };
+const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, gacha: Gacha, inventario: Inventario, ficha: Perfil, ciudad: Ciudad, tienda: Tienda, hogar: Hogar };
 const raices = new Map();
 
 export const migradas = new Set(Object.keys(ISLAS));
