@@ -1,5 +1,6 @@
 // Monta/actualiza "islas" de React dentro de las pestañas del panel legacy (#t-<pestaña>).
 // Para revertir una pestaña: quítala de ISLAS y vuelve a pintarse con el código viejo de app.js.
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import Rankings from '../islands/Rankings.jsx';
