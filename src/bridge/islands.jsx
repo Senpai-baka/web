@@ -5,9 +5,10 @@ import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import Rankings from '../islands/Rankings.jsx';
 import Clan from '../islands/Clan.jsx';
+import Raid from '../islands/Raid.jsx';
 import { Seguro } from '../islands/ui.jsx';
 
-const ISLAS = { rankings: Rankings, clan: Clan };
+const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid };
 const raices = new Map();
 
 export const migradas = new Set(Object.keys(ISLAS));
