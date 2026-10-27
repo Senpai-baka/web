@@ -20,6 +20,18 @@ IslaBridge.htmlGachaTratos = (d, base) => pintarGachaTratos(d, base);
 IslaBridge.invSel = () => invSel;
 IslaBridge.invCambiar = s => { if (!['objetos', 'equipo', 'forja'].includes(s)) return; invSel = s; delete cargado.inventario; return abrir('inventario', true); };
 IslaBridge.htmlInventarioCuerpo = (d, base) => invSel === 'objetos' ? pintarObjetos(d, base) : invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base);
+// Ciudad: React pinta Banco, Negocios, Casino, Altar y Jugadores; app.js conserva la sección activa y la búsqueda (definen la ruta).
+IslaBridge.ciudadSel = () => ciudadSel;
+IslaBridge.ciudadIr = s => { if (!SECCIONES_CIUDAD.some(x => x[0] === s)) return; ciudadSel = s; delete cargado.ciudad; return abrir('ciudad', true); };
+IslaBridge.buscarJugadores = q => { jugQ = q || ''; delete cargado.ciudad; return abrir('ciudad', true); };
+IslaBridge.consultaJugadores = () => jugQ;
+// Tienda: React pinta Objetos, Bazar, Mercado y Subastas; app.js conserva la sección y las páginas (definen la ruta).
+IslaBridge.tiendaSel = () => tiendaSel;
+IslaBridge.tiendaIr = s => { if (!SECCIONES_TIENDA.some(x => x[0] === s)) return; tiendaSel = s; delete cargado.tienda; return abrir('tienda', true); };
+IslaBridge.tiendaPagina = (k, dir) => { if (k === 'mercado') merPag = Math.max(1, merPag + dir); else subPag = Math.max(1, subPag + dir); delete cargado.tienda; return abrir('tienda', true); };
+// Hogar: React pinta Mascota y Granja; app.js conserva la sección activa (define la ruta).
+IslaBridge.hogarSel = () => hogarSel;
+IslaBridge.hogarIr = s => { if (s !== 'mascota' && s !== 'granja') return; hogarSel = s; delete cargado.hogar; return abrir('hogar', true); };
 // Perfil: la ficha principal se renderiza en React; Héroe/Progreso/Recuerdos/Owner conservan temporalmente el renderizador existente.
 IslaBridge.perfilSel = () => perfilSel;
 IslaBridge.htmlPerfilLegacy = (d, base) => pintarPerfil(d, base);
