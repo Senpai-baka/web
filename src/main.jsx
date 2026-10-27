@@ -21,7 +21,7 @@ function App() {
     if (loaded.current) return;
     loaded.current = true;
     const script = document.createElement('script');
-    script.src = '/js/app.js';
+    script.src = '/js/app.js?v=2'; // sube el número si cambias app.js (evita caché vieja)
     script.async = false;
     script.onload = () => {
       document.documentElement.dataset.islaReactMounted = 'true';
