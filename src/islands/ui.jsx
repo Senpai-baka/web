@@ -199,3 +199,14 @@ export function BotonListo({ ruta, cuerpo, txt, fin = 0, bloq }) {
     </button>
   );
 }
+
+/** Equivale a barra(v, m, cls): barra de progreso. `cls` p. ej. 'nar' para el tono de aviso. */
+export function Barra({ valor, max, cls }) {
+  const w = max ? Math.min(100, valor / max * 100) : 0;
+  return <div className={'barra ' + (cls || '')}><div style={{ width: w + '%' }} /></div>;
+}
+
+/** Equivale a barraEstado(nombre, v, cls): etiqueta + porcentaje + barra. */
+export const Estado = ({ nombre, v, cls }) => (
+  <div className="stat"><div className="fila"><span>{nombre}</span><span>{v}%</span></div><Barra valor={v} max={100} cls={cls} /></div>
+);
