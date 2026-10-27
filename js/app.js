@@ -171,7 +171,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, gtQ = '', gtRef = '', gtPm = 1, gtPs = 1, gtMia = 0, gtSuya = 0, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, gtQ = '', gtRef = '', gtPm = 1, gtPs = 1, gtMia = 0, gtSuya = 0, abiertas = [], abiertasVistas = new Set(), sondeando = false, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -220,7 +220,7 @@ function aviso(txt, ms) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
-function limpiarTabs() { eventos = {}; eventosT = 0; for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
+function limpiarTabs() { eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
 function sesionCaducada() {
   me = null; cargado = {}; limpiarTabs();
   aviso('Tu sesión caducó. Conéctate de nuevo.');
@@ -278,6 +278,7 @@ function aplicar(d) {
   tick();
   anunciarRaid();
   cargarEventos();
+  sondearAbiertas();
 }
 function pintarHud(d) {
   const h = $('#hud');
@@ -326,6 +327,39 @@ function notificar(k) {
   }
 }
 
+function avisarGacha(msg, etiqueta) {
+  if (document.hidden || !document.hasFocus()) {
+    if (avisosActivos()) {
+      try { new Notification('Isla · Gacha', { body: msg, icon: '/logo-favicon.png', tag: etiqueta }); } catch (_) {}
+    }
+  } else {
+    aviso(msg, 5000);
+  }
+}
+async function sondearAbiertas() {
+  if (!me || sondeando) return;
+  sondeando = true;
+  try {
+    const d = await api('/api/gacha/abiertas');
+    const base = Date.now();
+    const nuevas = d.abiertas.map(a => ({ id: a.id, carta: a.carta, por: a.por, fin: base + a.restaS * 1000 }));
+    const cambio = nuevas.map(a => a.id).join() !== abiertas.map(a => a.id).join();
+    abiertas = nuevas;
+    for (const a of nuevas) {
+      if (abiertasVistas.has(a.id)) continue;
+      abiertasVistas.add(a.id);
+      avisarGacha('🎴 ' + a.por + ' invocó a ' + a.carta.nombre + '. ¡Reclámala antes que otro!', 'isla-gacha-' + a.id);
+    }
+    for (const p of d.perdidas) avisarGacha('😬 ' + p.por + ' te ganó a ' + p.nombre + '.', 'isla-gacha-perdida-' + p.nombre);
+    if (d.perdidas.length) { cargarEventos(true); if (tabActual === 'gacha') { delete cargado.gacha; abrir('gacha', true); return; } }
+    if (cambio && tabActual === 'gacha' && gachaSel === 'invocar') dibujar('gacha');
+  } catch (_) {
+  } finally { sondeando = false; }
+}
+setInterval(() => {
+  if (me && !ocupado && !publicando && (!document.hidden || avisosActivos())) sondearAbiertas();
+}, 6000);
+
 async function cargarEventos(forzar) {
   if (!me || cargandoEventos || (!forzar && Date.now() - eventosT < 10000)) return;
   cargandoEventos = true;
@@ -347,13 +381,18 @@ function tickEventos(ahora) {
   if (g) {
     const pend = g.pend > ahora;
     const trato = g.trato > ahora;
+    const ab = abiertas.filter(a => a.fin > ahora);
+    if (ab.length !== abiertas.length) {
+      abiertas = ab;
+      if (tabActual === 'gacha' && gachaSel === 'invocar') dibujar('gacha');
+    }
     const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
-    const lista = pend || trato || rest === 0;
+    const lista = pend || trato || ab.length > 0 || rest === 0;
     const p = $('#p-gacha');
     if (p.dataset.base === undefined) p.dataset.base = p.textContent;
-    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
+    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
     $('#c-gacha').classList.toggle('espera', !lista);
-    $('#b-gacha').textContent = pend ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest);
+    $('#b-gacha').textContent = pend || ab.length ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest);
     if (lista) n++;
     if ((g.pend && !pend || g.trato && !trato) && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
   }
@@ -896,7 +935,7 @@ function pintarGachaInvocar(d, base) {
   const p = d.pendiente;
   const pendiente = p
     ? `${titulo('Carta pendiente', `<span class="mut peq">se escapa en ${cuenta(p.restaS, base)}</span>`)}
-       <div class="bloque vidrio" data-gc-fin="${base + p.restaS * 1000}">${cartaGacha(p.carta)}<p class="mut peq" style="margin-top:10px">Reclámala antes de que se acabe el tiempo o volverá al mazo.</p>
+       <div class="bloque vidrio" data-gc-fin="${base + p.restaS * 1000}">${cartaGacha(p.carta)}<p class="mut peq" style="margin-top:10px">Reclámala antes de que se acabe el tiempo. Los demás jugadores también pueden quedársela si se adelantan.</p>
        <div class="btns uno">${botonPost('/api/gacha/reclamar', { id: p.carta.id }, 'Reclamar carta')}</div></div>`
     : '';
   const mundo = d.mundo.length
@@ -906,8 +945,12 @@ function pintarGachaInvocar(d, base) {
     ? `${titulo('Mayores coleccionistas')}<div class="bloque vidrio">${d.ranking.map(r => filaRanking(r, fmt(r.cartas) + ' cartas', '💎 ' + fmt(r.valor))).join('')}</div>`
     : '';
   const aviso = d.trato ? `<div class="bloque vidrio"><p class="peq">🔁 Tienes una propuesta de cambio esperando. Caduca en ${cuenta(d.trato.restaS, base)}.</p><div class="btns uno"><button type="button" class="mini" data-gs="tratos">Ver propuesta</button></div></div>` : '';
+  const libres = abiertas.filter(a => a.fin > Date.now());
+  const ajenas = libres.length
+    ? `${titulo('Cartas por reclamar', '<span class="mut peq">¡sé el primero!</span>')}${libres.map(a => `<div class="bloque vidrio">${cartaGacha(a.carta)}<p class="mut peq" style="margin-top:8px"><b>${esc(a.por)}</b> la invocó. Se escapa en <b data-fin="${a.fin}">${dur((a.fin - Date.now()) / 1000)}</b>.</p><div class="btns uno">${botonPost('/api/gacha/reclamar', { id: a.id }, 'Reclamar carta')}</div></div>`).join('')}`
+    : '';
   return `${introGacha(d)}
-    ${aviso}${chipsRarezaGacha(d.mia.porRareza)}
+    ${aviso}${ajenas}${chipsRarezaGacha(d.mia.porRareza)}
     <div class="btns uno" style="margin-top:14px">${botonListo('/api/gacha/tirar', {}, '✨ Invocar', base + d.esperaS * 1000)}</div>
     ${pendiente}${mundo}${ranking}`;
 }
@@ -1462,6 +1505,7 @@ async function publicar(b, ruta, cuerpo) {
     cargado = {};
     if (d.me) aplicar(d.me);
     if (ruta.includes('/gacha') || ruta.includes('/raid')) cargarEventos(true);
+    if (ruta.includes('/gacha/')) sondearAbiertas();
     if (ruta.includes('/gacha/')) { gtMia = 0; gtSuya = 0; }
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
@@ -1494,7 +1538,7 @@ $('#v-panel').addEventListener('click', e => {
   if (e.target.closest('[data-ir-raid]')) return abrir('raid', true);
   if (e.target.closest('[data-ir-gacha]')) {
     const g = eventos.gacha;
-    gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) ? 'tratos' : 'invocar';
+    gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) && !abiertas.some(a => a.fin > Date.now()) ? 'tratos' : 'invocar';
     gachaPag = 1;
     return abrir('gacha', true);
   }
