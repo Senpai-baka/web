@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { dur, fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
+import { publicar, aviso } from '../bridge/acciones.js';
 
 export const MEDALLA = ['🥇', '🥈', '🥉'];
 export const medalla = i => MEDALLA[i] || (i + 1) + '.';
@@ -21,10 +22,12 @@ export function Vacio({ children }) {
 }
 
 /** Equivale a cab(titulo, sub, stats) de app.js. `icono` son los hijos del <svg> del nav. */
-export function Cab({ titulo, sub, icono, stats }) {
+export function Cab({ titulo, sub, icono, stats, atras }) {
   const me = useMe();
   const cifras = stats || (me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []);
   return (
+    <>
+      {atras && <button type="button" className="atras" data-ir="inicio">← Inicio</button>}
     <div className="cabp cab-t">
       <div className="cab-top">
         {icono && (
@@ -43,6 +46,7 @@ export function Cab({ titulo, sub, icono, stats }) {
         </div>
       )}
     </div>
+    </>
   );
 }
 
@@ -75,4 +79,79 @@ export class Seguro extends React.Component {
   render() {
     return this.state.fallo ? <Vacio>Esta sección no se pudo mostrar. Recarga la página.</Vacio> : this.props.children;
   }
+}
+
+/* ---------- Piezas compartidas por varias pestañas ---------- */
+
+export const plural = n => `${n} miembro${n === 1 ? '' : 's'}`;
+export const premios = lista => lista.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ');
+
+/** Equivale a filaRanking(r, extra, valor) de app.js */
+export function Fila({ r, extra, valor }) {
+  return (
+    <div className={`fil ${r.yo || r.mio ? 'yo' : ''}`}>
+      <span className="pos">{medalla(r.pos - 1)}</span>
+      <div className="nom">
+        <strong>{r.nombre}{r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}</strong>
+        {extra && <span className="mut peq">{extra}</span>}
+      </div>
+      <span className="val">{valor}</span>
+    </div>
+  );
+}
+
+/** Equivale a kv(k, v) */
+export const Kv = ({ k, v }) => <div className="kv"><span>{k}</span><b>{v}</b></div>;
+
+/** Lista de filas, o el aviso "vacío" si no hay nada. */
+export const filas = (lista, vacio, fila) => lista.length ? lista.map(fila) : <Vacio>{vacio}</Vacio>;
+
+/** Equivale a sec(k, t, extra, html): sección plegable. El legacy ya recuerda abiertas/cerradas (evento toggle). */
+const CERRADAS = new Set(['heroe', 'mascota', 'clan', 'coleccion', 'reliquias', 'materiales', 'lote']);
+export function Sec({ k, titulo, extra, children }) {
+  return (
+    <details className="sd" data-k={k} open={!CERRADAS.has(k)}>
+      <summary><h2>{titulo}</h2><span className="ex">{extra}</span><i className="chev" /></summary>
+      <div className="cuerpo">{children}</div>
+    </details>
+  );
+}
+
+/** Equivale a titulo(t) */
+export const Titulo = ({ children }) => <div className="sec"><h2>{children}</h2></div>;
+
+/** Equivale a campo(): input de texto o número. */
+export function Campo({ valor, onCambio, ph, texto, corto, onEnter }) {
+  const extra = texto ? { maxLength: 24, autoComplete: 'off' } : { inputMode: 'numeric', min: 1 };
+  return (
+    <input
+      className={corto ? 'txt corto' : 'txt'}
+      type={texto ? 'text' : 'number'}
+      placeholder={ph}
+      aria-label={ph}
+      value={valor}
+      onChange={e => onCambio(e.target.value)}
+      onKeyDown={onEnter ? (e => { if (e.key === 'Enter') onEnter(); }) : undefined}
+      {...extra}
+    />
+  );
+}
+
+/**
+ * Equivale a botonPost(): botón que hace POST a la API.
+ *  - motivo: texto si el botón está bloqueado (como bloqueado(cond, motivo)); falso si está activo.
+ *  - confirmar: pregunta antes de enviar (data-confirmar).
+ *  - campos: valores extra a mezclar en el cuerpo (data-campos).
+ */
+export function Accion({ ruta, cuerpo, campos, confirmar, motivo, children }) {
+  const click = e => {
+    if (motivo) return aviso(motivo);
+    if (confirmar && !window.confirm(confirmar)) return;
+    publicar(e.currentTarget, ruta, { ...(cuerpo || {}), ...(campos || {}) });
+  };
+  return (
+    <button type="button" className="mini" aria-disabled={motivo ? 'true' : undefined} onClick={click}>
+      {children}
+    </button>
+  );
 }

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
-import { Cab, Seg, Vacio, Countdown, medalla } from './ui.jsx';
+import { Cab, Seg, Vacio, Countdown, Fila, Kv, filas, plural, premios, medalla } from './ui.jsx';
 
 const OPCIONES = [['monedas', 'Monedas'], ['xp', 'XP semanal'], ['clanes', 'Clanes'], ['guerra', 'Guerra']];
 
@@ -13,25 +13,6 @@ const ICONO = (
     <path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11" />
   </>
 );
-
-const plural = n => `${n} miembro${n === 1 ? '' : 's'}`;
-const premios = lista => lista.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ');
-
-function Fila({ r, extra, valor }) {
-  return (
-    <div className={`fil ${r.yo || r.mio ? 'yo' : ''}`}>
-      <span className="pos">{medalla(r.pos - 1)}</span>
-      <div className="nom">
-        <strong>{r.nombre}{r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}</strong>
-        {extra && <span className="mut peq">{extra}</span>}
-      </div>
-      <span className="val">{valor}</span>
-    </div>
-  );
-}
-
-const Kv = ({ k, v }) => <div className="kv"><span>{k}</span><b>{v}</b></div>;
-const filas = (lista, vacio, fila) => lista.length ? lista.map(fila) : <Vacio>{vacio}</Vacio>;
 
 export default function Rankings({ d, base }) {
   const me = useMe();
