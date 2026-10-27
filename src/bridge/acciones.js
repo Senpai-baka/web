@@ -9,3 +9,11 @@ export const aviso = (txt, ms) => puente().aviso?.(txt, ms);
 /** Búsqueda de jugadores en la pestaña Clan (guarda la consulta en app.js y recarga). */
 export const buscarClan = q => puente().buscarClan?.(q);
 export const consultaClan = () => puente().consultaClan?.() ?? '';
+
+// Gacha: la sección, la página y las cartas "abiertas" (reclamables por todos) viven en app.js.
+export const gachaSel = () => puente().gachaSel?.() ?? 'invocar';
+export const gachaIr = s => puente().gachaIr?.(s);
+export const gachaPagina = dir => puente().gachaPagina?.(dir);
+export const abiertasGacha = () => puente().abiertas?.() ?? [];
+/** Provisional: HTML de la sección Tratos (aún sin migrar). */
+export const htmlGachaTratos = (d, base) => puente().htmlGachaTratos?.(d, base) ?? '';

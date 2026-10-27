@@ -7,9 +7,10 @@ import Rankings from '../islands/Rankings.jsx';
 import Clan from '../islands/Clan.jsx';
 import Raid from '../islands/Raid.jsx';
 import Mazmorra from '../islands/Mazmorra.jsx';
+import Gacha from '../islands/Gacha.jsx';
 import { Seguro } from '../islands/ui.jsx';
 
-const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra };
+const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, gacha: Gacha };
 const raices = new Map();
 
 export const migradas = new Set(Object.keys(ISLAS));
