@@ -20,6 +20,9 @@ IslaBridge.htmlGachaTratos = (d, base) => pintarGachaTratos(d, base);
 IslaBridge.invSel = () => invSel;
 IslaBridge.invCambiar = s => { if (!['objetos', 'equipo', 'forja'].includes(s)) return; invSel = s; delete cargado.inventario; return abrir('inventario', true); };
 IslaBridge.htmlInventarioCuerpo = (d, base) => invSel === 'objetos' ? pintarObjetos(d, base) : invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base);
+// Perfil: la ficha principal se renderiza en React; Héroe/Progreso/Recuerdos/Owner conservan temporalmente el renderizador existente.
+IslaBridge.perfilSel = () => perfilSel;
+IslaBridge.htmlPerfilLegacy = (d, base) => pintarPerfil(d, base);
 const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
