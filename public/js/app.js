@@ -16,6 +16,10 @@ IslaBridge.gachaIr = s => { gachaSel = s; gachaPag = 1; delete cargado.gacha; re
 IslaBridge.gachaPagina = dir => { gachaPag = Math.max(1, gachaPag + dir); delete cargado.gacha; return abrir('gacha', true); };
 IslaBridge.abiertas = () => abiertas;
 IslaBridge.htmlGachaTratos = (d, base) => pintarGachaTratos(d, base);
+// Inventario: React controla la navegación entre Objetos, Equipo y Forja.
+IslaBridge.invSel = () => invSel;
+IslaBridge.invCambiar = s => { if (!['objetos', 'equipo', 'forja'].includes(s)) return; invSel = s; delete cargado.inventario; return abrir('inventario', true); };
+IslaBridge.htmlInventarioCuerpo = (d, base) => invSel === 'objetos' ? pintarObjetos(d, base) : invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base);
 const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
