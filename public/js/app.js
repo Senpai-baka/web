@@ -1,21 +1,10 @@
-const API = '';
+const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib; // definidos en src/lib (cargados por main.jsx)
+const IslaBridge = window.IslaBridge;
 const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
 const $ = s => document.querySelector(s);
 const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fmt = n => Number(n).toLocaleString('es-MX');
-const mmss = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const dur = s => {
-  s = Math.max(0, Math.ceil(s));
-  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
-  if (d) return d + 'd ' + h + 'h';
-  if (h) return h + 'h ' + String(m).padStart(2, '0') + 'm';
-  if (m) return m + 'm ' + String(s % 60).padStart(2, '0') + 's';
-  return s + 's';
-};
-const hace = s => s < 60 ? 'hace un momento' : s < 3600 ? 'hace ' + Math.floor(s / 60) + ' min' : s < 86400 ? 'hace ' + Math.floor(s / 3600) + ' h' : 'hace ' + Math.floor(s / 86400) + ' d';
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICONOS = {
   mine: svg('<g transform="rotate(40 12 12)"><path d="M12 21 V9"/><path d="M3 9 C6 3 18 3 21 9"/></g>'),
@@ -119,40 +108,6 @@ const cifras = lista => `<div class="cifras">${lista.map(([k, v]) => `<div><b>${
 const segHtml = (aria, ops, sel, attr) => `<div class="seg" role="group" aria-label="${aria}">${ops.map(([k, n]) => `<button type="button" data-${attr}="${k}" aria-pressed="${k === sel}">${esc(n)}</button>`).join('')}</div>`;
 
 
-function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }
-const espera = (ms) => new Promise(r => setTimeout(r, ms));
-const idPeticion = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
-const REINTENTABLE = new Set([502, 503, 504]);
-
-async function api(ruta, cuerpo) {
-  const post = !!cuerpo;
-  const id = post ? idPeticion() : null;
-  const intentos = post ? 2 : 3;
-  let ultimo = null;
-  for (let i = 0; i < intentos; i++) {
-    if (i) await espera(i * 900);
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), post ? 25000 : 15000);
-    let r;
-    try {
-      r = await fetch(API + ruta, {
-        method: post ? 'POST' : 'GET', credentials: 'include', signal: ctl.signal,
-        headers: post ? { 'Content-Type': 'application/json', 'X-Panel': '1', 'X-Req-Id': id } : { 'Content-Type': 'application/json', 'X-Panel': '1' },
-        body: post ? JSON.stringify(cuerpo) : undefined
-      });
-    } catch (_) {
-      clearTimeout(t);
-      ultimo = err('No pude conectar con Isla. Revisa tu internet o inténtalo en un momento.', 0);
-      continue;
-    }
-    clearTimeout(t);
-    if (REINTENTABLE.has(r.status) && i < intentos - 1) { ultimo = err('Isla está reiniciándose. Reintentando…', r.status); continue; }
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw err(d.error || (REINTENTABLE.has(r.status) ? 'Isla está reiniciándose. Inténtalo en unos segundos.' : 'Algo salió mal. Inténtalo de nuevo.'), r.status, d);
-    return d;
-  }
-  throw ultimo;
-}
 window.addEventListener('online', () => { if (me && !document.hidden) { refrescar(); if (tabActual !== 'inicio') abrir(tabActual, true); } });
 
 function petalos(n, modo) {
@@ -220,7 +175,7 @@ function aviso(txt, ms) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
-function limpiarTabs() { eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
+function limpiarTabs() { IslaBridge.setMe(null); eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') { IslaBridge.unmount(k); e.innerHTML = ''; } } }
 function sesionCaducada() {
   me = null; cargado = {}; limpiarTabs();
   aviso('Tu sesión caducó. Conéctate de nuevo.');
@@ -263,7 +218,7 @@ function aplicar(d) {
   const prevMon = me ? me.monedas : null;
   if (d.bot === false && botAntes) aviso('El bot está reconectando. Algunas acciones pueden tardar.');
   botAntes = d.bot !== false;
-  me = d; fin = {}; tot = {};
+  me = d; IslaBridge.setMe(d); fin = {}; tot = {};
   for (const k in ACC) { fin[k] = Date.now() + (d.esperas[k] || 0) * 1000; if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot; }
   $('#alias').textContent = d.alias;
   $('#nivel').textContent = 'Nivel ' + d.nivel;
@@ -1466,7 +1421,8 @@ function dibujar(t) {
   const c = cargado[t];
   if (!c) return;
   const y = window.scrollY;
-  $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
+  if (IslaBridge.migradas.has(t)) IslaBridge.render(t, c.d, c.t);
+  else $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
   document.querySelectorAll('#t-' + t + ' .seg').forEach(g => { const a = g.querySelector('[aria-pressed="true"]'); if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2; });
   if (t === tabActual) window.scrollTo(0, y);
 }
