@@ -61,13 +61,19 @@ export function Seg({ aria, opciones, valor, onCambio }) {
   );
 }
 
-/** Reemplaza cuenta(): cuenta regresiva hasta `fin` (ms epoch), sin depender del tick() global. */
-export function Countdown({ fin }) {
+/** Hora actual (ms) que se actualiza cada segundo. Reemplaza al tick() global del legacy. */
+export function useAhora() {
   const [ahora, setAhora] = useState(() => Date.now());
   useEffect(() => {
     const i = setInterval(() => setAhora(Date.now()), 1000);
     return () => clearInterval(i);
   }, []);
+  return ahora;
+}
+
+/** Reemplaza cuenta(): cuenta regresiva hasta `fin` (ms epoch), sin depender del tick() global. */
+export function Countdown({ fin }) {
+  const ahora = useAhora();
   return <b>{dur((fin - ahora) / 1000)}</b>;
 }
 
@@ -152,6 +158,31 @@ export function Accion({ ruta, cuerpo, campos, confirmar, motivo, children }) {
   return (
     <button type="button" className="mini" aria-disabled={motivo ? 'true' : undefined} onClick={click}>
       {children}
+    </button>
+  );
+}
+
+/** Equivale a cifras([[k, v], ...]): fila de números destacados. */
+export const Cifras = ({ lista }) => (
+  <div className="cifras">{lista.map(([k, v]) => <div key={k}><b>{v}</b><span>{k}</span></div>)}</div>
+);
+
+/**
+ * Equivale a botonListo(): botón con enfriamiento.
+ *  - fin: momento (ms epoch) en que vuelve a estar disponible (0 = ya listo).
+ *  - bloq: si hay texto, el botón queda bloqueado mostrando ese texto.
+ */
+export function BotonListo({ ruta, cuerpo, txt, fin = 0, bloq }) {
+  const ahora = useAhora();
+  const resta = fin - ahora;
+  const espera = resta > 0;
+  const click = e => {
+    if (bloq || espera) return aviso(bloq || 'Todavía no está disponible.');
+    publicar(e.currentTarget, ruta, cuerpo || {});
+  };
+  return (
+    <button type="button" className="mini" aria-disabled={bloq || espera ? 'true' : undefined} onClick={click}>
+      {bloq || (espera ? txt + ' · ' + dur(resta / 1000) : txt)}
     </button>
   );
 }
