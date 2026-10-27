@@ -15,13 +15,10 @@ export const gachaSel = () => puente().gachaSel?.() ?? 'invocar';
 export const gachaIr = s => puente().gachaIr?.(s);
 export const gachaPagina = dir => puente().gachaPagina?.(dir);
 export const abiertasGacha = () => puente().abiertas?.() ?? [];
-/** Provisional: HTML de la sección Tratos (aún sin migrar). */
-export const htmlGachaTratos = (d, base) => puente().htmlGachaTratos?.(d, base) ?? '';
 
 // Inventario: estado temporal conservado por el panel legacy mientras se migran sus subsecciones.
 export const inventarioSeccion = () => puente().invSel?.() ?? 'objetos';
 export const cambiarInventario = s => puente().invCambiar?.(s);
-export const htmlInventarioCuerpo = (d, base) => puente().htmlInventarioCuerpo?.(d, base) ?? '';
 
 // Ciudad: la sección activa y la búsqueda de jugadores viven en app.js (de ahí sale la ruta que se pide a la API).
 export const ciudadSeccion = () => puente().ciudadSel?.() ?? 'banco';
@@ -37,3 +34,12 @@ export const tiendaPagina = (k, dir) => puente().tiendaPagina?.(k, dir);
 // Hogar (Mascota y Granja): la sección activa vive en app.js (define la ruta que se pide a la API).
 export const hogarSeccion = () => puente().hogarSel?.() ?? 'mascota';
 export const hogarIr = s => puente().hogarIr?.(s);
+
+// Gacha → Tratos: la búsqueda, el jugador elegido, las páginas y las cartas marcadas viven en app.js
+// (definen la ruta que se pide a la API y se reinician tras cada trato publicado).
+export const tratoEstado = () => puente().tratoEstado?.() ?? { q: '', mia: 0, suya: 0 };
+export const tratoElegir = ref => puente().tratoElegir?.(ref);
+export const tratoQuitar = () => puente().tratoQuitar?.();
+export const buscarTrato = q => puente().buscarTrato?.(q);
+export const tratoCarta = (lado, id) => puente().tratoCarta?.(lado, id);
+export const tratoPagina = (k, dir) => puente().tratoPagina?.(k, dir);
