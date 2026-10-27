@@ -148,15 +148,16 @@ export function Campo({ valor, onCambio, ph, texto, corto, onEnter }) {
  *  - motivo: texto si el botón está bloqueado (como bloqueado(cond, motivo)); falso si está activo.
  *  - confirmar: pregunta antes de enviar (data-confirmar).
  *  - campos: valores extra a mezclar en el cuerpo (data-campos).
+ *  - cls: clases CSS extra para el botón.
  */
-export function Accion({ ruta, cuerpo, campos, confirmar, motivo, children }) {
+export function Accion({ ruta, cuerpo, campos, confirmar, motivo, cls, children }) {
   const click = e => {
     if (motivo) return aviso(motivo);
     if (confirmar && !window.confirm(confirmar)) return;
     publicar(e.currentTarget, ruta, { ...(cuerpo || {}), ...(campos || {}) });
   };
   return (
-    <button type="button" className="mini" aria-disabled={motivo ? 'true' : undefined} onClick={click}>
+    <button type="button" className={cls ? 'mini ' + cls : 'mini'} aria-disabled={motivo ? 'true' : undefined} onClick={click}>
       {children}
     </button>
   );
