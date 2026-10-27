@@ -1,3 +1,9 @@
+// Requiere el puente de React (src/main.jsx). Si el bundle quedó viejo/en caché, avisa en vez de dejar la pantalla en blanco.
+if (!window.IslaLib || !window.IslaBridge) {
+  const t = document.querySelector('#toast');
+  if (t) { t.hidden = false; t.textContent = 'Falta actualizar la web (main.jsx). Recarga con Ctrl+F5.'; }
+  throw new Error('IslaLib/IslaBridge no definidos: despliega src/main.jsx junto con public/js/app.js');
+}
 const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib; // definidos en src/lib (cargados por main.jsx)
 const IslaBridge = window.IslaBridge;
 const BOT_NUMBER = '5219633122232';
