@@ -11,6 +11,8 @@ const ICONO = (
   </>
 );
 
+// Como esc() del legacy: lo que llegue del servidor se muestra como texto (nunca rompe el render).
+const t = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 const pct = (v, max) => (max ? Math.round(v / max * 100) : 0);
 
 /**
@@ -47,7 +49,7 @@ function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u }) {
       </div>
       {u && (
         <>
-          {u.hab && <span className="cb-hab-t">✨ {u.hab}</span>}
+          {u.hab && <span className="cb-hab-t">✨ {t(u.hab)}</span>}
           {u.dano > 0 && <span className="cb-num dano" style={{ left: '74%', top: '50%' }}>-{fmt(u.dano)}</span>}
           {u.cura > 0 && <span className="cb-num cura" style={{ left: '21%', top: '46%' }}>+{fmt(u.cura)}</span>}
           {u.recibido > 0 && <span className="cb-num recibe" style={{ left: '14%', top: '56%' }}>-{fmt(u.recibido)}</span>}
@@ -122,7 +124,7 @@ function Combate({ d, r, c, h, clase, base }) {
         hp={r.hp} hpMax={r.hpMax} ehp={c.hp} ehpMax={c.hpMax} u={anim ? c.ultimo : null} />
       <div className="cb-log vidrio" aria-live="polite">
         {log.length
-          ? log.map((l, i) => <p key={i} className={i === log.length - 1 ? 'nuevo' : ''}>{l}</p>)
+          ? log.map((l, i) => <p key={i} className={i === log.length - 1 ? 'nuevo' : ''}>{t(l)}</p>)
           : <p>Elige tu primera acción.</p>}
       </div>
       <Energia h={h} />
@@ -136,9 +138,9 @@ function Combate({ d, r, c, h, clase, base }) {
             const motivo = x.bloqueada ? 'Se desbloquea en el nivel ' + x.nivel + '.' : x.sinEnergia ? 'No tienes energía suficiente.' : '';
             return (
               <Accion key={x.n} ruta="/api/mazmorra/habilidad" cuerpo={{ n: x.n }} cls="cb-acc cb-hab-b" motivo={motivo}>
-                <span className="cb-hn">{x.nombre}</span>
+                <span className="cb-hn">{t(x.nombre)}</span>
                 {x.bloqueada ? <span className="cb-lock">🔒 Nv {x.nivel}</span> : <span className="cb-hc">{'⚡'.repeat(x.costo)}</span>}
-                <span className="cb-hd">{x.desc || 'Ataque potenciado'}</span>
+                <span className="cb-hd">{t(x.desc) || 'Ataque potenciado'}</span>
               </Accion>
             );
           })}

@@ -77,13 +77,25 @@ export function Countdown({ fin }) {
   return <b>{dur((fin - ahora) / 1000)}</b>;
 }
 
-/** Si una isla falla al renderizar, muestra un aviso en vez de dejar la pestaña en blanco. */
+/**
+ * Si una isla falla al renderizar, muestra un aviso (con el motivo) en vez de dejar la pestaña en blanco.
+ * `reset` es el dato con el que se dibuja: cuando cambia (llega información nueva) se vuelve a intentar,
+ * así un dato malo puntual no deja la pestaña rota hasta recargar.
+ */
 export class Seguro extends React.Component {
-  state = { fallo: false };
-  static getDerivedStateFromError() { return { fallo: true }; }
+  state = { fallo: null, visto: this.props.reset };
+  static getDerivedStateFromError(e) { return { fallo: e }; }
+  static getDerivedStateFromProps(p, s) { return p.reset !== s.visto ? { fallo: null, visto: p.reset } : null; }
   componentDidCatch(e) { console.error('[isla]', e); }
   render() {
-    return this.state.fallo ? <Vacio>Esta sección no se pudo mostrar. Recarga la página.</Vacio> : this.props.children;
+    const { fallo } = this.state;
+    if (!fallo) return this.props.children;
+    return (
+      <>
+        <Vacio>Esta sección no se pudo mostrar. Recarga la página.</Vacio>
+        <p className="mut peq" style={{ textAlign: 'center' }}>{String((fallo && fallo.message) || fallo)}</p>
+      </>
+    );
   }
 }
 
