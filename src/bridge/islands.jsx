@@ -24,7 +24,7 @@ export function render(t, d, base) {
     raices.set(t, r);
   }
   // flushSync: app.js centra el botón activo y restaura el scroll justo después de dibujar.
-  flushSync(() => r.root.render(<Seguro><Isla d={d} base={base} /></Seguro>));
+  flushSync(() => r.root.render(<Seguro reset={d}><Isla d={d} base={base} /></Seguro>));
   return true;
 }
 
