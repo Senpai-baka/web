@@ -8,7 +8,7 @@ const PAL_MON = [
   ['#4a6f9e', '#a9cdf5', '#7fc4ee', '#bff3ff'],
   ['#8a7f5a', '#e5dcb4', '#d6b87a', '#ff8f7a']
 ];
-const COL_CLASE = { guerrero: ['#c9626f', '#e8d3c0'], mago: ['#7e63d6', '#e8dcff'], ladron: ['#3f8f75', '#cfeee1'], mercader: ['#c9a25a', '#fff1cf'] };
+const COL_CLASE = { guerrero: ['#c9626f', '#e8d3c0'], mago: ['#7e63d6', '#e8dcff'], ladron: ['#3f8f75', '#cfeee1'], mercader: ['#c9a25a', '#fff1cf'], arquero: ['#5f9a4a', '#e3f2cf'], paladin: ['#d8b24a', '#fff4cf'] };
 
 const SOMBRA = '<ellipse cx="300" cy="178" rx="42" ry="5" fill="#000" opacity=".4"/>';
 const MON = {
@@ -57,13 +57,17 @@ function arteHeroe(clase, buff) {
     guerrero: `<path d="M64 104C64 88 96 88 96 104Z" fill="#9aa3b8"/><rect x="78" y="90" width="4" height="12" fill="${c}"/>`,
     mago: `<path d="M60 106L80 58L100 106Z" fill="${c}"/><rect x="56" y="104" width="48" height="6" rx="3" fill="${a}" opacity=".85"/>`,
     ladron: `<path d="M62 116C58 86 102 86 98 116L80 102Z" fill="${c}"/>`,
-    mercader: `<rect x="60" y="97" width="40" height="6" rx="3" fill="${a}"/><path d="M68 98C68 84 92 84 92 98Z" fill="${c}"/>`
+    mercader: `<rect x="60" y="97" width="40" height="6" rx="3" fill="${a}"/><path d="M68 98C68 84 92 84 92 98Z" fill="${c}"/>`,
+    arquero: `<path d="M62 112C60 88 100 88 98 112L80 100Z" fill="${c}"/><path d="M92 96L106 82" stroke="${a}" stroke-width="3" stroke-linecap="round"/><path d="M100 90L106 82L108 92Z" fill="${a}"/>`,
+    paladin: `<path d="M63 106C63 86 97 86 97 106Z" fill="#c4cadb"/><rect x="77" y="82" width="6" height="14" rx="2" fill="${c}"/><rect x="66" y="102" width="28" height="4" fill="#9aa3b8"/>`
   }[clase] || `<path d="M65 104C65 90 95 90 95 104Z" fill="${c}"/>`;
   const arma = {
     guerrero: `<path d="M106 142L140 94" stroke="#d6dcea" stroke-width="6" stroke-linecap="round"/><path d="M99 137L112 148" stroke="#b08a50" stroke-width="6" stroke-linecap="round"/>`,
     mago: `<path d="M114 180V88" stroke="#8a6a4a" stroke-width="5" stroke-linecap="round"/><circle cx="114" cy="82" r="15" fill="${a}" fill-opacity=".35" class="cb-orbe"/><circle cx="114" cy="82" r="8" fill="${a}"/>`,
     ladron: `<path d="M106 146L132 124" stroke="#d6dcea" stroke-width="5" stroke-linecap="round"/><path d="M100 150L110 142" stroke="${a}" stroke-width="5" stroke-linecap="round"/>`,
-    mercader: `<ellipse cx="112" cy="158" rx="14" ry="16" fill="#5a4630"/><path d="M104 144Q112 138 120 144" stroke="${a}" stroke-width="3" fill="none"/><circle cx="112" cy="160" r="5" fill="${a}"/>`
+    mercader: `<ellipse cx="112" cy="158" rx="14" ry="16" fill="#5a4630"/><path d="M104 144Q112 138 120 144" stroke="${a}" stroke-width="3" fill="none"/><circle cx="112" cy="160" r="5" fill="${a}"/>`,
+    arquero: `<path d="M116 112Q146 144 116 176" stroke="#8a6a4a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M116 112L116 176" stroke="${a}" stroke-width="1.5"/><path d="M104 144H134" stroke="#d6dcea" stroke-width="3" stroke-linecap="round"/><path d="M134 144L128 140V148Z" fill="${a}"/>`,
+    paladin: `<path d="M110 152V100" stroke="#d6dcea" stroke-width="6" stroke-linecap="round"/><rect x="101" y="148" width="18" height="5" rx="2" fill="#b08a50"/><path d="M42 136H68V158Q55 172 42 158Z" fill="${c}" stroke="${a}" stroke-width="2"/><rect x="53" y="141" width="4" height="16" fill="${a}"/><rect x="48" y="147" width="14" height="4" fill="${a}"/>`
   }[clase] || '';
   const aura = buff ? `<circle cx="80" cy="144" r="50" fill="${a}" fill-opacity=".1"/><circle cx="80" cy="144" r="50" fill="none" stroke="${a}" stroke-width="2" stroke-dasharray="6 5" class="cb-aura"/>` : '';
   return `${aura}<ellipse cx="80" cy="178" rx="32" ry="5" fill="#000" opacity=".4"/><g class="cb-idle h"><path d="M56 178C56 144 64 126 80 126S104 144 104 178Z" fill="${c}"/><path d="M70 130H90L88 142H72Z" fill="${a}" opacity=".4"/><circle cx="80" cy="110" r="15" fill="#e9cdb6"/>${gorro}<circle cx="86" cy="111" r="2" fill="#1a1020"/>${arma}</g>`;
