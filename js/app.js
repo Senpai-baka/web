@@ -28,7 +28,9 @@ const ICONOS = {
   moneda: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7 V17"/><path d="M15 9.5 C14 8.5 10 8.5 9.5 10.5 C9 12.5 15 11.5 14.5 13.5 C14 15.5 10 15.5 9 14.5"/>'),
   mask: svg('<path d="M4 8 C4 5 8 4 12 4 C16 4 20 5 20 8 V12 C20 17 16 20 12 20 C8 20 4 17 4 12 Z"/><path d="M8 11 L10.5 12 M16 11 L13.5 12"/><path d="M9 16 C10.5 17 13.5 17 15 16"/>'),
   leaf: svg('<path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z"/><path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z"/>'),
-  raid: svg('<path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/>')
+  raid: svg('<path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/>'),
+  gacha: svg('<path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/>'),
+  clan: svg('<path d="M4 21 V9 L7 7 V4 H9 V7 H11 V4 H13 V7 H15 V4 H17 V7 L20 9 V21"/><path d="M3 21 H21"/><path d="M10 21 V15 A2 2 0 0 1 14 15 V21"/>')
 };
 const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
@@ -38,7 +40,8 @@ const NAV = [
   ['ciudad', 'Ciudad', svg('<path d="M4 21 V9 L10 6 V21"/><path d="M10 21 V4 L20 8 V21"/><path d="M3 21 H21"/><path d="M13 10 H17 M13 14 H17"/>')],
   ['rankings', 'Ranking', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')]
 ];
-const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings'];
+const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid', 'mazmorra', 'clan'];
+const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', clan: 'inicio' };
 const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
@@ -168,7 +171,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, gtQ = '', gtRef = '', gtPm = 1, gtPs = 1, gtMia = 0, gtSuya = 0, abiertas = [], abiertasVistas = new Set(), sondeando = false, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -178,7 +181,7 @@ function anunciarRaid() {
   if (vioProx) return;
   vioProx = true;
   try { localStorage.setItem('isla_aviso_raid', '1'); } catch (_) {}
-  const msg = '👹 ¡Llegó el Raid! Ataca al jefe de tu grupo desde Mundo › Raid.';
+  const msg = '👹 ¡Llegó el Raid! Ataca al jefe de tu grupo desde Inicio › Raid.';
   setTimeout(() => {
     if (document.hidden && avisosActivos()) {
       try { new Notification('Isla', { body: msg, icon: '/logo-favicon.png', tag: 'isla-raid' }); } catch (_) {}
@@ -217,7 +220,7 @@ function aviso(txt, ms) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
-function limpiarTabs() { for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
+function limpiarTabs() { eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') e.innerHTML = ''; } }
 function sesionCaducada() {
   me = null; cargado = {}; limpiarTabs();
   aviso('Tu sesión caducó. Conéctate de nuevo.');
@@ -274,6 +277,8 @@ function aplicar(d) {
   montarMultiplicadores();
   tick();
   anunciarRaid();
+  cargarEventos();
+  sondearAbiertas();
 }
 function pintarHud(d) {
   const h = $('#hud');
@@ -322,6 +327,90 @@ function notificar(k) {
   }
 }
 
+function avisarGacha(msg, etiqueta) {
+  if (document.hidden || !document.hasFocus()) {
+    if (avisosActivos()) {
+      try { new Notification('Isla · Gacha', { body: msg, icon: '/logo-favicon.png', tag: etiqueta }); } catch (_) {}
+    }
+  } else {
+    aviso(msg, 5000);
+  }
+}
+async function sondearAbiertas() {
+  if (!me || sondeando) return;
+  sondeando = true;
+  try {
+    const d = await api('/api/gacha/abiertas');
+    const base = Date.now();
+    const nuevas = d.abiertas.map(a => ({ id: a.id, carta: a.carta, por: a.por, fin: base + a.restaS * 1000 }));
+    const cambio = nuevas.map(a => a.id).join() !== abiertas.map(a => a.id).join();
+    abiertas = nuevas;
+    for (const a of nuevas) {
+      if (abiertasVistas.has(a.id)) continue;
+      abiertasVistas.add(a.id);
+      avisarGacha('🎴 ' + a.por + ' invocó a ' + a.carta.nombre + '. ¡Reclámala antes que otro!', 'isla-gacha-' + a.id);
+    }
+    for (const p of d.perdidas) avisarGacha('😬 ' + p.por + ' te ganó a ' + p.nombre + '.', 'isla-gacha-perdida-' + p.nombre);
+    if (d.perdidas.length) { cargarEventos(true); if (tabActual === 'gacha') { delete cargado.gacha; abrir('gacha', true); return; } }
+    if (cambio && tabActual === 'gacha' && gachaSel === 'invocar') dibujar('gacha');
+  } catch (_) {
+  } finally { sondeando = false; }
+}
+setInterval(() => {
+  if (me && !ocupado && !publicando && (!document.hidden || avisosActivos())) sondearAbiertas();
+}, 6000);
+
+async function cargarEventos(forzar) {
+  if (!me || cargandoEventos || (!forzar && Date.now() - eventosT < 10000)) return;
+  cargandoEventos = true;
+  try {
+    const [g, r] = await Promise.all([api('/api/gacha').catch(() => null), api('/api/raid').catch(() => null)]);
+    const base = Date.now();
+    if (g) eventos.gacha = { fin: base + g.esperaS * 1000, pend: g.pendiente ? base + g.pendiente.restaS * 1000 : 0, trato: g.trato ? base + g.trato.restaS * 1000 : 0 };
+    if (r) {
+      const vivos = (r.raids || []).filter(x => !x.dormido);
+      eventos.raid = { n: vivos.length, fin: vivos.length ? Math.min(...vivos.map(x => base + x.esperaS * 1000)) : 0 };
+    }
+    eventosT = Date.now();
+    gachaVencida = false;
+  } finally { cargandoEventos = false; }
+}
+function tickEventos(ahora) {
+  let n = 0;
+  const g = eventos.gacha, r = eventos.raid;
+  if (g) {
+    const pend = g.pend > ahora;
+    const trato = g.trato > ahora;
+    const ab = abiertas.filter(a => a.fin > ahora);
+    if (ab.length !== abiertas.length) {
+      abiertas = ab;
+      if (tabActual === 'gacha' && gachaSel === 'invocar') dibujar('gacha');
+    }
+    const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
+    const lista = pend || trato || ab.length > 0 || rest === 0;
+    const p = $('#p-gacha');
+    if (p.dataset.base === undefined) p.dataset.base = p.textContent;
+    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
+    $('#c-gacha').classList.toggle('espera', !lista);
+    $('#b-gacha').textContent = pend || ab.length ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest);
+    if (lista) n++;
+    if ((g.pend && !pend || g.trato && !trato) && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
+  }
+  if (r) {
+    const rest = Math.max(0, Math.ceil((r.fin - ahora) / 1000));
+    const lista = r.n > 0 && rest === 0;
+    $('#c-raid').classList.toggle('espera', !lista);
+    $('#b-raid').textContent = r.n === 0 ? 'Ver jefes' : rest === 0 ? 'Atacar' : dur(rest);
+    if (lista) n++;
+  }
+  const fin = document.querySelector('[data-gc-fin]');
+  if (fin && tabActual === 'gacha' && ahora >= Number(fin.dataset.gcFin) && !ocupado && !publicando) {
+    fin.removeAttribute('data-gc-fin');
+    delete cargado.gacha;
+    abrir('gacha', true);
+  }
+  return n;
+}
 function tick() {
   if (!me) return;
   const ahora = Date.now();
@@ -345,6 +434,7 @@ function tick() {
     if (previa[k] === false && lista) notificar(k);
     previa[k] = lista;
   }
+  listas += tickEventos(ahora);
   const vis = [...document.querySelectorAll('#rejilla .zona:not([hidden])')];
   vis.forEach(z => z.classList.remove('ancha'));
   if (vis.length % 2) vis[vis.length - 1].classList.add('ancha');
@@ -400,6 +490,9 @@ async function jugar(k) {
 }
 function hoja(o) {
   const col = o.col || RAREZA.comun[1];
+  const im = $('#h-carta');
+  im.hidden = !o.imagen;
+  if (o.imagen) im.src = o.imagen; else im.removeAttribute('src');
   $('#h-icono').innerHTML = o.icono || '';
   $('#halo').style.setProperty('--col', col);
   $('#halo').style.color = col;
@@ -640,6 +733,14 @@ function arteJefe(nombre) {
   }[k];
   return `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><circle cx="200" cy="104" r="92" fill="${aura}" opacity=".28"/>${fig}<rect y="182" width="400" height="8" fill="#0b0810" opacity=".7"/></svg>`;
 }
+const cabEvento = (t, s, icono, st) => {
+  const fila = st && st.length ? `<div class="cab-st">${st.map(([n, v]) => `<div><b>${esc(String(v))}</b><span>${esc(n)}</span></div>`).join('')}</div>` : '';
+  return `<button type="button" class="atras" data-ir="inicio">← Inicio</button><div class="cabp cab-t"><div class="cab-top"><span class="cab-i" aria-hidden="true">${icono}</span><div><h1 class="pag">${t}</h1><p class="mut">${s}</p></div></div>${fila}</div>`;
+};
+const statsBase = () => me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : [];
+const pintarMazmorraTab = (d, base) => cabEvento('Mazmorra', 'Baja piso a piso, enfrenta jefes y consigue equipo.', ICONOS.hunt, statsBase()) + pintarMazmorra(d, base);
+const pintarClanTab = (d, base) => cabEvento('Clan', 'Banco común, bonos y guerras de clanes.', ICONOS.clan, statsBase()) + pintarClan(d, base);
+const pintarRaidTab = (d, base) => cabEvento('Raid', 'Jefes mundiales de tus grupos.', ICONOS.raid, me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []) + pintarRaid(d, base);
 function pintarRaid(d, base) {
   if (d.conectado === false) return `<div class="bloque vidrio"><p class="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>`;
   const intro = `<p class="mut peq rd-intro">Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada ${dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.</p>`;
@@ -666,6 +767,102 @@ function pintarRaid(d, base) {
   return intro + d.raids.map(tarjeta).join('');
 }
 
+let cbVisto = '';
+const hashStr = t => { let h = 0; for (const ch of String(t)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+const PAL_MON = [
+  ['#3f8f5c', '#a9e6b8', '#7fe0a0', '#fff7c2'],
+  ['#6b5aa8', '#c6b8f5', '#a98af0', '#ffd1ec'],
+  ['#a8553f', '#f2b69b', '#ff8f7a', '#ffe27a'],
+  ['#4a6f9e', '#a9cdf5', '#7fc4ee', '#bff3ff'],
+  ['#8a7f5a', '#e5dcb4', '#d6b87a', '#ff8f7a']
+];
+const COL_CLASE = { guerrero: ['#c9626f', '#e8d3c0'], mago: ['#7e63d6', '#e8dcff'], ladron: ['#3f8f75', '#cfeee1'], mercader: ['#c9a25a', '#fff1cf'] };
+
+const SOMBRA = '<ellipse cx="300" cy="178" rx="42" ry="5" fill="#000" opacity=".4"/>';
+const MON = {
+  rata: { z: '#c9a091', svg: () => `<path d="M338 170C354 168 362 156 360 140" stroke="#d9a9a0" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M262 172C262 148 280 138 304 138C330 138 344 152 344 172Z" fill="#7a6a62"/><ellipse cx="304" cy="164" rx="26" ry="10" fill="#a99a90" opacity=".55"/><path d="M252 150C252 138 262 130 276 134C288 138 292 152 290 164L254 168Z" fill="#8a7a72"/><path d="M236 164L256 152L258 170Z" fill="#8a7a72"/><circle cx="237" cy="164" r="4" fill="#e89aa8"/><circle cx="272" cy="134" r="9" fill="#8a7a72"/><circle cx="272" cy="134" r="5" fill="#e8a9b4"/><g class="cb-ojo"><circle cx="266" cy="150" r="3.6" fill="#ff5a6a"/></g><path d="M244 166L249 176L253 168Z" fill="#fff"/><path d="M230 158L246 160M230 168L246 166" stroke="#d6cfc8" stroke-width="1.4"/><rect x="278" y="170" width="8" height="8" rx="3" fill="#6a5a52"/><rect x="316" y="170" width="8" height="8" rx="3" fill="#6a5a52"/>` },
+  esqueleto: { z: '#e5dcb4', svg: (c = '#bfb591', a = '#efe8c8') => `<path d="M276 176V142C276 126 286 120 300 120S324 126 324 142V176Z" fill="${c}"/><path d="M286 138H314M286 150H314M286 162H314" stroke="${a}" stroke-width="3" opacity=".65"/><path d="M276 140L252 124" stroke="${c}" stroke-width="9" stroke-linecap="round"/><path d="M248 128L236 94" stroke="#7a5a3a" stroke-width="8" stroke-linecap="round"/><circle cx="300" cy="100" r="20" fill="${a}"/><rect x="288" y="112" width="24" height="11" rx="3" fill="${a}"/><circle cx="292" cy="99" r="5.5" fill="#10141a"/><circle cx="308" cy="99" r="5.5" fill="#10141a"/><g class="cb-ojo" fill="#ffcf5a"><circle cx="292" cy="99" r="2.4"/><circle cx="308" cy="99" r="2.4"/></g><path d="M292 115V122M300 115V122M308 115V122" stroke="#10141a" stroke-width="1.8"/>` },
+  murcielago: { z: '#a98af0', svg: () => `<g class="cb-vuela"><path d="M300 124C280 98 248 94 228 112C244 114 250 124 248 138C262 128 276 130 286 144Z" fill="#7d68c9" opacity=".92"/><path d="M300 124C320 98 352 94 372 112C356 114 350 124 352 138C338 128 324 130 314 144Z" fill="#7d68c9" opacity=".92"/><ellipse cx="300" cy="140" rx="23" ry="30" fill="#4b3d86"/><path d="M285 116L280 96L297 110Z M315 116L320 96L303 110Z" fill="#4b3d86"/><g class="cb-ojo" fill="#ffd1ec"><circle cx="291" cy="134" r="4.5"/><circle cx="309" cy="134" r="4.5"/></g><path d="M294 152L297 162L300 152Z M300 152L303 162L306 152Z" fill="#fff"/></g>` },
+  arana: { z: '#b05a9a', svg: () => `<g fill="none" stroke="#7a5a96" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${[-1, 1].map(d => `<path d="M${300 + d * 12} 146L${300 + d * 38} 108L${300 + d * 56} 176"/><path d="M${300 + d * 14} 150L${300 + d * 50} 124L${300 + d * 72} 176"/><path d="M${300 + d * 14} 155L${300 + d * 54} 142L${300 + d * 80} 176"/><path d="M${300 + d * 12} 160L${300 + d * 40} 164L${300 + d * 58} 178"/>`).join('')}</g><ellipse cx="300" cy="144" rx="26" ry="22" fill="#4a2c5a"/><path d="M300 130L292 144L300 158L308 144Z" fill="#d94a6a"/><circle cx="300" cy="166" r="14" fill="#5a3a72"/><g class="cb-ojo" fill="#ff5a8a"><circle cx="294" cy="162" r="3"/><circle cx="306" cy="162" r="3"/><circle cx="290" cy="168" r="2"/><circle cx="310" cy="168" r="2"/></g><path d="M294 175L291 182M306 175L309 182" stroke="#e8d3c0" stroke-width="2.4" stroke-linecap="round"/>` },
+  zombi: { z: '#8fb07a', svg: () => `<path d="M288 176V150H298V176ZM304 176V150H314V176Z" fill="#46506a"/><path d="M280 114H322L320 156H282Z" fill="#5d6b7a"/><path d="M282 152L288 160L294 152L300 162L306 152L312 160L320 152" stroke="#10141a" stroke-width="1.5" fill="#46506a"/><path d="M284 124L252 130" stroke="#8fb07a" stroke-width="9" stroke-linecap="round"/><path d="M286 136L254 148" stroke="#8fb07a" stroke-width="9" stroke-linecap="round"/><circle cx="248" cy="130" r="6" fill="#8fb07a"/><circle cx="250" cy="149" r="6" fill="#8fb07a"/><circle cx="302" cy="98" r="18" fill="#8fb07a"/><path d="M288 88L296 80L304 88L312 80L316 92" stroke="#4a3a2a" stroke-width="3" fill="none"/><circle cx="295" cy="98" r="5.5" fill="#f3efd8"/><circle cx="309" cy="97" r="3.6" fill="#f3efd8"/><g class="cb-ojo" fill="#c42f3f"><circle cx="294" cy="98" r="2.4"/><circle cx="309" cy="97" r="1.8"/></g><path d="M294 108Q302 114 310 108" stroke="#10141a" stroke-width="3" fill="none"/><path d="M297 108V111M303 109V112M308 108V111" stroke="#f3efd8" stroke-width="1.6"/>` },
+  espectro: { z: '#7fc4ee', svg: () => `<g class="cb-flota"><path d="M266 178V120C266 94 282 80 300 80S334 94 334 120V178L322 166L311 178L300 166L289 178L278 166Z" fill="#6aa0d6" opacity=".9"/><ellipse cx="300" cy="104" rx="22" ry="14" fill="#fff" opacity=".12"/><g class="cb-ojo" fill="#e8f7ff"><ellipse cx="289" cy="112" rx="5" ry="8"/><ellipse cx="311" cy="112" rx="5" ry="8"/></g><ellipse cx="300" cy="136" rx="7" ry="10" fill="#10141a" opacity=".8"/></g>` },
+  slime: { z: '#7fe0a0', svg: (corona = true) => `<path d="M262 176C246 176 240 150 252 128C264 104 336 104 348 128C360 150 354 176 338 176Z" fill="#4fae6e"/><ellipse cx="282" cy="128" rx="14" ry="7" fill="#fff" opacity=".25"/>${corona ? '<path d="M278 110L282 88L292 100L300 82L308 100L318 88L322 110Z" fill="#d6b87a" stroke="#a9833a" stroke-width="2"/><circle cx="300" cy="100" r="3" fill="#ff5a6a"/>' : ''}<g class="cb-ojo" fill="#fff7c2"><circle cx="284" cy="142" r="6"/><circle cx="316" cy="142" r="6"/></g><g fill="#10141a"><circle cx="285" cy="143" r="2.6"/><circle cx="317" cy="143" r="2.6"/></g><path d="M288 158Q300 168 312 158" stroke="#10141a" stroke-width="3" fill="none" stroke-linecap="round"/>` },
+  golem: { z: '#9fb4c8', escala: 1.06, svg: () => `<path d="M274 176V146H298V176ZM302 176V146H326V176Z" fill="#6f7a86"/><path d="M262 104H338L346 152H254Z" fill="#8a95a3"/><path d="M280 112L292 132L284 150M322 112L312 128" stroke="#4a525c" stroke-width="2.5" fill="none"/><rect x="240" y="104" width="24" height="46" rx="5" fill="#7d8896"/><rect x="336" y="104" width="24" height="46" rx="5" fill="#7d8896"/><rect x="236" y="146" width="32" height="26" rx="6" fill="#8a95a3"/><rect x="332" y="146" width="32" height="26" rx="6" fill="#8a95a3"/><rect x="282" y="76" width="36" height="30" rx="5" fill="#7d8896"/><g class="cb-ojo" fill="#7ff3ff"><rect x="289" y="86" width="8" height="6" rx="1"/><rect x="303" y="86" width="8" height="6" rx="1"/></g><circle cx="270" cy="112" r="7" fill="#5f8f5a" opacity=".85"/><circle cx="326" cy="140" r="6" fill="#5f8f5a" opacity=".85"/><circle cx="292" cy="104" r="5" fill="#5f8f5a" opacity=".8"/>` },
+  escorpion: { z: '#a98af0', escala: 1.14, svg: () => `<g fill="none" stroke="#3a2a5a" stroke-width="5" stroke-linecap="round"><path d="M284 168L274 178M298 170L292 180M312 170L318 180M326 168L336 178"/></g><path d="M330 158C360 156 376 122 354 98C346 90 332 92 330 102" stroke="#4d3a7a" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M326 100L338 106L330 124Z" fill="#e8d3c0"/><ellipse cx="304" cy="160" rx="36" ry="15" fill="#4d3a7a"/><path d="M290 148V172M304 146V174M318 148V172" stroke="#2c1f4a" stroke-width="2.5"/><circle cx="270" cy="160" r="13" fill="#5d4a8c"/><g class="cb-ojo" fill="#ff8f7a"><circle cx="266" cy="156" r="3"/><circle cx="274" cy="154" r="3"/></g><path d="M262 166L240 150" stroke="#5d4a8c" stroke-width="8" stroke-linecap="round"/><path d="M240 150C228 140 236 128 248 136ZM240 150C232 160 244 166 250 158Z" fill="#5d4a8c"/><path d="M268 172L250 176" stroke="#5d4a8c" stroke-width="7" stroke-linecap="round"/>` },
+  hechicero: { z: '#a98af0', escala: 1.12, svg: () => `<g class="cb-flota"><path d="M338 180V92" stroke="#6a4a2a" stroke-width="5" stroke-linecap="round"/><path d="M330 84L338 74L346 84" stroke="#6a4a2a" stroke-width="4" fill="none"/><circle cx="338" cy="82" r="16" fill="#a43fd6" fill-opacity=".35" class="cb-orbe"/><circle cx="338" cy="82" r="8" fill="#e6a8ff"/><path d="M272 180L280 118C282 98 318 98 320 118L328 180L316 170L306 180L296 170L286 180Z" fill="#3a2a5a"/><path d="M280 118L274 150M320 118L326 150" stroke="#2a1c44" stroke-width="3"/><path d="M276 114C274 84 326 84 324 114L300 104Z" fill="#2a1c44"/><ellipse cx="300" cy="106" rx="14" ry="11" fill="#0b0810"/><g class="cb-ojo" fill="#e6a8ff"><circle cx="294" cy="106" r="2.8"/><circle cx="306" cy="106" r="2.8"/></g><path d="M318 128L336 120" stroke="#2a1c44" stroke-width="8" stroke-linecap="round"/><circle cx="337" cy="120" r="5" fill="#8a7a9a"/></g>` },
+  dragon: { z: '#ff8f7a', escala: 1.04, svg: () => `<path d="M312 122C330 72 364 58 384 66C372 78 370 92 376 106C362 100 352 108 348 124C342 114 330 118 322 130Z" fill="#8a2f3a"/><path d="M350 150C374 150 386 168 372 178C378 166 366 160 350 162Z" fill="#a8303f"/><ellipse cx="312" cy="148" rx="42" ry="26" fill="#b0384a"/><ellipse cx="306" cy="160" rx="28" ry="13" fill="#d9a35a"/><path d="M290 166V178H302V166ZM326 166V178H338V166Z" fill="#8a2f3a"/><path d="M284 140C266 122 260 98 268 80L288 84C286 100 294 116 304 128Z" fill="#b0384a"/><path d="M262 76C250 78 242 88 240 98C252 96 262 98 270 106C282 102 290 92 288 82C282 74 270 70 262 76Z" fill="#c24455"/><path d="M280 74L292 52L288 78Z M268 72L272 52L274 76Z" fill="#e8d3c0"/><g class="cb-ojo" fill="#ffe27a"><circle cx="266" cy="86" r="3.4"/></g><path d="M244 100L252 104L256 98" stroke="#fff" stroke-width="2" fill="none"/><circle cx="246" cy="94" r="1.6" fill="#10141a"/>` },
+  titan: { z: '#c9626f', escala: 0.98, svg: () => `<path d="M274 176V146H298V176ZM302 176V146H326V176Z" fill="#43224f"/><path d="M262 108C262 94 338 94 338 108L330 152H270Z" fill="#5a2f6e"/><path d="M300 108V150M284 122H316M286 136H314" stroke="#43224f" stroke-width="2.5" opacity=".7"/><path d="M262 110L238 130L240 156" stroke="#5a2f6e" stroke-width="17" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M338 110L362 130L360 156" stroke="#5a2f6e" stroke-width="17" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="240" cy="162" r="12" fill="#6c3a82"/><circle cx="360" cy="162" r="12" fill="#6c3a82"/><path d="M258 104L250 88L268 98ZM342 104L350 88L332 98Z" fill="#e8d3c0"/><path d="M282 98C282 74 318 74 318 98L314 112H286Z" fill="#6c3a82"/><path d="M284 84L268 56L292 76ZM316 84L332 56L308 76Z" fill="#e8d3c0"/><g class="cb-ojo" fill="#ffcf5a"><path d="M288 90L298 94L288 98Z M312 90L302 94L312 98Z"/></g><path d="M288 104H312" stroke="#10141a" stroke-width="3"/><path d="M291 104L294 110L297 104ZM303 104L306 110L309 104Z" fill="#fff"/>` }
+};
+const CLAVES_MON = [
+  ['rata', /rata|🐀|\brat\b/], ['esqueleto', /esquel|💀|calavera|hueso/], ['murcielago', /murci|🦇|\bbat\b|vampir/], ['arana', /arana|🕷|spider/],
+  ['zombi', /zombi|🧟/], ['espectro', /espectro|👻|fantasma/], ['slime', /slime|limo|gelatin|baba/], ['golem', /piedra|guardian|golem|🗿/],
+  ['escorpion', /sombras|escorpi|🦂/], ['hechicero', /hechicer|mago|brujo|🧙/], ['dragon', /dragon|🐉|🐲/], ['titan', /titan|abismo|demonio|👹|ogro/]
+];
+const nombreLimpio = n => String(n).replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').replace(/\s+/g, ' ').trim();
+const claveMonstruo = nombre => {
+  const n = String(nombre).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const f = CLAVES_MON.find(([, re]) => re.test(n));
+  return f ? f[0] : null;
+};
+const colorMonstruo = nombre => { const k = claveMonstruo(nombre); return k ? MON[k].z : PAL_MON[hashStr(nombre) % PAL_MON.length][2]; };
+
+function arteMonstruo(nombre, jefe) {
+  const k = claveMonstruo(nombre);
+  let f, esc = 1.2;
+  if (k) { f = MON[k].svg(); esc = MON[k].escala || 1.2; }
+  else {
+    const forma = hashStr(nombre) % 4;
+    f = [MON.slime.svg(false), MON.murcielago.svg(), MON.esqueleto.svg(), MON.espectro.svg()][forma];
+  }
+  const aura = jefe ? `<defs><radialGradient id="cbAuraE"><stop offset="0" stop-color="#ff5a6a" stop-opacity=".42"/><stop offset="1" stop-color="#ff5a6a" stop-opacity="0"/></radialGradient></defs><circle cx="300" cy="130" r="96" fill="url(#cbAuraE)" class="cb-aura"/>` : '';
+  const fig = `${SOMBRA}<g class="cb-idle">${f}</g>`;
+  return aura + (jefe ? `<g transform="translate(300 176) scale(${esc}) translate(-300 -176)">${fig}</g>` : fig);
+}
+
+function arteHeroe(clase, buff) {
+  const [c, a] = COL_CLASE[clase] || ['#8f87a8', '#ece6f3'];
+  const gorro = {
+    guerrero: `<path d="M64 104C64 88 96 88 96 104Z" fill="#9aa3b8"/><rect x="78" y="90" width="4" height="12" fill="${c}"/>`,
+    mago: `<path d="M60 106L80 58L100 106Z" fill="${c}"/><rect x="56" y="104" width="48" height="6" rx="3" fill="${a}" opacity=".85"/>`,
+    ladron: `<path d="M62 116C58 86 102 86 98 116L80 102Z" fill="${c}"/>`,
+    mercader: `<rect x="60" y="97" width="40" height="6" rx="3" fill="${a}"/><path d="M68 98C68 84 92 84 92 98Z" fill="${c}"/>`
+  }[clase] || `<path d="M65 104C65 90 95 90 95 104Z" fill="${c}"/>`;
+  const arma = {
+    guerrero: `<path d="M106 142L140 94" stroke="#d6dcea" stroke-width="6" stroke-linecap="round"/><path d="M99 137L112 148" stroke="#b08a50" stroke-width="6" stroke-linecap="round"/>`,
+    mago: `<path d="M114 180V88" stroke="#8a6a4a" stroke-width="5" stroke-linecap="round"/><circle cx="114" cy="82" r="15" fill="${a}" fill-opacity=".35" class="cb-orbe"/><circle cx="114" cy="82" r="8" fill="${a}"/>`,
+    ladron: `<path d="M106 146L132 124" stroke="#d6dcea" stroke-width="5" stroke-linecap="round"/><path d="M100 150L110 142" stroke="${a}" stroke-width="5" stroke-linecap="round"/>`,
+    mercader: `<ellipse cx="112" cy="158" rx="14" ry="16" fill="#5a4630"/><path d="M104 144Q112 138 120 144" stroke="${a}" stroke-width="3" fill="none"/><circle cx="112" cy="160" r="5" fill="${a}"/>`
+  }[clase] || '';
+  const aura = buff ? `<circle cx="80" cy="144" r="50" fill="${a}" fill-opacity=".1"/><circle cx="80" cy="144" r="50" fill="none" stroke="${a}" stroke-width="2" stroke-dasharray="6 5" class="cb-aura"/>` : '';
+  return `${aura}<ellipse cx="80" cy="178" rx="32" ry="5" fill="#000" opacity=".4"/><g class="cb-idle h"><path d="M56 178C56 144 64 126 80 126S104 144 104 178Z" fill="${c}"/><path d="M70 130H90L88 142H72Z" fill="${a}" opacity=".4"/><circle cx="80" cy="110" r="15" fill="#e9cdb6"/>${gorro}<circle cx="86" cy="111" r="2" fill="#1a1020"/>${arma}</g>`;
+}
+
+function escenaCombate(o) {
+  const u = o.anim && o.u ? o.u : null;
+  const pH = o.hpMax ? Math.round(o.hp / o.hpMax * 100) : 0, pE = o.ehpMax ? Math.round(o.ehp / o.ehpMax * 100) : 0;
+  const golpeE = u && u.dano > 0, golpeH = u && u.recibido > 0;
+  const nums = u ? [
+    u.hab ? `<span class="cb-hab-t">✨ ${esc(u.hab)}</span>` : '',
+    u.dano > 0 ? `<span class="cb-num dano" style="left:74%;top:50%">-${fmt(u.dano)}</span>` : '',
+    u.cura > 0 ? `<span class="cb-num cura" style="left:21%;top:46%">+${fmt(u.cura)}</span>` : '',
+    u.recibido > 0 ? `<span class="cb-num recibe" style="left:14%;top:56%">-${fmt(u.recibido)}</span>` : ''
+  ].join('') : '';
+  return `<div class="cb-arena ${o.jefe ? 'jefe' : ''}" style="--z:${colorMonstruo(o.nombre)}">
+    <svg viewBox="0 0 400 200" aria-hidden="true">
+      <rect y="176" width="400" height="24" fill="#0b0810" opacity=".75"/><rect y="176" width="400" height="1.5" fill="#fff" opacity=".08"/>
+      <g class="cb-her ${u && u.hab ? 'cast' : ''} ${golpeH ? 'golpeado' : ''}">${arteHeroe(o.clase, o.buff)}</g>
+      <g class="cb-mon ${golpeE ? 'golpeado' : ''}">${arteMonstruo(o.nombre, o.jefe)}</g>
+      ${golpeE ? '<path class="cb-tajo" d="M262 96L346 164" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path class="cb-tajo t2" d="M346 100L266 166" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' : ''}
+    </svg>
+    ${u && u.hab ? '<i class="cb-flash"></i>' : ''}
+    <div class="cb-hud h"><span>Tú${o.buff ? ' 🔥' : ''}</span><div class="cb-hp tu ${pH < 30 ? 'bajo' : ''}"><i style="width:${pH}%"></i></div><b>${fmt(o.hp)}/${fmt(o.hpMax)}</b></div>
+    <div class="cb-hud e"><span>${o.jefe ? '👑 ' : ''}${esc(nombreLimpio(o.nombre))}</span><div class="cb-hp ${pE < 30 ? 'bajo' : ''}"><i style="width:${pE}%"></i></div><b>${fmt(o.ehp)}/${fmt(o.ehpMax)}</b></div>
+    ${nums}
+  </div>`;
+}
+
+const botonAcc = (ruta, cuerpo, html, extra, cls) => `<button type="button" class="mini cb-acc ${cls || ''}" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" ${extra || ''}>${html}</button>`;
+
 function pintarMazmorra(d, base) {
   const cab2 = `<p class="peq mut" style="margin-top:8px">Cartera: <b>${fmt(d.cartera)}</b> · Récord: piso <b>${d.record}</b> · Pociones: <b>${d.pociones}</b></p>`;
   if (d.nivel < d.nivelMin) return cab2 + `<div class="bloque vidrio"><p class="mut peq">Se desbloquea en el nivel ${d.nivelMin}. Tu nivel: ${d.nivel}.</p></div>`;
@@ -682,26 +879,147 @@ function pintarMazmorra(d, base) {
       ${d.check ? b({ inicio: true }, 'Desde piso 1 · ' + fmt(e.inicio)) : ''}</div>
       <p class="mut peq" style="margin-top:8px">El seguro evita perder monedas y retroceder al caer.</p></div>`;
   }
-  const r = d.run, s = r.siguiente;
-  const pct = r.hpMax ? Math.round(r.hp / r.hpMax * 100) : 0;
-  return cab2 + `<div class="bloque vidrio"><div class="fila"><strong>📍 Piso ${r.piso}</strong>${r.seguro ? '<span class="etiq">Asegurada</span>' : ''}</div>
-      <div class="stat"><div class="fila"><span>Vida</span><span>${r.hp}/${r.hpMax}</span></div>${barra(r.hp, r.hpMax, pct < 30 ? 'nar' : '')}</div>
-      <p class="peq" style="margin-top:10px">💰 Botín: <b>${fmt(r.botin)}</b> · 🎒 ${r.equipo.length} equipo${r.cofres.length ? ' · ' + r.cofres.join(' ') : ''}</p>
-      ${r.equipo.length ? `<p class="mut peq">${r.equipo.map(esc).join(' · ')}</p>` : ''}
-      <p class="peq">${r.expirada ? 'La expedición expiró. Cobra tu botín.' : 'Tiempo restante: ' + cuenta(r.restaS, base)}</p></div>
-    <div class="bloque vidrio"><div class="fila"><strong>${s.jefe ? '👑 ' : '👾 '}${esc(s.nombre)}</strong><span class="mut peq">Piso ${s.piso}</span></div>
-      <p class="mut peq">Vida ${fmt(s.hp)} · Ataque ${fmt(s.atk)}${s.jefe ? ' · Jefe' : ''}</p></div>
+  const r = d.run, s = r.siguiente, c = r.combate, h = d.heroe;
+  const clase = h && h.clase;
+  const barraRun = `<div class="cb-run"><span>📍 Piso <b>${r.piso}</b>${r.seguro ? ' <em class="etiq">Asegurada</em>' : ''}</span><span>💰 <b>${fmt(r.botin)}</b></span><span>🎒 <b>${r.equipo.length}</b>${r.cofres.length ? ' ' + r.cofres.join(' ') : ''}</span><span>⏳ ${r.expirada ? 'Expiró' : cuenta(r.restaS, base)}</span></div>`;
+  const energia = h ? `<div class="cb-ener"><span>Energía</span>${Array.from({ length: h.energia.max }, (_, i) => `<i class="pip ${i < h.energia.n ? 'on' : ''}"></i>`).join('')}</div>` : '';
+
+  if (c) {
+    const clave = r.piso + ':' + c.turno, anim = cbVisto !== clave;
+    cbVisto = clave;
+    const arena = escenaCombate({ nombre: c.nombre, jefe: c.jefe, clase, buff: c.buff, hp: r.hp, hpMax: r.hpMax, ehp: c.hp, ehpMax: c.hpMax, u: c.ultimo, anim });
+    const log = c.log.slice(-3).map((l, i, a) => `<p class="${i === a.length - 1 ? 'nuevo' : ''}">${esc(l)}</p>`).join('') || '<p>Elige tu primera acción.</p>';
+    const habs = h ? h.habilidades.map(x => {
+      const motivo = x.bloqueada ? 'Se desbloquea en el nivel ' + x.nivel + '.' : x.sinEnergia ? 'No tienes energía suficiente.' : '';
+      const pips = x.bloqueada ? `<span class="cb-lock">🔒 Nv ${x.nivel}</span>` : `<span class="cb-hc">${'⚡'.repeat(x.costo)}</span>`;
+      return botonAcc('/api/mazmorra/habilidad', { n: x.n }, `<span class="cb-hn">${esc(x.nombre)}</span>${pips}<span class="cb-hd">${esc(x.desc || 'Ataque potenciado')}</span>`, `${motivo ? 'aria-disabled="true"' : ''} data-motivo="${esc(motivo)}"`, 'cb-hab-b');
+    }).join('') : '';
+    const sinPoc = !d.pociones || r.hp >= r.hpMax;
+    return cab2 + barraRun + arena + `<div class="cb-log vidrio" aria-live="polite">${log}</div>
+      ${energia}
+      <div class="cb-prim">
+        ${botonAcc('/api/mazmorra/golpe', {}, '<b>⚔️ Golpe</b><small>Ataque básico</small>', '', 'cb-golpe')}
+        ${botonAcc('/api/mazmorra/pocion', {}, `<b>🧪 Poción</b><small>${d.pociones} en la bolsa</small>`, sinPoc ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '', 'cb-poc')}
+      </div>
+      ${habs ? `<div class="cb-habs">${habs}</div>` : ''}
+      <p class="mut peq" style="margin-top:10px">No puedes salir ni descansar en pleno combate. Si caes, pierdes el ${d.perdida}% de lo reunido.</p>`;
+  }
+
+  const arena = escenaCombate({ nombre: s.nombre, jefe: s.jefe, clase, buff: null, hp: r.hp, hpMax: r.hpMax, ehp: s.hp, ehpMax: s.hp, u: null, anim: false });
+  return cab2 + barraRun + arena + `${energia}
     <div class="btns">
-      ${botonPost('/api/mazmorra/avanzar', {}, 'Avanzar', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
+      ${botonPost('/api/mazmorra/pelear', {}, '⚔️ Pelear', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
+      ${botonPost('/api/mazmorra/avanzar', {}, '⚡ Auto', r.expirada ? 'aria-disabled="true" data-motivo="Cobra tu botín saliendo."' : '')}
       ${botonPost('/api/mazmorra/curar', {}, 'Poción (' + d.pociones + ')', r.hp >= r.hpMax || !d.pociones ? 'aria-disabled="true" data-motivo="' + (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.') + '"' : '')}
       ${botonPost('/api/mazmorra/descansar', {}, 'Posada · ' + fmt(r.posada), r.hp >= r.hpMax ? 'aria-disabled="true" data-motivo="Ya tienes la vida completa."' : '')}
       ${botonPost('/api/mazmorra/salir', {}, 'Salir y cobrar', 'data-confirmar="Saldrás con lo reunido hasta ahora. ¿Continuar?"')}
-    </div>`;
+    </div>
+    <p class="mut peq" style="margin-top:8px">⚔️ Pelear: tú eliges cada acción. ⚡ Auto: el combate se resuelve solo.</p>`;
+}
+
+const COL_GACHA = { mitica: '#e8946a', legendaria: '#e0b96a', epica: '#b69be0', rara: '#8fb4d6', comun: '#a9b0c4' };
+const colGacha = c => COL_GACHA[c && c.clave] || COL_GACHA.comun;
+const imgGacha = c => c.imagen ? `<img src="${esc(c.imagen)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+const cartaGacha = c => `<div class="gc-carta" style="--c:${colGacha(c.rareza)}">
+  <div class="gc-img">${imgGacha(c)}<span class="gc-em">${esc(c.rareza ? c.rareza.emoji : '🎴')}</span></div>
+  <div class="gc-in"><strong>${esc(c.nombre)}</strong>${c.nombreNativo ? `<span class="mut peq">${esc(c.nombreNativo)}</span>` : ''}${c.serie ? `<span class="mut peq">${esc(c.serie)}</span>` : ''}
+    <span class="peq">${c.rareza ? esc(c.rareza.emoji + ' ' + c.rareza.nombre) + ' · ' : ''}💎 ${fmt(c.valor)}</span>${c.ranking ? `<span class="mut peq">Top #${fmt(c.ranking)} · ⭐ ${fmt(c.favoritos)}</span>` : ''}</div></div>`;
+const miniDe = (c, tag, attrs) => `<${tag} class="gc-mini" ${attrs} style="--c:${colGacha(c.rareza)}" title="${esc(c.nombre)}">
+  <div class="gc-img">${imgGacha(c)}<span class="gc-em">${esc(c.rareza ? c.rareza.emoji : '🎴')}</span></div>
+  <b>${esc(c.nombre)}</b><span class="mut">💎 ${fmt(c.valor)}</span></${tag}>`;
+const miniGacha = c => miniDe(c, 'div', '');
+const miniSel = (c, attr, sel) => miniDe(c, 'button', `type="button" data-${attr}="${c.id}" aria-pressed="${sel === c.id}"`);
+const chipsRarezaGacha = lista => `<div class="gc-raros">${lista.map(r => `<span style="--c:${COL_GACHA[r.clave] || COL_GACHA.comun}">${esc(r.emoji)} ${esc(r.nombre)} <b>${fmt(r.n)}</b></span>`).join('')}</div>`;
+
+function pintarGachaInvocar(d, base) {
+  const p = d.pendiente;
+  const pendiente = p
+    ? `${titulo('Carta pendiente', `<span class="mut peq">se escapa en ${cuenta(p.restaS, base)}</span>`)}
+       <div class="bloque vidrio" data-gc-fin="${base + p.restaS * 1000}">${cartaGacha(p.carta)}<p class="mut peq" style="margin-top:10px">Reclámala antes de que se acabe el tiempo. Los demás jugadores también pueden quedársela si se adelantan.</p>
+       <div class="btns uno">${botonPost('/api/gacha/reclamar', { id: p.carta.id }, 'Reclamar carta')}</div></div>`
+    : '';
+  const mundo = d.mundo.length
+    ? `${titulo('Cartas del mundo')}<div class="bloque vidrio">${d.mundo.map(r => `<div class="fil"><span class="pos">${esc(r.emoji)}</span><div class="nom"><strong>${esc(r.nombre)}</strong><span class="mut peq">${fmt(r.reclamadas)} reclamadas</span></div><span class="val">${fmt(r.libres)} libres</span></div>`).join('')}</div>`
+    : '';
+  const ranking = d.ranking.length
+    ? `${titulo('Mayores coleccionistas')}<div class="bloque vidrio">${d.ranking.map(r => filaRanking(r, fmt(r.cartas) + ' cartas', '💎 ' + fmt(r.valor))).join('')}</div>`
+    : '';
+  const aviso = d.trato ? `<div class="bloque vidrio"><p class="peq">🔁 Tienes una propuesta de cambio esperando. Caduca en ${cuenta(d.trato.restaS, base)}.</p><div class="btns uno"><button type="button" class="mini" data-gs="tratos">Ver propuesta</button></div></div>` : '';
+  const libres = abiertas.filter(a => a.fin > Date.now());
+  const ajenas = libres.length
+    ? `${titulo('Cartas por reclamar', '<span class="mut peq">¡sé el primero!</span>')}${libres.map(a => `<div class="bloque vidrio">${cartaGacha(a.carta)}<p class="mut peq" style="margin-top:8px"><b>${esc(a.por)}</b> la invocó. Se escapa en <b data-fin="${a.fin}">${dur((a.fin - Date.now()) / 1000)}</b>.</p><div class="btns uno">${botonPost('/api/gacha/reclamar', { id: a.id }, 'Reclamar carta')}</div></div>`).join('')}`
+    : '';
+  return `${introGacha(d)}
+    ${aviso}${ajenas}${chipsRarezaGacha(d.mia.porRareza)}
+    <div class="btns uno" style="margin-top:14px">${botonListo('/api/gacha/tirar', {}, '✨ Invocar', base + d.esperaS * 1000)}</div>
+    ${pendiente}${mundo}${ranking}`;
+}
+const introGacha = d => `<p class="mut peq">Invoca personajes de anime y reclama los que te gusten. Puedes tirar cada ${dur(d.cooldownS)} y tienes ${dur(d.reclamoS)} para reclamar la carta que salga.</p>`;
+
+function pintarGachaColeccion(d) {
+  const pie = d.paginas > 1
+    ? `<div class="btnrow" style="align-items:center;margin-top:12px"><button type="button" class="mini" data-gp="-1" aria-disabled="${d.pagina <= 1}">Anterior</button><span class="mut peq" style="flex:none">Página ${d.pagina} de ${d.paginas}</span><button type="button" class="mini" data-gp="1" aria-disabled="${d.pagina >= d.paginas}">Siguiente</button></div>`
+    : '';
+  const cuerpo = d.cartas.length
+    ? `<div class="gc-rejilla">${d.cartas.map(miniGacha).join('')}</div>${pie}`
+    : vacio('Aún no tienes cartas. Invoca y reclama la primera.');
+  return `${chipsRarezaGacha(d.porRareza)}${titulo('Tu colección')}${cuerpo}`;
+}
+const parCartas = (a, b, tA, tB) => `<div class="gt-par"><div><p class="mut peq">${tA}</p>${cartaGacha(a)}</div><span class="gt-flecha" aria-hidden="true">⇄</span><div><p class="mut peq">${tB}</p>${cartaGacha(b)}</div></div>`;
+const pagerGt = (k, c) => c.paginas > 1
+  ? `<div class="btnrow" style="align-items:center;margin-top:8px"><button type="button" class="mini" data-gt-pg="${k}" data-dir="-1" aria-disabled="${c.pagina <= 1}">Anterior</button><span class="mut peq" style="flex:none">${c.pagina} de ${c.paginas}</span><button type="button" class="mini" data-gt-pg="${k}" data-dir="1" aria-disabled="${c.pagina >= c.paginas}">Siguiente</button></div>`
+  : '';
+function pintarGachaTratos(d, base) {
+  let pendiente = '';
+  if (d.recibido) {
+    const r = d.recibido;
+    pendiente += `${titulo('Propuesta recibida', `<span class="mut peq">caduca en ${cuenta(r.restaS, base)}</span>`)}
+      <div class="bloque vidrio"><p class="peq"><b>${esc(r.alias)}</b> quiere cambiar contigo.</p>${parCartas(r.ofrece, r.pide, 'Recibes', 'Entregas')}
+      <div class="btnrow" style="margin-top:12px">${botonPost('/api/gacha/aceptar', {}, 'Aceptar cambio')}${botonPost('/api/gacha/rechazar', {}, 'Rechazar')}</div></div>`;
+  }
+  if (d.enviado) {
+    const e = d.enviado;
+    pendiente += `${titulo('Propuesta enviada', `<span class="mut peq">caduca en ${cuenta(e.restaS, base)}</span>`)}
+      <div class="bloque vidrio"><p class="peq">Esperando respuesta de <b>${esc(e.alias)}</b>.</p>${parCartas(e.ofrece, e.pide, 'Entregas', 'Recibes')}
+      <div class="btns uno">${botonPost('/api/gacha/cancelar', {}, 'Cancelar propuesta')}</div></div>`;
+  }
+
+  const busca = `<div class="campo" style="margin-top:6px"><input class="txt corto" id="gt-q" data-v="gtq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador por nombre" aria-label="Buscar jugador" value="${esc(gtQ)}"><button type="button" class="mini" data-buscar="gacha">Buscar</button></div>`;
+  let cuerpo;
+  if (d.objetivo) {
+    const o = d.objetivo;
+    const mia = o.mias.cartas.find(c => c.id === gtMia) || null;
+    const suya = o.suyas.cartas.find(c => c.id === gtSuya) || null;
+    const resumen = `<p class="peq" style="margin-top:12px">Tu carta: <b>${gtMia ? '#' + gtMia + (mia ? ' ' + esc(mia.nombre) : '') : 'sin elegir'}</b> · De ${esc(o.alias)}: <b>${gtSuya ? '#' + gtSuya + (suya ? ' ' + esc(suya.nombre) : '') : 'sin elegir'}</b></p>`;
+    const sinMia = 'Elige una carta tuya.', sinAmbas = 'Elige una carta tuya y una de ' + o.alias + '.';
+    cuerpo = `<div class="bloque vidrio"><div class="fila"><strong>Trato con ${esc(o.alias)}</strong><button type="button" class="mini" data-gt-quitar>Cambiar</button></div>
+      <p class="mut peq">Elige una carta tuya y una suya para proponer un cambio, o regala la tuya.</p></div>
+      ${titulo('Tus cartas')}${o.mias.cartas.length ? `<div class="gc-rejilla">${o.mias.cartas.map(c => miniSel(c, 'gt-mia', gtMia)).join('')}</div>${pagerGt('m', o.mias)}` : vacio('No tienes cartas para ofrecer.')}
+      ${titulo('Cartas de ' + esc(o.alias))}${o.suyas.cartas.length ? `<div class="gc-rejilla">${o.suyas.cartas.map(c => miniSel(c, 'gt-suya', gtSuya)).join('')}</div>${pagerGt('s', o.suyas)}` : vacio('Todavía no tiene cartas.')}
+      ${resumen}
+      <div class="btns">
+        ${botonPost('/api/gacha/proponer', { ref: o.ref, mia: gtMia, suya: gtSuya }, 'Proponer cambio', !gtMia || !gtSuya ? `aria-disabled="true" data-motivo="${esc(sinAmbas)}"` : '')}
+        ${botonPost('/api/gacha/regalar', { ref: o.ref, id: gtMia }, 'Regalar mi carta', !gtMia ? `aria-disabled="true" data-motivo="${esc(sinMia)}"` : `data-confirmar="¿Regalar ${esc(mia ? mia.nombre : 'esta carta')} a ${esc(o.alias)}? No se puede deshacer."`)}
+      </div>
+      <p class="mut peq" style="margin-top:8px">${esc(o.alias)} tiene ${dur(d.ventanaS)} para aceptar o rechazar la propuesta.</p>`;
+  } else {
+    const lista = d.resultados.length
+      ? `<div class="bloque vidrio">${d.resultados.map(j => `<div class="fil"><div class="nom"><strong>${esc(j.alias)}</strong></div><button type="button" class="mini" data-gt-elegir="${esc(j.ref)}">Elegir</button></div>`).join('')}</div>`
+      : gtQ ? vacio('No encontré a nadie con ese nombre.') : '';
+    cuerpo = `${titulo('Nuevo trato')}<p class="mut peq">Busca a otro jugador para cambiar o regalarle una carta.</p>${busca}${lista}`;
+  }
+  return pendiente + cuerpo;
+}
+function pintarGacha(d, base) {
+  const seg = segHtml('Sección del gacha', [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']], gachaSel, 'gs');
+  const mia = gachaSel === 'coleccion' ? { total: d.total, valor: d.valor } : gachaSel === 'tratos' ? null : d.mia;
+  return cabEvento('Gacha', 'Invoca, colecciona y cambia personajes de anime.', ICONOS.gacha, mia ? [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]] : statsBase())
+    + seg + (gachaSel === 'coleccion' ? pintarGachaColeccion(d) : gachaSel === 'tratos' ? pintarGachaTratos(d, base) : pintarGachaInvocar(d, base));
 }
 
 function pintarHogar(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja'], ['mazmorra', 'Mazmorra'], ['clan', 'Clan'], ['raid', 'Raid']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mundo', 'Tu mascota, tu granja, la mazmorra, tu clan y los jefes de tus grupos.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : hogarSel === 'granja' ? pintarGranja(d, base) : hogarSel === 'clan' ? pintarClan(d, base) : hogarSel === 'raid' ? pintarRaid(d, base) : pintarMazmorra(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mundo', 'Tu mascota y tu granja.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : pintarGranja(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -1135,9 +1453,13 @@ const CARGA = {
   ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[perfilSel] || '/api/ficha'), pintarPerfil],
   inventario: [() => invSel === 'equipo' ? '/api/equipo' : invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
   tienda: [() => tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + tiendaSel, pintarTienda],
-  hogar: [() => hogarSel === 'clan' ? '/api/clan?q=' + encodeURIComponent(clanQ) : '/api/' + hogarSel, pintarHogar],
+  hogar: [() => '/api/' + hogarSel, pintarHogar],
   ciudad: [() => ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(jugQ) : '/api/' + ciudadSel, pintarCiudad],
-  rankings: ['/api/rankings', pintarRankings]
+  rankings: ['/api/rankings', pintarRankings],
+  gacha: [() => gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : gachaSel === 'tratos' ? '/api/gacha/trato?q=' + encodeURIComponent(gtQ) + '&ref=' + encodeURIComponent(gtRef) + '&pm=' + gtPm + '&ps=' + gtPs : '/api/gacha', pintarGacha],
+  raid: ['/api/raid', pintarRaidTab],
+  mazmorra: ['/api/mazmorra', pintarMazmorraTab],
+  clan: [() => '/api/clan?q=' + encodeURIComponent(clanQ), pintarClanTab]
 };
 
 function dibujar(t) {
@@ -1156,7 +1478,7 @@ async function abrir(t, forzar) {
   for (const k of TABS) $('#t-' + k).hidden = k !== t;
   for (const [k] of NAV) {
     const b = $('#nav [data-t="' + k + '"]');
-    if (k === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    if (k === (PADRE[t] || t)) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
   try { history.replaceState(null, '', t === 'inicio' ? location.pathname : '#' + t); } catch (_) {}
   if (cambio) window.scrollTo(0, 0);
@@ -1185,10 +1507,13 @@ async function publicar(b, ruta, cuerpo) {
     const d = await api(ruta, cuerpo);
     cargado = {};
     if (d.me) aplicar(d.me);
+    if (ruta.includes('/gacha') || ruta.includes('/raid')) cargarEventos(true);
+    if (ruta.includes('/gacha/')) sondearAbiertas();
+    if (ruta.includes('/gacha/')) { gtMia = 0; gtSuya = 0; }
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
-      const ico = ruta.includes('/raid') ? ICONOS.raid : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
-      hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo' });
+      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
+      hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null });
     } else if (d.mensaje) aviso(d.mensaje);
     await abrir(tabActual, true);
   } catch (e) {
@@ -1213,7 +1538,37 @@ $('#v-panel').addEventListener('click', e => {
   }
   const ir = e.target.closest('[data-ir]');
   if (ir) return abrir(ir.dataset.ir);
-  if (e.target.closest('[data-ir-raid]')) { hogarSel = 'raid'; delete cargado.hogar; return abrir('hogar', true); }
+  if (e.target.closest('[data-ir-raid]')) return abrir('raid', true);
+  if (e.target.closest('[data-ir-gacha]')) {
+    const g = eventos.gacha;
+    gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) && !abiertas.some(a => a.fin > Date.now()) ? 'tratos' : 'invocar';
+    gachaPag = 1;
+    return abrir('gacha', true);
+  }
+  const ge = e.target.closest('button[data-gt-elegir]');
+  if (ge) { gtRef = ge.dataset.gtElegir; gtPm = 1; gtPs = 1; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+  if (e.target.closest('[data-gt-quitar]')) { gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+  const gm = e.target.closest('button[data-gt-mia]');
+  if (gm) { const v = Number(gm.dataset.gtMia); gtMia = gtMia === v ? 0 : v; return dibujar('gacha'); }
+  const gu = e.target.closest('button[data-gt-suya]');
+  if (gu) { const v = Number(gu.dataset.gtSuya); gtSuya = gtSuya === v ? 0 : v; return dibujar('gacha'); }
+  const gtp = e.target.closest('button[data-gt-pg]');
+  if (gtp) {
+    if (gtp.getAttribute('aria-disabled') === 'true') return;
+    const dir = Number(gtp.dataset.dir);
+    if (gtp.dataset.gtPg === 'm') gtPm = Math.max(1, gtPm + dir); else gtPs = Math.max(1, gtPs + dir);
+    delete cargado.gacha;
+    return abrir('gacha', true);
+  }
+  const gs = e.target.closest('button[data-gs]');
+  if (gs) { gachaSel = gs.dataset.gs; gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); }
+  const gp = e.target.closest('button[data-gp]');
+  if (gp) {
+    if (gp.getAttribute('aria-disabled') === 'true') return;
+    gachaPag = Math.max(1, gachaPag + Number(gp.dataset.gp));
+    delete cargado.gacha;
+    return abrir('gacha', true);
+  }
   if (e.target.closest('[data-salir]')) return salir();
   const fo = e.target.closest('button[data-fo]');
   if (fo) { invFiltro = fo.dataset.fo; return dibujar('inventario'); }
@@ -1229,8 +1584,9 @@ $('#v-panel').addEventListener('click', e => {
   if (sg) { progSel = sg.dataset.g; return dibujar('ficha'); }
   const bs = e.target.closest('button[data-buscar]');
   if (bs) {
+    if (bs.dataset.buscar === 'gacha') { gtQ = ($('#gt-q') || {}).value || ''; gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
     if (bs.dataset.buscar === 'jug') { jugQ = ($('#jg-q') || {}).value || ''; delete cargado.ciudad; return abrir('ciudad', true); }
-    clanQ = ($('#cl-q') || {}).value || ''; delete cargado.hogar; return abrir('hogar', true);
+    clanQ = ($('#cl-q') || {}).value || ''; delete cargado.clan; return abrir('clan', true);
   }
   const h = e.target.closest('button[data-h]');
   if (h) { hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
@@ -1260,8 +1616,9 @@ document.addEventListener('input', e => {
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   const id = e.target && e.target.id;
-  if (id !== 'jg-q' && id !== 'cl-q') return;
-  const b = document.querySelector('button[data-buscar="' + (id === 'jg-q' ? 'jug' : 'clan') + '"]');
+  const destino = { 'jg-q': 'jug', 'cl-q': 'clan', 'gt-q': 'gacha' }[id];
+  if (!destino) return;
+  const b = document.querySelector('button[data-buscar="' + destino + '"]');
   if (b) b.click();
 });
 $('#codigo').addEventListener('input', e => {
