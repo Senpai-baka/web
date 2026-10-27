@@ -6,6 +6,11 @@ if (!window.IslaLib || !window.IslaBridge) {
 }
 const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib; // definidos en src/lib (cargados por main.jsx)
 const IslaBridge = window.IslaBridge;
+// Acciones que las islas React necesitan del legacy (se usan al hacer clic, cuando todo ya está cargado).
+IslaBridge.publicar = (b, ruta, cuerpo) => publicar(b, ruta, cuerpo);
+IslaBridge.aviso = (txt, ms) => aviso(txt, ms);
+IslaBridge.buscarClan = q => { clanQ = q || ''; delete cargado.clan; return abrir('clan', true); };
+IslaBridge.consultaClan = () => clanQ;
 const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
