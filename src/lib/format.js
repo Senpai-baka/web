@@ -1,4 +1,3 @@
-// Helpers de formato compartidos (antes vivían al inicio de public/js/app.js)
 export const fmt = n => Number(n).toLocaleString('es-MX');
 export const mmss = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 export const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

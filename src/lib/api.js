@@ -1,4 +1,3 @@
-// Cliente de la API de Isla (antes vivía en public/js/app.js). Misma lógica: reintentos, timeout y X-Req-Id.
 export const API = '';
 
 export function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }

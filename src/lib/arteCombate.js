@@ -1,5 +1,3 @@
-// Arte vectorial del combate de Mazmorra (monstruos y héroe). Movido tal cual desde public/js/app.js.
-// Devuelve cadenas SVG fijas: solo usan el nombre/clase como clave de búsqueda, nunca los insertan en el HTML.
 const hashStr = t => { let h = 0; for (const ch of String(t)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 const PAL_MON = [
   ['#3f8f5c', '#a9e6b8', '#7fe0a0', '#fff7c2'],
