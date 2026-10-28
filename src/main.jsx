@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client';
 import legacyMarkup from './legacy.html?raw';
 import * as lib from './lib/index.js';
 import { setMe } from './bridge/store.js';
-import { migradas, render, unmount } from './bridge/islands.jsx';
+import * as store from './state/panel.js';
+import { montarIslas } from './bridge/islands.jsx';
 
 // Lo que app.js (script clásico) comparte con el mundo React. Debe existir ANTES de cargar /js/app.js.
 window.IslaLib = lib;
-window.IslaBridge = { setMe, migradas, render, unmount };
+window.IslaBridge = { setMe, store };
 
 /**
  * Puente de compatibilidad: React monta el DOM de la web existente.
@@ -20,8 +21,9 @@ function App() {
   useEffect(() => {
     if (loaded.current) return;
     loaded.current = true;
+    montarIslas(); // el HTML del panel ya está en el DOM: cada pestaña pide sus datos al store
     const script = document.createElement('script');
-    script.src = '/js/app.js?v=11'; // sube el número si cambias app.js (evita caché vieja)
+    script.src = '/js/app.js?v=12'; // sube el número si cambias app.js (evita caché vieja)
     script.async = false;
     script.onload = () => {
       document.documentElement.dataset.islaReactMounted = 'true';
