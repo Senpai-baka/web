@@ -1,16 +1,13 @@
-// Requiere el puente de React (src/main.jsx). Si el bundle quedó viejo/en caché, avisa en vez de dejar la pantalla en blanco.
 if (!window.IslaLib || !window.IslaBridge) {
   const t = document.querySelector('#toast');
   if (t) { t.hidden = false; t.textContent = 'Falta actualizar la web (main.jsx). Recarga con Ctrl+F5.'; }
   throw new Error('IslaLib/IslaBridge no definidos: despliega src/main.jsx junto con public/js/app.js');
 }
-const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib; // definidos en src/lib (cargados por main.jsx)
+const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib;
 const IslaBridge = window.IslaBridge;
-// Acciones que las islas React necesitan del legacy (se usan al hacer clic, cuando todo ya está cargado).
-// El estado de las pestañas (selecciones, datos cargados y su carga) vive en IslaBridge.store (src/state/panel.js).
 const { store } = IslaBridge;
-const S = store.sel;            // selecciones de cada pestaña: S.ciudadSel, S.gachaSel, S.gtMia…
-const cargado = store.cache;    // datos por pestaña: { d, t, s }
+const S = store.sel;
+const cargado = store.cache;
 IslaBridge.publicar = (b, ruta, cuerpo) => publicar(b, ruta, cuerpo);
 IslaBridge.aviso = (txt, ms) => aviso(txt, ms);
 IslaBridge.abiertas = () => abiertas;
@@ -244,12 +241,21 @@ function aplicar(d) {
   $('#hero-ava').innerHTML = avatar(d, 84, true);
   $('#top-ava').innerHTML = esc(inicial(d)) + fotoImg(d);
   pintarHud(d);
+  pintarEvento(d.evento);
   if (d.clima) pintarClima(d.clima);
   montarMultiplicadores();
   tick();
   anunciarRaid();
   cargarEventos();
   sondearAbiertas();
+}
+function pintarEvento(e) {
+  const caja = $('#evento-x2');
+  if (!e || !e.activo || !(e.restaS > 0)) { caja.hidden = true; return; }
+  caja.dataset.fin = Date.now() + e.restaS * 1000;
+  $('#ev-mult').textContent = 'x' + e.mult;
+  $('#ev-resta').dataset.fin = caja.dataset.fin;
+  caja.hidden = false;
 }
 function pintarHud(d) {
   const h = $('#hud');
@@ -410,6 +416,8 @@ function tick() {
   vis.forEach(z => z.classList.remove('ancha'));
   if (vis.length % 2) vis[vis.length - 1].classList.add('ancha');
   document.querySelectorAll('[data-fin]').forEach(e => { e.textContent = dur((Number(e.dataset.fin) - ahora) / 1000); });
+  const evx = $('#evento-x2');
+  if (!evx.hidden && Number(evx.dataset.fin) <= ahora) evx.hidden = true;
   document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
   document.querySelectorAll('[data-n-listas]').forEach(e => { e.textContent = listas; });
   const pt = $('#pt-inicio');
@@ -482,7 +490,6 @@ function hoja(o) {
   $('#h-ok').focus();
 }
 function resumen(k, r) {
-  // La rareza solo aplica a recolectar (minar, talar, pescar, cazar); en crimen, trabajo, diaria y demás no se muestra
   const recolecta = ACC[k] ? ACC[k].g === 'r' : true;
   const rr = recolecta && r.rareza ? RAREZA[r.rareza] : null;
   const nom = rr ? rr[0] : '';
@@ -1108,6 +1115,7 @@ const pintarEquipo = (d, base) => {
     ${sec('equipo', 'Tu equipo', 'Bolsa ' + d.bolsa.usados + '/' + d.bolsa.max, `<div class="muneco vidrio">${huecos}</div>${bolsa}${detalle}`)}
     ${rep ? sec('reparar', 'Reparaciones', '', rep) : ''}
     ${masa ? sec('lote', 'Venta en lote', '', masa) : ''}
+    ${masaDesmonte ? sec('desmonte', 'Desmontar en lote', '', masaDesmonte) : ''}
     ${sec('casa', 'Tu hogar', esc(c.emoji) + ' ' + esc(c.nombre), casa)}`;
 };
 
@@ -1433,7 +1441,6 @@ const CARGA = {
   clan: [() => '/api/clan?q=' + encodeURIComponent(S.clanQ), pintarClanTab]
 };
 
-// Repinta una pestaña con los datos que ya tiene (los islas lo hacen solas al cambiar el store).
 function dibujar(t) { if (cargado[t]) store.notificar(t); }
 async function abrir(t, forzar) {
   if (t === 'historial' || t === 'heroe') { S.perfilSel = t; t = 'ficha'; }
@@ -1615,7 +1622,6 @@ $('#top-ava').addEventListener('click', () => abrir('ficha'));
   } catch (_) { vista('login'); }
 })();
 
-/* ---- Respuesta al tocar: destello y vibración corta ---- */
 const sinMov = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function vibra(p) { if (!sinMov && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } }
 document.addEventListener('pointerdown', e => {
