@@ -17,8 +17,6 @@ const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
 const $ = s => document.querySelector(s);
-// Los módulos React pueden reemplazar contenido de una pestaña; no escribir texto en nodos ausentes.
-const setText = (selector, value) => { const el = $(selector); if (el) el.textContent = value; return el; };
 const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICONOS = {
@@ -187,7 +185,7 @@ function vista(v) {
   if (v === 'login') { petalos(14, 'ambiente'); document.title = TITULO; }
 }
 function aviso(txt, ms) {
-  const t = $('#toast'); if (!t) return; t.textContent = txt; t.hidden = false;
+  const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
 function limpiarTabs() { IslaBridge.setMe(null); eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); store.reiniciar(); }
@@ -204,10 +202,10 @@ function multChip(m) {
 }
 
 function pintarClima(c) {
-  setText('#cc-em', c.emoji);
-  setText('#cc-nom', c.nombre + (c.raro ? ' · raro' : ''));
-  setText('#cc-desc', c.desc);
-  setText('#cc-sig', c.siguiente.emoji + ' ' + c.siguiente.nombre);
+  $('#cc-em').textContent = c.emoji;
+  $('#cc-nom').textContent = c.nombre + (c.raro ? ' · raro' : '');
+  $('#cc-desc').textContent = c.desc;
+  $('#cc-sig').textContent = c.siguiente.emoji + ' ' + c.siguiente.nombre;
   $('#cc-resta').dataset.fin = Date.now() + c.faltaS * 1000;
   $('#lluvia').hidden = !/lluv|torment/i.test(c.nombre);
 }
@@ -216,7 +214,6 @@ let botAntes = true;
 let animMon = 0;
 function contarMonedas(desde, hasta) {
   const el = $('#monedas'), caja = el.parentElement;
-  if (!el) return;
   if (desde === null || desde === hasta || reducir) { el.textContent = fmt(hasta); return; }
   const t0 = performance.now(), id = ++animMon;
   caja.classList.remove('sube', 'baja');
@@ -236,9 +233,9 @@ function aplicar(d) {
   botAntes = d.bot !== false;
   me = d; IslaBridge.setMe(d); fin = {}; tot = {};
   for (const k in ACC) { fin[k] = Date.now() + (d.esperas[k] || 0) * 1000; if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot; }
-  setText('#alias', d.alias);
-  setText('#nivel', 'Nivel ' + d.nivel);
-  setText('#xp', fmt(d.xp) + ' / ' + fmt(d.xpSig) + ' XP');
+  $('#alias').textContent = d.alias;
+  $('#nivel').textContent = 'Nivel ' + d.nivel;
+  $('#xp').textContent = fmt(d.xp) + ' / ' + fmt(d.xpSig) + ' XP';
   contarMonedas(prevMon, d.monedas);
   $('#xpbar').style.width = Math.min(100, d.xp / d.xpSig * 100) + '%';
   $('#hero-ava').innerHTML = avatar(d, 84, true);
@@ -254,10 +251,12 @@ function aplicar(d) {
 }
 function pintarEvento(e) {
   const caja = $('#evento-x2');
+  if (!caja) return;
   if (!e || !e.activo || !(e.restaS > 0)) { caja.hidden = true; return; }
   caja.dataset.fin = Date.now() + e.restaS * 1000;
-  setText('#ev-mult', 'x' + e.mult);
-  $('#ev-resta').dataset.fin = caja.dataset.fin;
+  const mult = $('#ev-mult'), resta = $('#ev-resta');
+  if (mult) mult.textContent = 'x' + e.mult;
+  if (resta) resta.dataset.fin = caja.dataset.fin;
   caja.hidden = false;
 }
 function pintarHud(d) {
@@ -293,7 +292,7 @@ function montar() {
 }
 function montarMultiplicadores() {
   const mult = me && me.clima ? me.clima.mult : {};
-  for (const k in ACC) { const el = $('#m-' + k); if (el) el.innerHTML = multChip(mult[k]); }
+  for (const k in ACC) $('#m-' + k).innerHTML = multChip(mult[k]);
 }
 
 function notificar(k) {
@@ -369,20 +368,18 @@ function tickEventos(ahora) {
     const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
     const lista = pend || trato || ab.length > 0 || rest === 0;
     const p = $('#p-gacha');
-    if (p) {
-      if (p.dataset.base === undefined) p.dataset.base = p.textContent;
-      p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
-    }
-    const cg = $('#c-gacha'); if (cg) cg.classList.toggle('espera', !lista);
-    setText('#b-gacha', pend || ab.length ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest));
+    if (p.dataset.base === undefined) p.dataset.base = p.textContent;
+    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
+    $('#c-gacha').classList.toggle('espera', !lista);
+    $('#b-gacha').textContent = pend || ab.length ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest);
     if (lista) n++;
     if ((g.pend && !pend || g.trato && !trato) && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
   }
   if (r) {
     const rest = Math.max(0, Math.ceil((r.fin - ahora) / 1000));
     const lista = r.n > 0 && rest === 0;
-    const cr = $('#c-raid'); if (cr) cr.classList.toggle('espera', !lista);
-    setText('#b-raid', r.n === 0 ? 'Ver jefes' : rest === 0 ? 'Atacar' : dur(rest));
+    $('#c-raid').classList.toggle('espera', !lista);
+    $('#b-raid').textContent = r.n === 0 ? 'Ver jefes' : rest === 0 ? 'Atacar' : dur(rest);
     if (lista) n++;
   }
   const fin = document.querySelector('[data-gc-fin]');
@@ -404,17 +401,14 @@ function tick() {
   let listas = 0, menor = Infinity;
   for (const k in ACC) {
     const rest = Math.max(0, Math.ceil((fin[k] - ahora) / 1000)), lista = rest === 0;
-    const c = $('#c-' + k);
-    if (!c) continue;
-    const b = c.querySelector('button');
-    if (!b) continue;
+    const c = $('#c-' + k), b = c.querySelector('button');
     c.hidden = tot[k] === undefined;
     if (c.hidden) continue;
     c.classList.toggle('espera', !lista);
-    setText('#t-' + k, lista ? 'Listo' : mmss(rest));
+    $('#t-' + k).textContent = lista ? 'Listo' : mmss(rest);
     b.textContent = lista ? ACC[k].n : 'En espera';
     b.setAttribute('aria-disabled', String(!lista));
-    const aro = $('#r-' + k); if (aro) aro.style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
+    $('#r-' + k).style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
     if (lista) listas++; else menor = Math.min(menor, rest);
     if (previa[k] === false && lista) notificar(k);
     previa[k] = lista;
@@ -425,7 +419,7 @@ function tick() {
   if (vis.length % 2) vis[vis.length - 1].classList.add('ancha');
   document.querySelectorAll('[data-fin]').forEach(e => { e.textContent = dur((Number(e.dataset.fin) - ahora) / 1000); });
   const evx = $('#evento-x2');
-  if (!evx.hidden && Number(evx.dataset.fin) <= ahora) evx.hidden = true;
+  if (evx && !evx.hidden && Number(evx.dataset.fin) <= ahora) evx.hidden = true;
   document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
   document.querySelectorAll('[data-n-listas]').forEach(e => { e.textContent = listas; });
   const pt = $('#pt-inicio');
@@ -438,15 +432,9 @@ function tick() {
 }
 setInterval(tick, 1000);
 
-let refrescoEnCurso = null;
 async function refrescar() {
-  if (refrescoEnCurso) return refrescoEnCurso;
-  refrescoEnCurso = (async () => {
-    try { aplicar(await api('/api/me')); }
-    catch (e) { if (e.estado === 401) sesionCaducada(); }
-    finally { refrescoEnCurso = null; }
-  })();
-  return refrescoEnCurso;
+  try { aplicar(await api('/api/me')); }
+  catch (e) { if (e.estado === 401) sesionCaducada(); }
 }
 setInterval(() => {
   if (me && !ocupado && (!document.hidden || avisosActivos())) refrescar();
@@ -457,7 +445,7 @@ function animar(k) {
   d.className = 'dib ' + a.fx;
   $('#aicono').className = 'ic';
   $('#aicono').innerHTML = ICONOS[a.ic];
-  setText('#acap', a.v);
+  $('#acap').textContent = a.v;
   const ch = d.querySelector('.chispas');
   if (!ch.children.length) ch.innerHTML = Array.from({ length: 8 }, (_, i) => `<i style="--a:${i * 45}deg;--n:${i}"></i>`).join('');
   $('#anim').hidden = false;
@@ -489,12 +477,12 @@ function hoja(o) {
   $('#h-icono').innerHTML = o.icono || '';
   $('#halo').style.setProperty('--col', col);
   $('#halo').style.color = col;
-  setText('#h-zona', o.zona || '');
-  setText('#h-titulo', o.titulo);
-  const rz = $('#h-rareza'); if (rz) { rz.textContent = o.rareza ? 'Rareza: ' + o.rareza : ''; rz.style.color = col; }
-  const chips = $('#h-chips'); if (chips) chips.replaceChildren(...(o.chips || []).map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
-  setText('#h-espera', o.pie || '');
-  setText('#h-ok', o.boton || 'Volver a acciones');
+  $('#h-zona').textContent = o.zona || '';
+  $('#h-titulo').textContent = o.titulo;
+  const rz = $('#h-rareza'); rz.textContent = o.rareza ? 'Rareza: ' + o.rareza : ''; rz.style.color = col;
+  $('#h-chips').replaceChildren(...o.chips.map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
+  $('#h-espera').textContent = o.pie || '';
+  $('#h-ok').textContent = o.boton || 'Volver a acciones';
   const caja = $('#hoja .hoja');
   caja.classList.toggle('mal', !!o.mal);
   caja.classList.toggle('leg', !o.mal && o.rareza === 'Legendaria');
@@ -1120,529 +1108,4 @@ const pintarEquipo = (d, base) => {
     : '';
   const c = d.casa;
   const sig = c.siguiente
-    ? `<p class="mut peq" style="margin-top:8px">Siguiente: ${esc(c.siguiente.emoji)} ${esc(c.siguiente.nombre)} · ${fmt(c.siguiente.costo)} monedas<br>+${c.siguiente.perks.parcelas} parcelas · +${c.siguiente.perks.bolsa} de bolsa · +${c.siguiente.perks.ofertas} ofertas · +${c.siguiente.perks.ingresos}% ingresos</p>
-       <div class="btns uno">${botonPost('/api/casa/mejorar', {}, 'Mejorar hogar', `aria-disabled="${d.cartera < c.siguiente.costo}" data-motivo="Te faltan monedas."`)}</div>`
-    : '<p class="mut peq" style="margin-top:8px">Tu hogar está al máximo.</p>';
-  const casa = `<div class="bloque vidrio"><div class="fila"><strong>${esc(c.emoji)} ${esc(c.nombre)}</strong><span class="mut peq">Nv ${c.nivel}/${c.max}</span></div>
-    <p class="mut peq">${c.perks.parcelas} parcelas · +${c.perks.bolsa} de bolsa · +${c.perks.ofertas} ofertas · +${c.perks.ingresos}% ingresos</p>${sig}</div>`;
-  return `${sec('bonos', 'Bonos activos', '', bonos)}
-    ${sec('equipo', 'Tu equipo', 'Bolsa ' + d.bolsa.usados + '/' + d.bolsa.max, `<div class="muneco vidrio">${huecos}</div>${bolsa}${detalle}`)}
-    ${rep ? sec('reparar', 'Reparaciones', '', rep) : ''}
-    ${masa ? sec('lote', 'Venta en lote', '', masa) : ''}
-    ${masaDesmonte ? sec('desmonte', 'Desmontar en lote', '', masaDesmonte) : ''}
-    ${sec('casa', 'Tu hogar', esc(c.emoji) + ' ' + esc(c.nombre), casa)}`;
-};
-
-const vTienda = (d, base) => titulo('Objetos') + d.items.map(i => {
-  const lleno = i.stock >= d.tope, limite = i.limiteDia && i.usosHoy >= i.limiteDia, pobre = d.cartera < i.precio;
-  const motivo = lleno ? 'Ya tienes el máximo.' : limite ? 'Llegaste al límite de hoy.' : 'Te faltan monedas.';
-  const est = [];
-  if (i.activoS) est.push(`<span class="etiq">Activo ${cuenta(i.activoS, base)}</span>`);
-  if (i.usosRestantes) est.push(`<span class="etiq">${i.usosRestantes} usos</span>`);
-  if (i.limiteDia) est.push(`<span class="mut peq">Hoy ${i.usosHoy}/${i.limiteDia}</span>`);
-  const usar = i.pasivo ? '' : botonPost('/api/tienda/usar', { clave: i.clave }, 'Usar', `aria-disabled="${i.stock < 1}" data-motivo="No tienes este objeto."`);
-  return `<div class="bloque vidrio"><div class="fila"><strong>${esc(i.emoji)} ${esc(i.nombre)}</strong><b>${fmt(i.precio)}</b></div>
-    <p class="mut peq">${esc(i.desc)}</p>
-    <p class="peq">Tienes ${i.stock}/${d.tope} ${est.join(' ')}</p>
-    ${i.pasivo ? `<p class="mut peq">Se usa solo en ${esc(i.usoEn)}</p>` : ''}
-    <div class="btnrow">${botonPost('/api/tienda/comprar', { clave: i.clave }, 'Comprar', `aria-disabled="${!!(lleno || limite || pobre)}" data-motivo="${esc(motivo)}"`)}${usar}</div></div>`;
-}).join('');
-
-const vBazar = (d, base) => titulo('Ofertas de hoy', `<span class="mut peq">cambian en ${cuenta(d.cambiaS, base)}</span>`) +
-  d.ofertas.map(o => `<div class="fil"><div class="nom"><strong class="largo">${esc(o.nombre)}</strong><span class="mut peq">${fmt(o.precio)} monedas</span></div>
-    ${botonPost('/api/bazar/comprar', { id: o.id }, o.comprada ? 'Comprada' : 'Comprar', `aria-disabled="${!!(o.comprada || d.cartera < o.precio)}" data-motivo="${esc(o.comprada ? 'Ya la compraste hoy.' : 'Te faltan monedas.')}"`)}</div>`).join('') +
-  '<p class="mut peq" style="margin-top:10px">Una compra por oferta cada día. El equipo sale al nivel que tengas hoy.</p>';
-
-const paginador = (k, d) => `<div class="btnrow" style="align-items:center"><button type="button" class="mini" data-pg="${k}" data-dir="-1" aria-disabled="${d.pagina <= 1}">Anterior</button><span class="mut peq" style="flex:none">Página ${d.pagina}</span><button type="button" class="mini" data-pg="${k}" data-dir="1" aria-disabled="${!d.hayMas}">Siguiente</button></div>`;
-const opcionesVenta = d => d.vendibles.map(v => `<option value="${esc(v.clave)}">${esc(v.nombre)} (x${v.cantidad})</option>`).join('');
-
-const vMercado = (d, base) => {
-  const lleno = d.mias.length >= d.limite;
-  const pub = d.vendibles.length
-    ? `<div class="bloque vidrio"><select class="txt" id="mp-obj" aria-label="Objeto a vender">${opcionesVenta(d)}</select>
-        <div class="campo"><input class="txt" id="mp-cant" type="number" inputmode="numeric" min="1" value="1" aria-label="Cantidad"><input class="txt" id="mp-precio" type="number" inputmode="numeric" min="1" max="${d.maxPrecio}" placeholder="Precio total" aria-label="Precio total"></div>
-        <p class="mut peq" style="margin-top:8px">Comisión del ${d.comision}% al vender. Máximo ${fmt(d.maxPrecio)} monedas. Ofertas: ${d.mias.length}/${d.limite}.</p>
-        <div class="btns uno">${botonPost('/api/mercado/publicar', {}, 'Publicar oferta', `data-campos="${esc(JSON.stringify({ clave: '#mp-obj', cantidad: '#mp-cant', precio: '#mp-precio' }))}" ${lleno ? 'aria-disabled="true" data-motivo="Ya tienes el máximo de ofertas."' : ''}`)}</div></div>`
-    : vacio('No tienes objetos ni materiales para vender.');
-  const mias = d.mias.length
-    ? d.mias.map(o => `<div class="fil"><div class="nom"><strong class="largo">${esc(o.nombre)} x${o.cantidad}</strong><span class="mut peq">${fmt(o.precio)} monedas</span></div>${botonPost('/api/mercado/cancelar', { id: o.id }, 'Cancelar', '')}</div>`).join('')
-    : vacio('No tienes ofertas publicadas.');
-  const resto = d.ofertas.filter(o => !o.mia);
-  const lista = resto.length
-    ? resto.map(o => `<div class="fil"><div class="nom"><strong class="largo">${esc(o.nombre)} x${o.cantidad}</strong><span class="mut peq">${fmt(o.precio)} monedas</span></div>${botonPost('/api/mercado/comprar', { id: o.id }, 'Comprar', `aria-disabled="${d.cartera < o.precio}" data-motivo="Te faltan monedas."`)}</div>`).join('')
-    : vacio('No hay ofertas de otros jugadores por ahora.');
-  return `${titulo('Vender')}${pub}${titulo('Mis ofertas')}${mias}${titulo('A la venta')}${lista}${paginador('mercado', d)}`;
-};
-
-const vSubastas = (d, base) => {
-  const lleno = d.mias.length >= d.limite;
-  const horas = d.horas.map(h => `<option value="${h}" ${h === 6 ? 'selected' : ''}>${h} h</option>`).join('');
-  const crear = d.vendibles.length
-    ? `<div class="bloque vidrio"><select class="txt" id="sp-obj" aria-label="Objeto a subastar">${opcionesVenta(d)}</select>
-        <div class="campo"><input class="txt" id="sp-cant" type="number" inputmode="numeric" min="1" value="1" aria-label="Cantidad"><input class="txt" id="sp-base" type="number" inputmode="numeric" min="1" max="${d.maxPrecio}" placeholder="Precio base" aria-label="Precio base"></div>
-        <select class="txt" id="sp-horas" aria-label="Duración">${horas}</select>
-        <p class="mut peq" style="margin-top:8px">Comisión del ${d.comision}% si se vende. Subastas: ${d.mias.length}/${d.limite}. El equipo se elige aquí también.</p>
-        <div class="btns uno">${botonPost('/api/subastas/crear', {}, 'Crear subasta', `data-campos="${esc(JSON.stringify({ clave: '#sp-obj', cantidad: '#sp-cant', base: '#sp-base', horas: '#sp-horas' }))}" ${lleno ? 'aria-disabled="true" data-motivo="Ya tienes el máximo de subastas."' : ''}`)}</div></div>`
-    : vacio('No tienes nada para subastar.');
-  const fila = s => {
-    const puja = s.puja > 0 ? 'Puja actual ' + fmt(s.puja) : 'Base ' + fmt(s.base) + ' · sin pujas';
-    const acc = s.mia
-      ? botonPost('/api/subastas/cancelar', { id: s.id }, 'Cancelar', `aria-disabled="${s.puja > 0}" data-motivo="Ya tiene pujas y no se puede cancelar."`)
-      : s.ganando
-        ? '<span class="etiq">Vas ganando</span>'
-        : `<input class="txt corto" id="puja-${s.id}" type="number" inputmode="numeric" min="${s.minimo}" value="${s.minimo}" aria-label="Tu puja">${botonPost('/api/subastas/pujar', { id: s.id }, 'Pujar', `data-campos="${esc(JSON.stringify({ monto: '#puja-' + s.id }))}" aria-disabled="${d.cartera < s.minimo}" data-motivo="Te faltan monedas."`)}`;
-    return `<div class="bloque vidrio"><div class="fila"><strong class="largo">${esc(s.nombre)}</strong></div>
-      <p class="mut peq">${puja} · mínimo ${fmt(s.minimo)} · termina en ${cuenta(s.terminaS, base)}</p>
-      <div class="btnrow" style="align-items:center">${acc}</div></div>`;
-  };
-  const mias = d.mias.length ? d.mias.map(fila).join('') : vacio('No tienes subastas activas.');
-  const resto = d.activas.filter(s => !s.mia);
-  const lista = resto.length ? resto.map(fila).join('') : vacio('No hay subastas de otros jugadores por ahora.');
-  return `${titulo('Crear')}${crear}${titulo('Mis subastas')}${mias}${titulo('Activas')}${lista}${paginador('subastas', d)}`;
-};
-
-const SECCIONES_TIENDA = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
-function pintarTienda(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección de la tienda">${SECCIONES_TIENDA.map(([k, n]) => `<button type="button" data-s="${k}" aria-pressed="${k === S.tiendaSel}">${n}</button>`).join('')}</div>`;
-  const v = { tienda: vTienda, bazar: vBazar, mercado: vMercado, subastas: vSubastas }[S.tiendaSel];
-  return cab('Tienda', 'Compra, vende y subasta con otros jugadores.', [['Cartera', fmt(d.cartera)], ['Nivel', me.nivel]]) + seg + v(d, base);
-}
-
-function pintarInventario(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del inventario">${[['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']].map(([k, n]) => `<button type="button" data-i="${k}" aria-pressed="${k === S.invSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mochila', 'Tus herramientas, equipo y materiales.', S.invSel === 'objetos' && d.bolsa && d.items ? [['Monedas', fmt(me.monedas)], ['Espacios', d.items.length + '/' + d.bolsa.max], ['Nivel', me.nivel]] : undefined) + seg + (S.invSel === 'objetos' ? pintarObjetos(d, base) : S.invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base));
-}
-
-const pips = (n, m) => `<span class="pips">${'<i class="pip on"></i>'.repeat(n)}${'<i class="pip"></i>'.repeat(Math.max(0, m - n))}</span>`;
-const dato = (ok, txt) => `<li class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '○'} ${txt}</li>`;
-
-function pintarClase(d, base) {
-  const c = d.clase;
-  const actual = c
-    ? `<div class="bloque vidrio"><div class="fila"><strong>${esc(c.emoji)} ${esc(c.nombre)}</strong><span class="mut peq">${pips(c.energia.n, c.energia.max)} ${c.energia.n}/${c.energia.max}</span></div>
-        <p class="mut peq">${esc(c.desc)}</p>${c.energia.n < c.energia.max ? `<p class="peq">Próxima energía en ${cuenta(c.energia.faltaS, base)}</p>` : ''}</div>`
-    : `<p class="mut peq">${d.clases.disponible ? 'Elige tu clase. Es gratis la primera vez.' : 'Se desbloquea en el nivel ' + d.clases.nivelMin + '.'}</p>`;
-  const lista = d.clases.lista.map(k => {
-    const habs = k.habilidades.map(h => `<div class="hab ${h.abierta ? '' : 'cerrada'}"><span>${esc(h.nombre)} <span class="mut peq">Nv ${h.nivel} · ${h.costo}⚡ · ${esc(h.efecto)}</span></span>${k.actual
-      ? botonPost('/api/heroe/habilidad', { n: h.n }, h.activa ? 'Activa' : 'Usar', `${h.activa || !h.abierta ? 'aria-disabled="true"' : ''} data-motivo="${h.activa ? 'Ya está activa.' : 'Aún no la desbloqueas.'}"`)
-      : ''}</div>`).join('');
-    const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y reinicia tu energía. ¿Continuar?` : '';
-    return `<div class="bloque vidrio clase ${k.actual ? 'actual' : ''}"><div class="fila"><strong>${esc(k.emoji)} ${esc(k.nombre)}</strong>${k.actual ? '<span class="etiq">Tu clase</span>' : ''}</div>
-      <p class="mut peq">${esc(k.desc)}</p><div class="habs">${habs}</div>
-      ${k.actual ? '' : `<div class="btns uno">${botonPost('/api/heroe/clase', { clase: k.id }, c ? 'Cambiar · ' + fmt(d.clases.cambio) : 'Elegir', `${d.clases.disponible ? '' : 'aria-disabled="true"'} data-motivo="Necesitas nivel ${d.clases.nivelMin}." ${confirma ? `data-confirmar="${esc(confirma)}"` : ''}`)}</div>`}</div>`;
-  }).join('');
-  return actual + `<div class="clases">${lista}</div>`;
-}
-
-function pintarTalentos(d) {
-  const t = d.talentos;
-  if (!d.clase) return '<p class="mut peq">Elige una clase para desbloquear talentos.</p>';
-  const filas = t.lista.map(x => `<div class="tal"><span class="em">${esc(x.emoji)}</span><div><strong>${esc(x.nombre)}</strong> <span class="mut peq">${x.rango}/${x.max}</span><br><span class="mut peq">${esc(x.efecto)} por rango</span><br>${pips(x.rango, x.max)}</div>
-    ${botonPost('/api/heroe/talento', { id: x.id }, '+1', `${!t.libres || x.rango >= x.max ? 'aria-disabled="true"' : ''} data-motivo="${x.rango >= x.max ? 'Ya está al máximo.' : 'No tienes puntos libres.'}"`)}</div>`).join('');
-  return `<p class="peq">Puntos libres: <b>${t.libres}</b> de ${t.total} <span class="mut">(1 cada ${t.porNivel} niveles y ${t.porPrestigio} por prestigio)</span></p><div class="tals">${filas}</div>
-    <div class="btns uno">${botonPost('/api/heroe/talentos-reiniciar', {}, 'Reiniciar · ' + fmt(t.reinicio), `${t.gastados ? '' : 'aria-disabled="true"'} data-motivo="No tienes talentos para reiniciar." data-confirmar="Reiniciar tus talentos cuesta ${fmt(t.reinicio)} monedas. ¿Continuar?"`)}</div>`;
-}
-
-function pintarAtributos(d) {
-  const a = d.atributos;
-  const filas = a.lista.map(x => `<div class="bloque vidrio"><div class="fila"><strong>${esc(x.emoji)} ${esc(x.nombre)}</strong><b>${x.valor}</b></div><p class="mut peq">${esc(x.desc)}</p>
-    <div class="btnrow">${botonPost('/api/heroe/puntos', { stat: x.clave, cantidad: 1 }, '+1 punto', `${a.libres ? '' : 'aria-disabled="true"'} data-motivo="No tienes puntos libres."`)}${botonPost('/api/heroe/entrenar', { stat: x.clave }, a.entreno.lleno ? 'Tope' : 'Entrenar ' + fmt(a.entreno.costo), `${a.entreno.lleno ? 'aria-disabled="true"' : ''} data-motivo="Llegaste al tope de entrenamiento."`)}</div></div>`).join('');
-  return `<p class="peq">Puntos libres: <b>${a.libres}</b> <span class="mut">(1 por nivel)</span> · Entrenamientos: ${a.entreno.n}/${a.entreno.tope}</p>${filas}`;
-}
-
-function pintarPrestigio(d) {
-  const p = d.prestigio, c = p.cumple;
-  const listo = c.nivel && c.monedas && c.cupo;
-  return `<div class="bloque vidrio"><div class="fila"><strong>🌠 Prestigio ${p.n}/${p.max}</strong><span class="etiq">+${p.actual}% ingresos</span></div>
-    <p class="mut peq">Renace con +${p.bono}% permanente en /work, /minar, /fish y /hunt. Se reinicia tu nivel, empleo y puntos. Conservas dinero, ítems y logros.</p>
-    <ul class="req">${dato(c.nivel, 'Nivel ' + p.nivelReq)}${dato(c.monedas, fmt(p.costo) + ' monedas en la cartera')}${dato(c.cupo, 'Prestigio por debajo del máximo')}</ul>
-    <div class="btns uno">${botonPost('/api/heroe/prestigio', {}, 'Renacer', `${listo ? '' : 'aria-disabled="true"'} data-motivo="Aún no cumples los requisitos." data-confirmar="Vas a renacer: tu nivel, empleo y puntos se reinician. ¿Continuar?"`)}</div></div>`;
-}
-
-function pintarExpedicion(d, base) {
-  const e = d.expedicion;
-  const curso = e.curso
-    ? `<div class="bloque vidrio"><div class="fila"><strong>${esc(e.curso.emoji)} ${esc(e.curso.nombre)}</strong><span class="etiq">${e.curso.quien === 'mascota' ? 'Mascota' : 'Tú'}</span></div>
-        <p class="peq">${e.curso.lista ? 'Lista para recoger.' : 'Termina en ' + cuenta(e.curso.restaS, base)}</p>
-        <div class="btns uno">${botonPost('/api/heroe/expedicion-recoger', {}, 'Recoger', '')}</div></div>`
-    : '';
-  const lista = e.destinos.map(x => {
-    const bloq = e.curso || !x.abierto;
-    const motivo = e.curso ? 'Ya tienes una expedición en curso.' : 'Necesitas nivel ' + x.nivel + '.';
-    return `<div class="bloque vidrio"><div class="fila"><strong>${esc(x.emoji)} ${esc(x.nombre)}</strong><span class="mut peq">${x.horas} h · Nv ${x.nivel}</span></div>
-      <p class="mut peq">${fmt(x.monedas[0])}–${fmt(x.monedas[1])} monedas · ${esc(x.materiales)} · riesgo ${x.riesgo}% · reliquia ${x.reliquia}%</p>
-      <div class="btnrow">${botonPost('/api/heroe/expedicion-iniciar', { destino: x.id, quien: 'yo' }, 'Ir yo · ' + fmt(x.costo), `${bloq ? 'aria-disabled="true"' : ''} data-motivo="${motivo}"`)}${botonPost('/api/heroe/expedicion-iniciar', { destino: x.id, quien: 'mascota' }, 'Mascota', `${bloq || !e.nivelMascota ? 'aria-disabled="true"' : ''} data-motivo="${e.nivelMascota ? motivo : 'Tu mascota no está disponible.'}"`)}</div></div>`;
-  }).join('');
-  return curso + lista;
-}
-
-function pintarHeroe(d, base) {
-  return `<p class="peq mut" style="margin-top:8px">Cartera: <b>${fmt(d.cartera)}</b> monedas · Nivel ${d.nivel}</p>
-    ${sec('h-clase', 'Clase y habilidades', d.clase ? esc(d.clase.nombre) : '', pintarClase(d, base))}
-    ${sec('h-tal', 'Talentos', d.clase ? d.talentos.libres + ' libres' : '', pintarTalentos(d))}
-    ${sec('h-atr', 'Atributos', d.atributos.libres + ' libres', pintarAtributos(d))}
-    ${sec('h-exp', 'Expediciones', d.expedicion.curso ? 'En curso' : '', pintarExpedicion(d, base))}
-    ${sec('h-pre', 'Prestigio', d.prestigio.n + '/' + d.prestigio.max, pintarPrestigio(d))}`;
-}
-
-function pintarOwner(d, base) {
-  const e = d.estado;
-  const k = (v, t) => `<div><b>${v}</b><span>${t}</span></div>`;
-  return `<div class="bloque vidrio"><div class="fila"><strong>${e.online ? '🟢 Bot conectado' : '🔴 Bot desconectado'}</strong><span class="mut peq">${esc(d.instancia.id)}</span></div>
-    <div class="kpis">${k(dur(e.uptimeS), 'Activo')}${k(e.latenciaWaMs == null ? '—' : e.latenciaWaMs + ' ms', 'WhatsApp')}${k(e.latenciaDbMs == null ? '—' : e.latenciaDbMs + ' ms', 'Base de datos')}${k(e.ramMb + ' MB', 'Memoria')}${k(e.lagMs + ' ms', 'Lag del proceso')}${k(esc(d.instancia.node), 'Node')}</div></div>
-    <div class="bloque vidrio"><div class="kpis">${k(fmt(d.totales.usuarios), 'Usuarios')}${k(fmt(d.totales.clanes), 'Clanes')}${k(d.web.habilitada ? 'Activa' : 'Apagada', 'API web')}${k(d.creadores, 'Creadores')}</div>
-    <p class="mut peq" style="margin-top:10px">Datos de esta instancia. Si corres varias, abre el panel de cada una.</p></div>`;
-}
-
-const valores = {};
-let progSel = 'misiones';
-const SECCIONES_CIUDAD = [['banco', 'Banco'], ['negocios', 'Negocios'], ['casino', 'Casino'], ['altar', 'Altar'], ['jugadores', 'Jugadores']];
-const campo = (id, v, ph, o = {}) => `<input class="txt" id="${id}" data-v="${v}" type="${o.tipo || 'number'}" ${o.tipo === 'text' ? 'maxlength="24" autocomplete="off"' : 'inputmode="numeric" min="1"'} placeholder="${esc(ph)}" aria-label="${esc(ph)}" value="${esc(valores[v] !== undefined ? valores[v] : (o.def || ''))}">`;
-const camposAttr = o => `data-campos="${esc(JSON.stringify(o))}"`;
-const bloqueado = (cond, motivo) => `${cond ? 'aria-disabled="true"' : ''} data-motivo="${esc(motivo)}"`;
-
-function pintarBanco(d) {
-  const tramos = d.impuesto.tramos.map(t => 'desde ' + fmt(t.desde) + ': ' + t.tasa + '%').join(' · ');
-  const imp = `<p class="mut peq" style="margin-top:8px">Impuesto diario por tramos sobre tu patrimonio (${tramos}).</p>${d.impuesto.aplica ? `<p class="peq" style="margin-top:6px">Hoy pagarías ${fmt(d.impuesto.diario)} al día. Guardar monedas en el banco no te libra de él.</p>` : ''}`;
-  return `${cifras([['Cartera', fmt(d.cartera)], ['Banco', fmt(d.banco)], ['Total', fmt(d.total)]])}
-    <div class="bloque vidrio"><p class="mut peq">Interés de ${d.tasa}% diario (máximo ${fmt(d.topeDia)} por día, hasta ${d.maxDias} días acumulados). Lo que está en el banco no se puede robar.</p>${imp}
-      ${campo('bk-cant', 'banco', 'Cantidad')}
-      <div class="btns">${botonPost('/api/banco/depositar', {}, 'Depositar', camposAttr({ cantidad: '#bk-cant' }))}${botonPost('/api/banco/retirar', {}, 'Retirar', camposAttr({ cantidad: '#bk-cant' }))}
-      ${botonPost('/api/banco/depositar', { cantidad: 'todo' }, 'Depositar todo', bloqueado(d.cartera < 1, 'No tienes monedas en la cartera.'))}${botonPost('/api/banco/retirar', { cantidad: 'todo' }, 'Retirar todo', bloqueado(d.banco < 1, 'No tienes monedas en el banco.'))}</div></div>`;
-}
-
-function pintarNegocios(d) {
-  const lista = d.negocios.map(n => n.tiene
-    ? `<div class="bloque vidrio"><div class="fila"><strong>${esc(n.emoji)} ${esc(n.nombre)}</strong><span class="mut peq">Nv ${n.nivel}/${n.max}</span></div>
-        <p class="mut peq">${fmt(n.tasa)} monedas por hora · pendiente <b>${fmt(n.pendiente)}</b></p>
-        <div class="btns uno">${n.costoMejora === null ? '<button type="button" class="mini" aria-disabled="true" data-motivo="Ya está al máximo.">Nivel máximo</button>' : botonPost('/api/negocios/mejorar', { clave: n.clave }, 'Mejorar · ' + fmt(n.costoMejora), bloqueado(!n.puede, 'Te faltan monedas.'))}</div></div>`
-    : `<div class="bloque vidrio"><div class="fila"><strong>${esc(n.emoji)} ${esc(n.nombre)}</strong><b>${fmt(n.precio)}</b></div>
-        <p class="mut peq">Produce ${fmt(n.tasa)} monedas por hora.</p>
-        <div class="btns uno">${botonPost('/api/negocios/comprar', { clave: n.clave }, 'Comprar', bloqueado(!n.puede, 'Te faltan monedas.'))}</div></div>`).join('');
-  return `<div class="cartera">Cartera <b>${fmt(d.cartera)}</b> monedas</div>
-    <div class="btns uno">${botonPost('/api/negocios/cobrar', {}, 'Cobrar · ' + fmt(d.pendienteTotal), bloqueado(d.pendienteTotal < 1, 'Todavía no han producido nada.'))}</div>
-    <p class="mut peq" style="margin-top:8px">Acumulan hasta ${d.capHoras} horas. Cobra antes de que se llenen.</p>${lista}`;
-}
-
-function pintarCasino(d) {
-  const camp = camposAttr({ monto: '#cs-monto' });
-  const ruleta = ['rojo', 'negro', 'par', 'impar', 'verde'].map(k => botonPost('/api/casino/ruleta', { apuesta: k }, k[0].toUpperCase() + k.slice(1) + ' x' + d.ruleta.colores[k], camp)).join('');
-  return `<div class="cartera">Cartera <b>${fmt(d.cartera)}</b> monedas</div>
-    <div class="bloque vidrio">${campo('cs-monto', 'apuesta', 'Apuesta (' + fmt(d.min) + ' a ' + fmt(d.max) + ')', { def: d.min })}
-      <p class="mut peq" style="margin-top:8px">La casa siempre gana a la larga. Juega con lo que puedas perder.</p></div>
-    <div class="sec"><h2>Tragamonedas</h2></div>
-    <div class="bloque vidrio"><p class="mut peq">${d.tragamonedas.map(s => esc(s.emoji) + ' x' + s.x).join(' · ')} · pareja x${d.par}</p>
-      <div class="btns uno">${botonPost('/api/casino/tragamonedas', {}, 'Girar', camp)}</div></div>
-    <div class="sec"><h2>Cara o cruz</h2></div>
-    <div class="bloque vidrio"><p class="mut peq">Pagan ${Math.round(d.moneda.pago * 100)}% de tu apuesta.</p>
-      <div class="btns">${botonPost('/api/casino/moneda', { lado: 'cara' }, '🙂 Cara', camp)}${botonPost('/api/casino/moneda', { lado: 'cruz' }, '🦅 Cruz', camp)}</div></div>
-    <div class="sec"><h2>Ruleta</h2></div>
-    <div class="bloque vidrio"><div class="btns">${ruleta}</div>
-      ${campo('cs-num', 'ruletaNum', 'Número del 0 al 36')}
-      <div class="btns uno">${botonPost('/api/casino/ruleta', {}, 'Apostar al número x' + d.ruleta.numero, camposAttr({ monto: '#cs-monto', apuesta: '#cs-num' }))}</div></div>`;
-}
-
-function pintarJugadores(d, base) {
-  const res = d.resultados.length
-    ? d.resultados.map(j => `<div class="bloque vidrio"><strong>${esc(j.alias)}</strong>
-        <div class="btnrow">${botonPost('/api/jugadores/pagar', { ref: j.ref }, 'Pagar', camposAttr({ cantidad: '#jg-cant' }))}${botonPost('/api/jugadores/robar', { ref: j.ref }, 'Robar', `data-confirmar="¿Intentar robar a ${esc(j.alias)}? Si sale mal pagas una multa."`)}</div></div>`).join('')
-    : S.jugQ ? vacio('No encontré jugadores con ese nombre. Solo aparecen quienes han entrado al panel.') : '';
-  const espera = d.robo.esperaS > 0 ? `Podrás robar de nuevo en ${cuenta(d.robo.esperaS, base)}.` : 'Listo para robar.';
-  return `<div class="cartera">Cartera <b>${fmt(d.cartera)}</b> monedas</div>
-    <div class="bloque vidrio"><p class="mut peq">Busca a un jugador por su nombre del panel. Pagar cobra ${d.pago.tasa}% de impuesto (mínimo ${fmt(d.pago.min)}). Robar necesita ${fmt(d.robo.min)} en tu cartera y tiene ${d.robo.exito}% de éxito.</p>
-      <p class="peq" style="margin-top:6px">${espera}${d.robo.escudo > 0 ? ' Tienes un escudo activo que se romperá si atacas.' : ''}</p>
-      <div class="campo" style="margin-top:10px"><input class="txt corto" id="jg-q" data-v="jq" type="text" maxlength="24" autocomplete="off" placeholder="Nombre del jugador" aria-label="Nombre del jugador" value="${esc(S.jugQ)}"><button type="button" class="mini" data-buscar="jug">Buscar</button></div>
-      ${campo('jg-cant', 'pago', 'Cantidad a pagar')}</div>${res}`;
-}
-
-function pintarCiudad(d, base) {
-  const seg = segHtml('Sección de la ciudad', SECCIONES_CIUDAD, S.ciudadSel, 'c');
-  const v = { banco: pintarBanco, negocios: pintarNegocios, casino: pintarCasino, altar: pintarAltar, jugadores: pintarJugadores }[S.ciudadSel];
-  return cab('Ciudad', 'Banco, negocios, casino y otros jugadores.') + seg + v(d, base);
-}
-
-function pintarAltar(d) {
-  const filas = d.lista.map(r => `<div class="fil"><div class="nom"><strong>${esc(r.emoji)} ${esc(r.nombre)}</strong><span class="mut peq">${r.tiene ? 'En tu colección' : fmt(d.precio) + ' monedas'}</span></div>${r.tiene ? '<span class="val">✓</span>' : botonPost('/api/altar/comprar', { clave: r.clave }, 'Comprar', `data-confirmar="¿Pagar ${fmt(d.precio)} monedas por ${esc(r.nombre)}?" ` + bloqueado(d.cartera < d.precio, 'No te alcanza con la cartera.'))}</div>`).join('');
-  return `${cifras([['Cartera', fmt(d.cartera)], ['Colección', d.n + '/' + d.total], ['Bono', '+' + d.bono + '%']])}
-    <div class="bloque vidrio"><p class="mut peq">Cada reliquia da un bono permanente de ingresos. El precio sube con cada una que compras${d.completo ? '' : ': la siguiente cuesta ' + fmt(d.precio)}. Se paga con la cartera.</p></div>
-    <div class="lista">${filas}</div>`;
-}
-
-function pintarForja(d) {
-  const mats = d.materiales.filter(m => m.cantidad > 0);
-  const venta = mats.length
-    ? `<div class="mats">${mats.map(m => `<div class="mat">${slot(m.emoji, { n: fmt(m.cantidad) })}<span class="peq">${esc(m.nombre)}</span></div>`).join('')}</div>
-       <p class="mut peq" style="margin-top:10px">Valor aproximado: ${fmt(d.valorMateriales)} monedas.</p>
-       ${mats.map(m => `<div class="fil"><div class="nom"><strong>${esc(m.emoji)} ${esc(m.nombre)}</strong><span class="mut peq">${fmt(m.precio)} c/u</span></div>${botonPost('/api/forja/vender', { material: m.clave, cantidad: 'todo' }, 'Vender ' + fmt(m.cantidad), `data-confirmar="¿Vender ${m.cantidad} ${esc(m.nombre)} por ${fmt(m.cantidad * m.precio)} monedas?"`)}</div>`).join('')}
-       <div class="btns uno">${botonPost('/api/forja/vender', { material: 'todo' }, 'Vender todos los materiales', `data-confirmar="¿Vender todos tus materiales por ${fmt(d.valorMateriales)} monedas?"`)}</div>`
-    : vacio('Aún no tienes materiales. Mina, tala o pesca para conseguirlos.');
-  const recetas = d.recetas.map(r => `<div class="bloque vidrio"><div class="fila"><strong>${esc(r.emoji)} ${esc(r.nombre)}</strong><span class="mut peq">Tienes ${r.stock}/${d.tope}</span></div>
-    <p class="peq">${r.reqs.map(x => `${esc(x.emoji)} ${x.tengo}/${x.necesita}`).join(' · ')}</p>
-    <div class="btns uno">${botonPost('/api/forja/fabricar', { clave: r.clave }, 'Fabricar', bloqueado(!r.puede, 'Te faltan materiales o tu inventario está lleno.'))}</div></div>`).join('');
-  return `${sec('f-rec', 'Recetas', '', recetas)}${sec('f-mat', 'Vender materiales', '', venta)}`;
-}
-
-function pintarProgreso(d, base) {
-  const ops = [['misiones', 'Misiones'], ['logros', 'Logros'], ['maestria', 'Maestría'], ['titulos', 'Títulos']];
-  const seg = `<div class="seg" role="group" aria-label="Sección de progreso">${ops.map(([k, n]) => `<button type="button" data-g="${k}" aria-pressed="${k === progSel}">${n}</button>`).join('')}</div>`;
-  let cuerpo = '';
-  if (progSel === 'misiones') {
-    const m = d.misiones;
-    cuerpo = `<p class="mut peq" style="margin-top:12px">Se renuevan en ${cuenta(m.reiniciaS, base)}.</p>` + m.diarias.map(x => `<div class="bloque vidrio"><div class="fila"><strong>${x.hecha ? '✅' : '⬜'} ${esc(x.emoji)} ${esc(x.texto)}</strong></div>
-      ${barra(x.prog, x.meta)}<div class="fila peq"><span>${x.prog}/${x.meta}</span><span class="mut">🎁 ${fmt(x.monedas)} · ${x.xp} XP</span></div></div>`).join('') +
-      `<div class="aviso-i">🌟 Bono por completar todas: ${fmt(m.bono.monedas)} monedas y ${m.bono.xp} XP · ${m.bono.hecho ? 'ya reclamado' : 'pendiente'}</div>`;
-  } else if (progSel === 'logros') {
-    const l = d.logros;
-    cuerpo = `<p class="mut peq" style="margin-top:12px">${l.tengo} de ${l.total} logros conseguidos.</p>` + l.lista.map(x => `<div class="fil"><span class="pt">${esc(x.emoji)}</span>
-      <div class="nom"><strong class="largo">${x.tiene ? '✅' : '🔒'} ${esc(x.nombre)}</strong><span class="mut peq">${esc(x.desc)}${x.tiene ? '' : ' · ' + x.prog + '/' + x.meta}</span></div>${x.tiene ? '' : `<span class="val">🎁 ${fmt(x.monedas)}</span>`}</div>`).join('');
-  } else if (progSel === 'maestria') {
-    cuerpo = `<p class="mut peq" style="margin-top:12px">Cada actividad suma usos y da bonos permanentes.</p>` + d.maestria.actividades.map(a => `<div class="bloque vidrio"><div class="fila"><strong>${esc(a.emoji)} ${esc(a.nombre)}</strong><span class="mut peq">Nv ${a.nivel}/${d.maestria.max}</span></div>
-      ${a.sig ? barra(a.usos - a.previo, a.sig - a.previo) + `<div class="fila peq"><span>${a.usos}/${a.sig} usos</span></div>` : '<p class="peq">Nivel máximo</p>'}
-      <p class="mut peq">+${a.botin}% monedas · +${a.evento}% eventos</p></div>`).join('');
-  } else {
-    const t = d.titulos;
-    cuerpo = `<div class="cartera">Cartera <b>${fmt(t.cartera)}</b> monedas</div>` + t.lista.map(x => {
-      const accion = x.tiene
-        ? (x.puesto ? botonPost('/api/titulos/equipar', {}, 'Quitar', '') : botonPost('/api/titulos/equipar', { clave: x.clave }, 'Equipar', ''))
-        : botonPost('/api/titulos/comprar', { clave: x.clave }, x.prestigio ? 'Prestigio ' + x.prestigio : fmt(x.precio), bloqueado(!x.puede, x.prestigio ? 'Necesitas prestigio ' + x.prestigio + '.' : 'Te faltan monedas.'));
-      return `<div class="fil"><div class="nom"><strong class="largo">${esc(x.nombre)}${x.puesto ? '<span class="etiq">Puesto</span>' : ''}</strong></div>${accion}</div>`;
-    }).join('');
-  }
-  return seg + cuerpo;
-}
-
-function pintarClan(d, base) {
-  const c = d.clan;
-  const busca = `<div class="campo" style="margin-top:10px"><input class="txt corto" id="cl-q" data-v="cq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador para invitar" aria-label="Buscar jugador" value="${esc(S.clanQ)}"><button type="button" class="mini" data-buscar="clan">Buscar</button></div>`;
-  let propio = '';
-  if (c) {
-    const miembros = c.miembros.map(m => `<div class="fil"><div class="nom"><strong>${m.lider ? '👑 ' : ''}${esc(m.alias)}${m.yo ? ' (tú)' : ''}</strong></div>
-      ${m.ref ? `${botonPost('/api/clan/traspasar', { ref: m.ref }, 'Líder', `data-confirmar="¿Traspasar el liderazgo a ${esc(m.alias)}?"`)}${botonPost('/api/clan/expulsar', { ref: m.ref }, 'Expulsar', `data-confirmar="¿Expulsar a ${esc(m.alias)}?"`)}` : ''}</div>`).join('');
-    const resultados = c.lider && d.resultados.length ? d.resultados.map(j => `<div class="fil"><div class="nom"><strong>${esc(j.alias)}</strong></div>${botonPost('/api/clan/invitar', { ref: j.ref }, 'Invitar', '')}</div>`).join('') : '';
-    propio = `<div class="bloque vidrio"><div class="fila"><strong>🏰 ${esc(c.nombre)}</strong><span class="mut peq">Nv ${c.nivel}/${c.max}</span></div>
-      ${kv('Miembros', c.miembros.length + '/' + c.cupo)}${kv('Banco del clan', fmt(c.banco))}${kv('Bono de ingresos', '+' + c.bono + '%')}${kv('Guerra', fmt(c.guerra.pts) + ' pts' + (c.guerra.puesto ? ' · puesto ' + c.guerra.puesto : ''))}</div>
-      <div class="bloque vidrio">${campo('cl-dep', 'clanDep', 'Cantidad a depositar')}
-        <div class="btns uno">${botonPost('/api/clan/depositar', {}, 'Depositar al banco del clan', camposAttr({ cantidad: '#cl-dep' }))}</div></div>
-      ${c.lider ? `<div class="bloque vidrio"><p class="mut peq">Mejorar al nivel ${c.nivel + 1} cuesta ${fmt(c.costoMejora)} del banco del clan (sube con el prestigio del líder). El bono de ingresos llega hasta el nivel ${c.bonoMax}; después solo crece el cupo.</p><div class="btns uno">${botonPost('/api/clan/mejorar', {}, 'Mejorar clan', bloqueado(c.banco < c.costoMejora, 'El banco del clan no alcanza.'))}</div>${busca}${resultados}</div>` : ''}
-      ${sec('cl-mi', 'Miembros', c.miembros.length + '', miembros)}
-      <div class="btns uno">${c.lider ? botonPost('/api/clan/disolver', { confirmar: true }, 'Disolver clan', 'data-confirmar="Se borrará el clan y se pierde el banco. ¿Continuar?"') : botonPost('/api/clan/salir', {}, 'Salir del clan', 'data-confirmar="¿Salir del clan?"')}</div>`;
-  } else {
-    const inv = d.invitacion
-      ? `<div class="bloque vidrio"><strong>📨 Invitación a ${esc(d.invitacion.nombre)}</strong><p class="mut peq">Caduca en ${cuenta(d.invitacion.restaS, base)}.</p>
-          <div class="btnrow">${botonPost('/api/clan/aceptar', {}, 'Aceptar', '')}${botonPost('/api/clan/rechazar', {}, 'Rechazar', '')}</div></div>`
-      : '';
-    propio = `${inv}<div class="bloque vidrio"><strong>Fundar un clan</strong><p class="mut peq">Cuesta ${fmt(d.costoFundar)} monedas. Banco común y bono de ingresos para todos.</p>
-      ${campo('cl-nom', 'clanNombre', 'Nombre (3 a 16 letras o números)', { tipo: 'text' })}
-      <div class="btns uno">${botonPost('/api/clan/crear', {}, 'Fundar', `${camposAttr({ nombre: '#cl-nom' })} ${bloqueado(d.cartera < d.costoFundar, 'Te faltan monedas.')}`)}</div></div>`;
-  }
-  const g = d.guerra;
-  const top = d.top.length ? d.top.map(x => filaRanking(x, `Nv ${x.nivel} · ${x.miembros} miembro${x.miembros === 1 ? '' : 's'}`, fmt(x.banco))).join('') : vacio('Aún no hay clanes.');
-  const guerra = `<p class="mut peq" style="margin-top:12px">Semana ${esc(g.semana)} · cierra en ${cuenta(g.cierraS, base)}<br>Premios al banco: ${g.premios.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ')} (mínimo ${g.minPuntos} pts)</p>` +
-    (g.ranking.length ? g.ranking.map(x => filaRanking(x, `${x.miembros} miembro${x.miembros === 1 ? '' : 's'}`, fmt(x.pts) + ' pts')).join('') : vacio('Todavía nadie ha puntuado esta semana.'));
-  return `${titulo('Tu clan')}${propio}${sec('cl-guerra', 'Guerra de clanes', '', `<div class="lista">${guerra}</div>`)}${sec('cl-top', 'Top clanes', '', `<div class="lista">${top}</div>`)}`;
-}
-
-const CARGA = {
-  ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[S.perfilSel] || '/api/ficha'), pintarPerfil],
-  inventario: [() => S.invSel === 'equipo' ? '/api/equipo' : S.invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
-  tienda: [() => S.tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : S.tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + S.tiendaSel, pintarTienda],
-  hogar: [() => '/api/' + S.hogarSel, pintarHogar],
-  ciudad: [() => S.ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(S.jugQ) : '/api/' + S.ciudadSel, pintarCiudad],
-  rankings: ['/api/rankings', pintarRankings],
-  gacha: [() => S.gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : S.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + encodeURIComponent(S.gtQ) + '&ref=' + encodeURIComponent(S.gtRef) + '&pm=' + S.gtPm + '&ps=' + gtPs : '/api/gacha', pintarGacha],
-  raid: ['/api/raid', pintarRaidTab],
-  mazmorra: ['/api/mazmorra', pintarMazmorraTab],
-  clan: [() => '/api/clan?q=' + encodeURIComponent(S.clanQ), pintarClanTab]
-};
-
-function dibujar(t) { if (cargado[t]) store.notificar(t); }
-async function abrir(t, forzar) {
-  if (t === 'historial' || t === 'heroe') { S.perfilSel = t; t = 'ficha'; }
-  if (!TABS.includes(t)) t = 'inicio';
-  const cambio = tabActual !== t;
-  tabActual = t;
-  for (const k of TABS) $('#t-' + k).hidden = k !== t;
-  for (const [k] of NAV) {
-    const b = $('#nav [data-t="' + k + '"]');
-    if (k === (PADRE[t] || t)) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
-  }
-  try { history.replaceState(null, '', t === 'inicio' ? location.pathname : '#' + t); } catch (_) {}
-  if (cambio) window.scrollTo(0, 0);
-  if (t === 'inicio') return;
-  return store.cargar(t, forzar);
-}
-$('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (!b) return; if (b.dataset.t === tabActual) window.scrollTo({ top: 0, behavior: 'smooth' }); abrir(b.dataset.t); });
-async function publicar(b, ruta, cuerpo) {
-  if (publicando || ocupado) return;
-  publicando = true; b.setAttribute('aria-busy', 'true');
-  try {
-    const d = await api(ruta, cuerpo);
-    store.vaciar();
-    if (d.me) aplicar(d.me);
-    if (ruta.includes('/gacha') || ruta.includes('/raid')) cargarEventos(true);
-    if (ruta.includes('/gacha/')) sondearAbiertas();
-    if (ruta.includes('/gacha/')) { S.gtMia = 0; S.gtSuya = 0; }
-    if (d.resultado) {
-      const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
-      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
-      hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null });
-    } else if (d.mensaje) aviso(d.mensaje);
-    await abrir(tabActual, true);
-  } catch (e) {
-    if (e.estado === 401) sesionCaducada(); else aviso(e.message);
-  } finally { publicando = false; b.removeAttribute('aria-busy'); }
-}
-$('#v-panel').addEventListener('click', e => {
-  if (e.target.closest('[data-reintentar]')) return abrir(tabActual, true);
-  const r = e.target.closest('button[data-r]');
-  if (r) { rankSel = r.dataset.r; return dibujar('rankings'); }
-  const si = e.target.closest('button[data-i]');
-  if (si) { S.invSel = si.dataset.i; delete cargado.inventario; return abrir('inventario', true); }
-  const ss = e.target.closest('button[data-s]');
-  if (ss) { S.tiendaSel = ss.dataset.s; delete cargado.tienda; return abrir('tienda', true); }
-  const pg = e.target.closest('button[data-pg]');
-  if (pg) {
-    if (pg.getAttribute('aria-disabled') === 'true') return;
-    const dir = Number(pg.dataset.dir);
-    if (pg.dataset.pg === 'mercado') S.merPag = Math.max(1, S.merPag + dir); else S.subPag = Math.max(1, S.subPag + dir);
-    delete cargado.tienda;
-    return abrir('tienda', true);
-  }
-  const ir = e.target.closest('[data-ir]');
-  if (ir) return abrir(ir.dataset.ir);
-  if (e.target.closest('[data-ir-raid]')) return abrir('raid', true);
-  if (e.target.closest('[data-ir-gacha]')) {
-    const g = eventos.gacha;
-    S.gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) && !abiertas.some(a => a.fin > Date.now()) ? 'tratos' : 'invocar';
-    S.gachaPag = 1;
-    return abrir('gacha', true);
-  }
-  const ge = e.target.closest('button[data-gt-elegir]');
-  if (ge) { S.gtRef = ge.dataset.gtElegir; S.gtPm = 1; S.gtPs = 1; S.gtMia = 0; S.gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
-  if (e.target.closest('[data-gt-quitar]')) { S.gtRef = ''; S.gtMia = 0; S.gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
-  const gm = e.target.closest('button[data-gt-mia]');
-  if (gm) { const v = Number(gm.dataset.gtMia); S.gtMia = S.gtMia === v ? 0 : v; return dibujar('gacha'); }
-  const gu = e.target.closest('button[data-gt-suya]');
-  if (gu) { const v = Number(gu.dataset.gtSuya); S.gtSuya = S.gtSuya === v ? 0 : v; return dibujar('gacha'); }
-  const gtp = e.target.closest('button[data-gt-pg]');
-  if (gtp) {
-    if (gtp.getAttribute('aria-disabled') === 'true') return;
-    const dir = Number(gtp.dataset.dir);
-    if (gtp.dataset.gtPg === 'm') S.gtPm = Math.max(1, S.gtPm + dir); else S.gtPs = Math.max(1, S.gtPs + dir);
-    delete cargado.gacha;
-    return abrir('gacha', true);
-  }
-  const gs = e.target.closest('button[data-gs]');
-  if (gs) { S.gachaSel = gs.dataset.gs; S.gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); }
-  const gp = e.target.closest('button[data-gp]');
-  if (gp) {
-    if (gp.getAttribute('aria-disabled') === 'true') return;
-    S.gachaPag = Math.max(1, S.gachaPag + Number(gp.dataset.gp));
-    delete cargado.gacha;
-    return abrir('gacha', true);
-  }
-  if (e.target.closest('[data-salir]')) return salir();
-  const fo = e.target.closest('button[data-fo]');
-  if (fo) { invFiltro = fo.dataset.fo; return dibujar('inventario'); }
-  const fe = e.target.closest('button[data-fe]');
-  if (fe) { eqFiltro = fe.dataset.fe; return dibujar('inventario'); }
-  const sl = e.target.closest('button[data-sel]');
-  if (sl) { selEq = Number(sl.dataset.sel); return dibujar('inventario'); }
-  const pf = e.target.closest('button[data-p]');
-  if (pf) { S.perfilSel = pf.dataset.p; delete cargado.ficha; return abrir('ficha', true); }
-  const sc = e.target.closest('button[data-c]');
-  if (sc) { S.ciudadSel = sc.dataset.c; delete cargado.ciudad; return abrir('ciudad', true); }
-  const sg = e.target.closest('button[data-g]');
-  if (sg) { progSel = sg.dataset.g; return dibujar('ficha'); }
-  const bs = e.target.closest('button[data-buscar]');
-  if (bs) {
-    if (bs.dataset.buscar === 'gacha') { S.gtQ = ($('#gt-q') || {}).value || ''; S.gtRef = ''; S.gtMia = 0; S.gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
-    if (bs.dataset.buscar === 'jug') { S.jugQ = ($('#jg-q') || {}).value || ''; delete cargado.ciudad; return abrir('ciudad', true); }
-    S.clanQ = ($('#cl-q') || {}).value || ''; delete cargado.clan; return abrir('clan', true);
-  }
-  const h = e.target.closest('button[data-h]');
-  if (h) { S.hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
-  const rn = e.target.closest('button[data-renombrar]');
-  if (rn) {
-    const n = window.prompt('Nuevo nombre (2 a 16 letras o números):', rn.dataset.renombrar);
-    if (n && n.trim()) publicar(rn, '/api/mascota/renombrar', { nombre: n.trim() });
-    return;
-  }
-  const b = e.target.closest('button[data-post]');
-  if (!b) return;
-  if (b.getAttribute('aria-disabled') === 'true') return aviso(b.dataset.motivo || b.dataset.bloq || 'Todavía no está disponible.');
-  if (b.dataset.confirmar && !window.confirm(b.dataset.confirmar)) return;
-  const cuerpo = JSON.parse(b.dataset.body || '{}');
-  if (b.dataset.campos) {
-    const campos = JSON.parse(b.dataset.campos);
-    for (const k in campos) { const el = $(campos[k]); cuerpo[k] = el ? el.value : ''; }
-  }
-  if (b.dataset.nombre) cuerpo.nombre = ($(b.dataset.nombre) || {}).value || '';
-  publicar(b, b.dataset.post, cuerpo);
-});
-
-document.addEventListener('input', e => {
-  const v = e.target && e.target.dataset && e.target.dataset.v;
-  if (v) valores[v] = e.target.value;
-});
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  const id = e.target && e.target.id;
-  const destino = { 'jg-q': 'jug', 'cl-q': 'clan', 'gt-q': 'gacha' }[id];
-  if (!destino) return;
-  const b = document.querySelector('button[data-buscar="' + destino + '"]');
-  if (b) b.click();
-});
-$('#codigo').addEventListener('input', e => {
-  const l = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
-  e.target.value = l.length > 4 ? l.slice(0, 4) + '-' + l.slice(4) : l;
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden || !me || ocupado) return;
-  refrescar();
-  if (tabActual !== 'inicio') abrir(tabActual);
-});
-$('#form').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (enviando) return;
-  const codigo = $('#codigo').value.toUpperCase().replace(/[^A-Z0-9]/g, ''), b = $('#entrar'), msg = $('#err');
-  msg.textContent = '';
-  if (codigo.length !== 8) return (msg.textContent = 'El código tiene 8 caracteres. Revisa que lo hayas copiado completo.');
-  enviando = true; b.textContent = 'Entrando…';
-  try {
-    await api('/api/auth/login', { codigo });
-    previa = {}; store.vaciar(); limpiarTabs();
-    aplicar(await api('/api/me'));
-    $('#codigo').value = ''; vista('panel'); abrir('inicio');
-  } catch (x) { msg.textContent = x.message; }
-  finally { enviando = false; b.textContent = 'Entrar'; }
-});
-async function salir() {
-  try { await api('/api/auth/logout', {}); } catch (_) {}
-  me = null; store.vaciar(); previa = {}; limpiarTabs();
-  vista('login');
-}
-$('#top-ava').addEventListener('click', () => abrir('ficha'));
-
-(async function () {
-  if (BOT_NUMBER) { const wa = $('#wa'); wa.href = 'https://wa.me/' + BOT_NUMBER + '?text=%2Fweb'; wa.hidden = false; }
-  avisosOn = leerAvisos();
-  montar();
-  pintarCampana();
-  try {
-    aplicar(await api('/api/me'));
-    vista('panel');
-    abrir(location.hash.slice(1) || 'inicio');
-  } catch (_) { vista('login'); }
-})();
-
-const sinMov = matchMedia('(prefers-reduced-motion: reduce)').matches;
-function vibra(p) { if (!sinMov && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } }
-document.addEventListener('pointerdown', e => {
-  const b = e.target.closest('button:not(:disabled):not([aria-disabled="true"]), .atajo');
-  if (!b || !b.matches('.accion,.mini,.btn,.btn2,.atajo,.seg button,.nav button')) return;
-  vibra(8);
-  if (!b.matches('.accion,.mini,.btn,.btn2')) return;
-  b.classList.remove('toco'); void b.offsetWidth; b.classList.add('toco');
-  setTimeout(() => b.classList.remove('toco'), 500);
-}, { passive: true });
+    ? `<p class="mut peq" style="margin-top:8px">Siguiente: ${esc(c.siguiente.emoji)} ${esc(c.siguiente.nombre)} · ${fmt(c.siguiente.costo)} monedas<br>+${c.siguiente.perks.parcelas} parcelas · +${c.siguiente.perks.bolsa} de bolsa · +${c.siguiente.perks.ofertas} ofertas · +${c.siguiente.perks.ing
