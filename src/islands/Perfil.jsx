@@ -7,6 +7,7 @@ import PerfilTop, { Salir } from './PerfilTop.jsx';
 import PerfilHeroe from './PerfilHeroe.jsx';
 import PerfilHistorial from './PerfilHistorial.jsx';
 import PerfilOwner from './PerfilOwner.jsx';
+import { perfilSeccion } from '../bridge/acciones.js';
 
 const fmtN = v => fmt(Number(v || 0));
 const porcentaje = (v, max) => max > 0 ? Math.max(0, Math.min(100, Number(v || 0) / max * 100)) : 0;
@@ -50,7 +51,7 @@ function PerfilFicha({ d, base }) {
 const VISTAS = { heroe: PerfilHeroe, historial: PerfilHistorial, owner: PerfilOwner };
 
 export default function Perfil({ d, base }) {
-  const selected = window.IslaBridge?.perfilSel?.() || 'ficha';
+  const selected = perfilSeccion();
   if (selected === 'progreso') return <Progreso d={d || {}} base={base || Date.now()} />;
   const Vista = VISTAS[selected];
   if (Vista) {
