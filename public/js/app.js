@@ -139,6 +139,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
+let ultimoSondeo = 0;
 let tabActual = 'inicio', rankSel = 'monedas', abiertas = [], abiertasVistas = new Set(), sondeando = false, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
@@ -210,7 +211,17 @@ function pintarClima(c) {
   $('#lluvia').hidden = !/lluv|torment/i.test(c.nombre);
 }
 
-let botAntes = true;
+// El aviso de reconexión solo sale si el bot lleva más de 45 s caído de forma seguida y no más de una vez cada 15 min
+let botCaidoDesde = 0, botAvisadoT = 0;
+function vigilarBot(d) {
+  if (d.bot !== false) { botCaidoDesde = 0; return; }
+  const ahora = Date.now();
+  if (!botCaidoDesde) { botCaidoDesde = ahora; return; }
+  if (ahora - botCaidoDesde >= 45000 && ahora - botAvisadoT >= 15 * 60 * 1000) {
+    botAvisadoT = ahora;
+    aviso('El bot está reconectando. Algunas acciones pueden tardar.', 4000);
+  }
+}
 let animMon = 0;
 function contarMonedas(desde, hasta) {
   const el = $('#monedas'), caja = el.parentElement;
@@ -229,8 +240,7 @@ function contarMonedas(desde, hasta) {
 }
 function aplicar(d) {
   const prevMon = me ? me.monedas : null;
-  if (d.bot === false && botAntes) aviso('El bot está reconectando. Algunas acciones pueden tardar.');
-  botAntes = d.bot !== false;
+  vigilarBot(d);
   me = d; IslaBridge.setMe(d); fin = {}; tot = {};
   for (const k in ACC) { fin[k] = Date.now() + (d.esperas[k] || 0) * 1000; if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot; }
   $('#alias').textContent = d.alias;
@@ -247,7 +257,7 @@ function aplicar(d) {
   tick();
   anunciarRaid();
   cargarEventos();
-  sondearAbiertas();
+  if (Date.now() - ultimoSondeo > 20000) sondearAbiertas();
 }
 function pintarEvento(e) {
   const caja = $('#evento-x2');
@@ -317,7 +327,7 @@ function avisarGacha(msg, etiqueta) {
 }
 async function sondearAbiertas() {
   if (!me || sondeando) return;
-  sondeando = true;
+  sondeando = true; ultimoSondeo = Date.now();
   try {
     const d = await api('/api/gacha/abiertas');
     const base = Date.now();
@@ -335,9 +345,15 @@ async function sondearAbiertas() {
   } catch (_) {
   } finally { sondeando = false; }
 }
-setInterval(() => {
-  if (me && !ocupado && !publicando && (!document.hidden || avisosActivos())) sondearAbiertas();
-}, 6000);
+// El sondeo de cartas abiertas se adapta: rápido en el Gacha, más lento en el resto y muy lento en segundo plano
+function programarSondeo() {
+  const ms = document.hidden ? 30000 : tabActual === 'gacha' ? 6000 : 15000;
+  setTimeout(() => {
+    if (me && !ocupado && !publicando && (!document.hidden || avisosActivos())) sondearAbiertas();
+    programarSondeo();
+  }, ms);
+}
+programarSondeo();
 
 async function cargarEventos(forzar) {
   if (!me || cargandoEventos || (!forzar && Date.now() - eventosT < 10000)) return;
