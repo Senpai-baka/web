@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cab, Sec, Cifras, Accion, Countdown, Vacio } from './ui.jsx';
+import { Cab, Sec, Cifras, Accion, Countdown } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';
 import Progreso from './Progreso.jsx';
@@ -33,7 +33,7 @@ function PerfilFicha({ d, base }) {
     {avisos.length > 0 && <div className="aviso-i">{avisos.map(x => <p key={x}>{x}</p>)}</div>}
     <Sec k="perfil-finanzas-react" titulo="Finanzas"><Cifras lista={[["Cartera", fmtN(d.cartera)], ["Banco", fmtN(d.banco)], ["Total", fmtN(d.total)]]}/><div className="bloque vidrio"><Kv label="Bono de ingresos">+{d.bonoIngresos || 0}%</Kv><Kv label="Prestigio">{d.prestigio?.n ?? 0}/{d.prestigio?.max ?? 0}{d.prestigio?.bono ? ` · +${d.prestigio.bono}%` : ''}</Kv></div></Sec>
     <Sec k="perfil-atributos-react" titulo="Atributos"><div className="bloque vidrio"><BarraStat nombre="Fuerza" valor={stats.fuerza}/><BarraStat nombre="Vigor" valor={stats.vigor}/><BarraStat nombre="Suerte" valor={stats.suerte}/></div></Sec>
-    {(b.escudoS || b.xpS) && <Sec k="perfil-activos-react" titulo="Activos"><div className="bloque vidrio">{b.escudoS > 0 && <Kv label="Escudo anti-robo"><Countdown fin={base + b.escudoS * 1000}/></Kv>}{b.xpS > 0 && <Kv label="Boost de XP x2"><Countdown fin={base + b.xpS * 1000}/></Kv>}</div></Sec>}
+    {(b.escudoS > 0 || b.xpS > 0) && <Sec k="perfil-activos-react" titulo="Activos"><div className="bloque vidrio">{b.escudoS > 0 && <Kv label="Escudo anti-robo"><Countdown fin={base + b.escudoS * 1000}/></Kv>}{b.xpS > 0 && <Kv label="Boost de XP x2"><Countdown fin={base + b.xpS * 1000}/></Kv>}</div></Sec>}
     <Sec k="perfil-heroe-react" titulo="Héroe" extra={d.clase ? `${d.clase.emoji || '⚔️'} ${d.clase.nombre}` : 'Sin clase'}>
       <div className="bloque vidrio">{d.clase ? <><Kv label="Clase">{d.clase.emoji} {d.clase.nombre}</Kv><p className="mut peq">{d.clase.desc}</p><Kv label="Energía">{energia.n}/{energia.max}</Kv>{energia.n < energia.max && <Kv label="Próxima energía"><Countdown fin={base + (energia.faltaS || 0) * 1000}/></Kv>}</> : <p className="mut peq">Sin clase todavía. Se elige desde el nivel {d.nivelClase ?? 'requerido'} en la sección Héroe.</p>}</div>
     </Sec>
@@ -47,7 +47,6 @@ function PerfilFicha({ d, base }) {
   </>;
 }
 
-// Héroe, Recuerdos y Owner comparten el mismo marco (resumen + selector + "Cerrar sesión") que tenía el legacy.
 const VISTAS = { heroe: PerfilHeroe, historial: PerfilHistorial, owner: PerfilOwner };
 
 export default function Perfil({ d, base }) {

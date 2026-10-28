@@ -1,5 +1,3 @@
-// Encabezado común del Perfil (resumen + selector de sección) para Héroe, Recuerdos y Owner.
-// Mismo marcado que usan Ficha y Progreso: el cambio de sección lo atiende el delegado data-p de app.js.
 import React from 'react';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';

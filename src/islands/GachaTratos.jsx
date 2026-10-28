@@ -1,4 +1,3 @@
-// Gacha → Tratos: port de pintarGachaTratos() + parCartas() + pagerGt() de public/js/app.js.
 import React, { useState } from 'react';
 import { dur } from '../lib/format.js';
 import { tratoEstado, tratoElegir, tratoQuitar, buscarTrato, tratoCarta, tratoPagina } from '../bridge/acciones.js';
@@ -15,7 +14,6 @@ const Par = ({ a, b, tA, tB }) => (
 
 const Caduca = ({ s, base }) => <span className="mut peq">caduca en <Countdown fin={base + s * 1000} /></span>;
 
-// Propuestas pendientes: la que te hicieron y la que enviaste.
 function Pendientes({ d, base }) {
   const r = d.recibido;
   const e = d.enviado;
@@ -48,7 +46,6 @@ function Pendientes({ d, base }) {
   );
 }
 
-// Cuadrícula de cartas de uno de los dos jugadores, con su paginador.
 function Cartas({ lado, grupo, marcada, vacio }) {
   const k = lado === 'mia' ? 'm' : 's';
   if (!grupo.cartas.length) return <Vacio>{vacio}</Vacio>;
@@ -62,7 +59,6 @@ function Cartas({ lado, grupo, marcada, vacio }) {
   );
 }
 
-// Con un jugador elegido: marcar una carta tuya y una suya para proponer cambio, o regalar la tuya.
 function Objetivo({ d, o, mia: idMia, suya: idSuya }) {
   const mia = o.mias.cartas.find(c => c.id === idMia) || null;
   const suya = o.suyas.cartas.find(c => c.id === idSuya) || null;
@@ -98,7 +94,6 @@ function Objetivo({ d, o, mia: idMia, suya: idSuya }) {
   );
 }
 
-// Sin jugador elegido: buscar a quién proponerle un trato.
 function Buscar({ d, consulta }) {
   const [q, setQ] = useState(consulta);
   const buscar = () => buscarTrato(q);

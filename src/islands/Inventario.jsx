@@ -1,16 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Cab, Seg, Sec, Titulo, Vacio, Accion, Cifras, Countdown } from './ui.jsx';
+import { Cab, Seg, Sec, Vacio, Accion, Cifras, Countdown } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
-import { inventarioSeccion, cambiarInventario } from '../bridge/acciones.js';
+import { inventarioSeccion, cambiarInventario, aviso } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
-import { aviso } from '../bridge/acciones.js';
 
 const OPCIONES = [['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']];
 const FILTROS = [
   ['todo', 'Todo'], ['herramientas', 'Herramientas'], ['cofres', 'Cofres'],
   ['consumibles', 'Consumibles'], ['reliquias', 'Reliquias'], ['materiales', 'Materiales'],
 ];
-const rarezaCofre = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' }; // RAR_COFRE de app.js
+const rarezaCofre = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' };
 
 function ItemIcon({ emoji, cantidad, color }) {
   return <span className="slot" style={{ background: color ? `${color}22` : undefined, "--r": color }} aria-hidden="true">
@@ -95,7 +94,7 @@ function ObjetosReact({ d, base }) {
 
 
 const TIPOS_EQUIPO = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
-const RAREZAS_EQUIPO = { // RAREZA de app.js: claves que envía la API, de menor a mayor rareza
+const RAREZAS_EQUIPO = {
   comun: ['Común', '#a9b0c4'], poco: ['Poco común', '#8fc4ad'], rara: ['Rara', '#8fb4d6'],
   epica: ['Épica', '#b69be0'], legendaria: ['Legendaria', '#e0b96a']
 };
@@ -182,7 +181,6 @@ function ForjaReact({ d }) {
   </>;
 }
 
-/** Mochila: Objetos, Equipo y Forja se renderizan con componentes React. */
 export default function Inventario({ d, base }) {
   const me = useMe();
   const seccion = inventarioSeccion();

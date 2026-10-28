@@ -1,4 +1,3 @@
-// Pestaña Hogar ("Mundo"): port de pintarHogar() + pintarMascota() + pintarGranja() de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { hogarSeccion, hogarIr, publicar } from '../bridge/acciones.js';
@@ -13,7 +12,6 @@ const ICONO = (
   </>
 );
 
-/* ---------- Mascota ---------- */
 function Adoptar({ d }) {
   const [nombre, setNombre] = useState('');
   return (
@@ -84,7 +82,6 @@ function Mascota({ d, base }) {
   );
 }
 
-/* ---------- Granja ---------- */
 function Parcela({ c, base }) {
   return (
     <div className={'plot ' + (c.marchita ? 'mar' : c.lista ? 'ok' : '')}>

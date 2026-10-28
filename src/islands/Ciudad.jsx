@@ -1,4 +1,3 @@
-// Pestaña Ciudad: port de pintarCiudad() + pintarBanco/Negocios/Casino/Altar/Jugadores de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { ciudadSeccion, ciudadIr, buscarJugadores, consultaJugadores } from '../bridge/acciones.js';
@@ -17,7 +16,6 @@ const ICONO = (
 
 const Cartera = ({ d }) => <div className="cartera">Cartera <b>{fmt(d.cartera)}</b> monedas</div>;
 
-/* ---------- Banco ---------- */
 function Banco({ d }) {
   const [cant, setCant] = useState('');
   const campos = { cantidad: cant };
@@ -47,7 +45,6 @@ function Banco({ d }) {
   );
 }
 
-/* ---------- Negocios ---------- */
 function Negocio({ n }) {
   if (!n.tiene) {
     return (
@@ -86,7 +83,6 @@ function Negocios({ d }) {
   );
 }
 
-/* ---------- Casino ---------- */
 const COLORES = ['rojo', 'negro', 'par', 'impar', 'verde'];
 const cap = k => k[0].toUpperCase() + k.slice(1);
 
@@ -133,7 +129,6 @@ function Casino({ d }) {
   );
 }
 
-/* ---------- Altar ---------- */
 function Altar({ d }) {
   return (
     <>
@@ -168,12 +163,11 @@ function Altar({ d }) {
   );
 }
 
-/* ---------- Jugadores ---------- */
 function Jugadores({ d, base }) {
   const [q, setQ] = useState(consultaJugadores);
   const [pago, setPago] = useState('');
   const buscar = () => buscarJugadores(q);
-  const consulta = consultaJugadores(); // la búsqueda con la que se pidieron estos resultados
+  const consulta = consultaJugadores();
   return (
     <>
       <Cartera d={d} />

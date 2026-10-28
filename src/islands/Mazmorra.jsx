@@ -1,4 +1,3 @@
-// Pestaña Mazmorra: port de pintarMazmorra() + escenaCombate() + pintarMazmorraTab() de public/js/app.js.
 import React, { useEffect, useRef } from 'react';
 import { fmt } from '../lib/format.js';
 import { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio } from '../lib/arteCombate.js';
@@ -11,14 +10,9 @@ const ICONO = (
   </>
 );
 
-// Como esc() del legacy: lo que llegue del servidor se muestra como texto (nunca rompe el render).
 const t = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 const pct = (v, max) => (max ? Math.round(v / max * 100) : 0);
 
-/**
- * Escena de combate (escenaCombate). El arte son cadenas SVG fijas de lib/arteCombate.js (no llevan texto del usuario),
- * por eso se insertan con dangerouslySetInnerHTML dentro de un <g>.
- */
 function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u }) {
   const pH = pct(hp, hpMax), pE = pct(ehp, ehpMax);
   const golpeE = u && u.dano > 0, golpeH = u && u.recibido > 0;
@@ -106,9 +100,7 @@ function Entrada({ d, base }) {
 
 const motivoPocion = (d, r) => (!d.pociones || r.hp >= r.hpMax) && (d.pociones ? 'Ya tienes la vida completa.' : 'No tienes pociones.');
 
-// Combate en curso: golpe, poción y habilidades.
 function Combate({ d, r, c, h, clase, base }) {
-  // La animación de golpes solo se reproduce la primera vez que se dibuja cada turno (como cbVisto en el legacy).
   const clave = r.piso + ':' + c.turno;
   const visto = useRef('');
   const anim = visto.current !== clave;
@@ -119,7 +111,6 @@ function Combate({ d, r, c, h, clase, base }) {
   return (
     <>
       <BarraRun r={r} base={base} />
-      {/* key: al cambiar de turno se recrea la escena para que las animaciones CSS vuelvan a empezar */}
       <Escena key={clave + ':' + anim} nombre={c.nombre} jefe={c.jefe} clase={clase} buff={c.buff}
         hp={r.hp} hpMax={r.hpMax} ehp={c.hp} ehpMax={c.hpMax} u={anim ? c.ultimo : null} />
       <div className="cb-log vidrio" aria-live="polite">
@@ -153,7 +144,6 @@ function Combate({ d, r, c, h, clase, base }) {
   );
 }
 
-// Entre peleas: elegir pelear, auto, curarse, descansar o salir.
 function Descanso({ d, r, h, clase, base }) {
   const s = r.siguiente;
   const expirada = r.expirada && 'Cobra tu botín saliendo.';

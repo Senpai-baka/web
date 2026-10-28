@@ -1,12 +1,9 @@
-// Piezas del gacha compartidas por Invocar, Colección y Tratos.
-// Port de COL_GACHA, imgGacha, cartaGacha, miniGacha, miniSel y chipsRarezaGacha de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 
 export const COL_GACHA = { mitica: '#e8946a', legendaria: '#e0b96a', epica: '#b69be0', rara: '#8fb4d6', comun: '#a9b0c4' };
 export const colGacha = r => COL_GACHA[r && r.clave] || COL_GACHA.comun;
 
-/** Imagen de la carta. Si no carga, desaparece (como el onerror="this.remove()" del legacy, pero sin tocar el DOM a mano). */
 function ImgCarta({ src }) {
   const [mal, setMal] = useState(false);
   if (!src || mal) return null;
@@ -20,7 +17,6 @@ const Imagen = ({ c }) => (
   </div>
 );
 
-/** Equivale a cartaGacha(c) */
 export function Carta({ c }) {
   const r = c.rareza;
   return (
@@ -37,7 +33,6 @@ export function Carta({ c }) {
   );
 }
 
-/** Equivale a miniGacha(c) */
 export function Mini({ c }) {
   return (
     <div className="gc-mini" style={{ '--c': colGacha(c.rareza) }} title={c.nombre}>
@@ -47,7 +42,6 @@ export function Mini({ c }) {
   );
 }
 
-/** Equivale a miniSel(c, attr, sel): mini carta que se puede marcar (aria-pressed). */
 export function MiniSel({ c, activa, onClick }) {
   return (
     <button type="button" className="gc-mini" aria-pressed={activa} onClick={onClick} style={{ '--c': colGacha(c.rareza) }} title={c.nombre}>
@@ -57,7 +51,6 @@ export function MiniSel({ c, activa, onClick }) {
   );
 }
 
-/** Equivale a chipsRarezaGacha(lista) */
 export const ChipsRareza = ({ lista }) => (
   <div className="gc-raros">
     {lista.map((r, i) => (
@@ -66,7 +59,6 @@ export const ChipsRareza = ({ lista }) => (
   </div>
 );
 
-/** Paginador "Anterior / Página X de Y". */
 export function Pager({ pagina, paginas, onDir, margen = 12, etiqueta = 'Página ' }) {
   return (
     <div className="btnrow" style={{ alignItems: 'center', marginTop: margen }}>

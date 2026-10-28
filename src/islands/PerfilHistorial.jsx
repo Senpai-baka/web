@@ -1,4 +1,3 @@
-// Perfil → Recuerdos: port de pintarHistorial() de public/js/app.js.
 import React from 'react';
 import { fmt, hace } from '../lib/format.js';
 import { Vacio } from './ui.jsx';
@@ -9,7 +8,6 @@ const Svg = ({ children }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
 );
 
-// Mismos trazos que ICONOS en app.js
 const ICONOS = {
   mine: <Svg><g transform="rotate(40 12 12)"><path d="M12 21 V9" /><path d="M3 9 C6 3 18 3 21 9" /></g></Svg>,
   chop: <Svg><g transform="rotate(-25 12 12)"><path d="M12 21 V4" /><path d="M12 4.5 H15 C18 5 20 8 20.5 12 C17.5 10.5 14.5 10.5 12 11 Z" /></g></Svg>,

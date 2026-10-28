@@ -1,4 +1,3 @@
-// Pestaña Gacha: port de pintarGacha() y sus tres secciones (Invocar, Colección y Tratos) de public/js/app.js.
 import React from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { gachaSel, gachaIr, gachaPagina, abiertasGacha } from '../bridge/acciones.js';
@@ -47,7 +46,6 @@ function Invocar({ d, base }) {
       {p && (
         <>
           <Titulo extra={<span className="mut peq">se escapa en <Countdown fin={base + p.restaS * 1000} /></span>}>Carta pendiente</Titulo>
-          {/* data-gc-fin: el reloj del legacy recarga la pestaña cuando la carta se escapa */}
           <div className="bloque vidrio" data-gc-fin={base + p.restaS * 1000}>
             <Carta c={p.carta} />
             <p className="mut peq" style={{ marginTop: 10 }}>
@@ -101,7 +99,6 @@ function Coleccion({ d }) {
 }
 
 export default function Gacha({ d, base }) {
-  // La sección y la página viven en app.js porque deciden qué datos se piden a la API.
   const sel = gachaSel();
   const mia = sel === 'coleccion' ? { total: d.total, valor: d.valor } : sel === 'tratos' ? null : d.mia;
   const stats = mia ? [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]] : undefined;

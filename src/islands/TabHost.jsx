@@ -1,5 +1,3 @@
-// Anfitrión de una pestaña: lee sus datos del store y pinta la isla (o el esqueleto / el error con "Reintentar").
-// Sustituye al antiguo IslaBridge.render(): ya no hace falta que app.js empuje los datos a cada isla.
 import React, { useLayoutEffect } from 'react';
 import { cache, errores, cargar, usePestana, sesionActual, scrollGuardado } from '../state/panel.js';
 import { Seguro, Vacio } from './ui.jsx';
@@ -16,7 +14,6 @@ export default function TabHost({ t, Isla }) {
   const c = cache[t];
   const error = errores[t];
 
-  // Tras cada repintado: centra el botón activo de los selectores y devuelve el scroll (como hacía dibujar() en app.js).
   useLayoutEffect(() => {
     const el = document.getElementById('t-' + t);
     if (!el) return;
@@ -37,6 +34,5 @@ export default function TabHost({ t, Isla }) {
       )
       : <Esqueleto />;
   }
-  // key = sesión: al cerrar sesión las islas se montan de cero (se pierden filtros y textos escritos de la cuenta anterior).
   return <Seguro key={sesionActual()} reset={c.d}><Isla d={c.d} base={c.t} /></Seguro>;
 }

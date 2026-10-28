@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cab, Seg, Sec, Cifras, Accion, Vacio } from './ui.jsx';
+import { Cab, Seg, Accion, Vacio } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';
 

@@ -1,4 +1,3 @@
-// Dibujo del jefe de Raid: port de PAL_JEFE + arteJefe() de public/js/app.js.
 import React from 'react';
 
 const PAL_JEFE = {
@@ -13,14 +12,12 @@ const tiene = (nombre, ...palabras) => {
   return palabras.some(p => n.includes(p));
 };
 
-// Colores de la tarjeta (--c1/--c2). Igual que el legacy: aquí "tit" NO cuenta como hielo.
 export function coloresJefe(nombre) {
   const k = tiene(nombre, 'hidra') ? 'hidra' : tiene(nombre, 'kraken') ? 'kraken' : tiene(nombre, 'hielo') ? 'hielo' : 'otro';
   return PAL_JEFE[k].slice(0, 2);
 }
 
 export default function ArteJefe({ nombre }) {
-  // Igual que el legacy: el dibujo sí trata "tit" (titán) como hielo.
   const k = tiene(nombre, 'hidra') ? 'hidra' : tiene(nombre, 'kraken') ? 'kraken' : tiene(nombre, 'hielo', 'tit') ? 'hielo' : 'otro';
   const [, , aura, cu, ac, oj] = PAL_JEFE[k];
 

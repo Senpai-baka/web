@@ -1,4 +1,3 @@
-// Perfil → Héroe: port de pintarHeroe() + pintarClase/Talentos/Atributos/Prestigio/Expedicion de public/js/app.js.
 import React from 'react';
 import { fmt } from '../lib/format.js';
 import { Sec, Countdown, Accion } from './ui.jsx';
@@ -12,7 +11,6 @@ const Pips = ({ n, m }) => (
 
 const Dato = ({ ok, children }) => <li className={ok ? 'ok' : 'no'}>{ok ? '✓' : '○'} {children}</li>;
 
-/* ---------- Clase y habilidades ---------- */
 function Clase({ d, base }) {
   const c = d.clase;
   const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y reinicia tu energía. ¿Continuar?` : undefined;
@@ -66,7 +64,6 @@ function Clase({ d, base }) {
   );
 }
 
-/* ---------- Talentos ---------- */
 function Talentos({ d }) {
   const t = d.talentos;
   if (!d.clase) return <p className="mut peq">Elige una clase para desbloquear talentos.</p>;
@@ -103,7 +100,6 @@ function Talentos({ d }) {
   );
 }
 
-/* ---------- Atributos ---------- */
 function Atributos({ d }) {
   const a = d.atributos;
   return (
@@ -125,7 +121,6 @@ function Atributos({ d }) {
   );
 }
 
-/* ---------- Expediciones ---------- */
 function Expediciones({ d, base }) {
   const e = d.expedicion;
   return (
@@ -159,7 +154,6 @@ function Expediciones({ d, base }) {
   );
 }
 
-/* ---------- Prestigio ---------- */
 function Prestigio({ d }) {
   const p = d.prestigio;
   const c = p.cumple;

@@ -1,4 +1,3 @@
-// Perfil → Owner: port de pintarOwner() de public/js/app.js.
 import React from 'react';
 import { fmt, dur } from '../lib/format.js';
 

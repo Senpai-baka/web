@@ -1,4 +1,3 @@
-// Pestaña Raid: port de pintarRaid() + pintarRaidTab() de public/js/app.js.
 import React from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { Cab, Cifras, Countdown, BotonListo, Vacio, medalla } from './ui.jsx';

@@ -1,4 +1,3 @@
-// Pestaña Clan: port de pintarClan() + pintarClanTab() de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { buscarClan, consultaClan } from '../bridge/acciones.js';
@@ -26,7 +25,6 @@ function Miembro({ m }) {
   );
 }
 
-// Clan propio: datos, depósito, panel del líder (mejorar + invitar) y miembros.
 function ClanPropio({ d, c }) {
   const [dep, setDep] = useState('');
   const [q, setQ] = useState(consultaClan);
@@ -84,7 +82,6 @@ function ClanPropio({ d, c }) {
   );
 }
 
-// Sin clan: invitación pendiente + fundar uno.
 function SinClan({ d, base }) {
   const [nombre, setNombre] = useState('');
   return (

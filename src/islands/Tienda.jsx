@@ -1,4 +1,3 @@
-// Pestaña Tienda: port de pintarTienda() + vTienda/vBazar/vMercado/vSubastas de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
@@ -16,7 +15,6 @@ const ICONO = (
   </>
 );
 
-/* ---------- Objetos ---------- */
 function Objeto({ i, d, base }) {
   const lleno = i.stock >= d.tope;
   const limite = !!(i.limiteDia && i.usosHoy >= i.limiteDia);
@@ -50,7 +48,6 @@ function Objetos({ d, base }) {
   );
 }
 
-/* ---------- Bazar ---------- */
 function Bazar({ d, base }) {
   return (
     <>
@@ -70,7 +67,6 @@ function Bazar({ d, base }) {
   );
 }
 
-/* ---------- Piezas compartidas por Mercado y Subastas ---------- */
 function Paginador({ k, d }) {
   const ir = dir => e => {
     if (e.currentTarget.getAttribute('aria-disabled') === 'true') return;
@@ -91,10 +87,8 @@ const Num = ({ valor, onCambio, ph, ...extra }) => (
   <input className="txt" type="number" inputMode="numeric" min="1" placeholder={ph} aria-label={ph} value={valor} onChange={e => onCambio(e.target.value)} {...extra} />
 );
 
-// Objeto elegido: si el que había ya no se puede vender (se acabó), cae al primero de la lista.
 const objetoValido = (d, clave) => (d.vendibles.some(v => v.clave === clave) ? clave : d.vendibles[0].clave);
 
-/* ---------- Mercado ---------- */
 function FormVenta({ d }) {
   const [obj, setObj] = useState(d.vendibles[0].clave);
   const [cant, setCant] = useState('1');
@@ -123,7 +117,6 @@ function Mercado({ d }) {
     <>
       <Titulo>Vender</Titulo>
       {d.vendibles.length
-        // key: tras publicar o cancelar cambia el número de ofertas y el formulario vuelve a su estado inicial
         ? <FormVenta key={d.mias.length} d={d} />
         : <Vacio>No tienes objetos ni materiales para vender.</Vacio>}
 
@@ -151,7 +144,6 @@ function Mercado({ d }) {
   );
 }
 
-/* ---------- Subastas ---------- */
 function FormSubasta({ d }) {
   const [obj, setObj] = useState(d.vendibles[0].clave);
   const [cant, setCant] = useState('1');
@@ -178,7 +170,6 @@ function FormSubasta({ d }) {
   );
 }
 
-// Puja propia: se reinicia al mínimo cada vez que el mínimo cambia (key en el padre), como al repintar el legacy.
 function Puja({ s, d }) {
   const [monto, setMonto] = useState(String(s.minimo));
   return (

@@ -1,4 +1,3 @@
-// Pestaña Rankings: port de pintarRankings() + filaRanking() de public/js/app.js.
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
