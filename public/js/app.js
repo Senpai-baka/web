@@ -7,38 +7,15 @@ if (!window.IslaLib || !window.IslaBridge) {
 const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib; // definidos en src/lib (cargados por main.jsx)
 const IslaBridge = window.IslaBridge;
 // Acciones que las islas React necesitan del legacy (se usan al hacer clic, cuando todo ya está cargado).
+// El estado de las pestañas (selecciones, datos cargados y su carga) vive en IslaBridge.store (src/state/panel.js).
+const { store } = IslaBridge;
+const S = store.sel;            // selecciones de cada pestaña: S.ciudadSel, S.gachaSel, S.gtMia…
+const cargado = store.cache;    // datos por pestaña: { d, t, s }
 IslaBridge.publicar = (b, ruta, cuerpo) => publicar(b, ruta, cuerpo);
 IslaBridge.aviso = (txt, ms) => aviso(txt, ms);
-IslaBridge.buscarClan = q => { clanQ = q || ''; delete cargado.clan; return abrir('clan', true); };
-IslaBridge.consultaClan = () => clanQ;
-IslaBridge.gachaSel = () => gachaSel;
-IslaBridge.gachaIr = s => { gachaSel = s; gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); };
-IslaBridge.gachaPagina = dir => { gachaPag = Math.max(1, gachaPag + dir); delete cargado.gacha; return abrir('gacha', true); };
 IslaBridge.abiertas = () => abiertas;
-// Gacha → Tratos: React dibuja la sección; app.js conserva la búsqueda, el jugador elegido, las páginas y las cartas marcadas.
-IslaBridge.tratoEstado = () => ({ q: gtQ, mia: gtMia, suya: gtSuya });
-IslaBridge.tratoElegir = ref => { gtRef = ref; gtPm = 1; gtPs = 1; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); };
-IslaBridge.tratoQuitar = () => { gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); };
-IslaBridge.buscarTrato = q => { gtQ = q || ''; gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); };
-IslaBridge.tratoCarta = (lado, id) => { id = Number(id); if (lado === 'mia') gtMia = gtMia === id ? 0 : id; else gtSuya = gtSuya === id ? 0 : id; return dibujar('gacha'); };
-IslaBridge.tratoPagina = (k, dir) => { if (k === 'm') gtPm = Math.max(1, gtPm + dir); else gtPs = Math.max(1, gtPs + dir); delete cargado.gacha; return abrir('gacha', true); };
-// Inventario: React controla la navegación entre Objetos, Equipo y Forja.
-IslaBridge.invSel = () => invSel;
-IslaBridge.invCambiar = s => { if (!['objetos', 'equipo', 'forja'].includes(s)) return; invSel = s; delete cargado.inventario; return abrir('inventario', true); };
-// Ciudad: React pinta Banco, Negocios, Casino, Altar y Jugadores; app.js conserva la sección activa y la búsqueda (definen la ruta).
-IslaBridge.ciudadSel = () => ciudadSel;
-IslaBridge.ciudadIr = s => { if (!SECCIONES_CIUDAD.some(x => x[0] === s)) return; ciudadSel = s; delete cargado.ciudad; return abrir('ciudad', true); };
-IslaBridge.buscarJugadores = q => { jugQ = q || ''; delete cargado.ciudad; return abrir('ciudad', true); };
-IslaBridge.consultaJugadores = () => jugQ;
-// Tienda: React pinta Objetos, Bazar, Mercado y Subastas; app.js conserva la sección y las páginas (definen la ruta).
-IslaBridge.tiendaSel = () => tiendaSel;
-IslaBridge.tiendaIr = s => { if (!SECCIONES_TIENDA.some(x => x[0] === s)) return; tiendaSel = s; delete cargado.tienda; return abrir('tienda', true); };
-IslaBridge.tiendaPagina = (k, dir) => { if (k === 'mercado') merPag = Math.max(1, merPag + dir); else subPag = Math.max(1, subPag + dir); delete cargado.tienda; return abrir('tienda', true); };
-// Hogar: React pinta Mascota y Granja; app.js conserva la sección activa (define la ruta).
-IslaBridge.hogarSel = () => hogarSel;
-IslaBridge.hogarIr = s => { if (s !== 'mascota' && s !== 'granja') return; hogarSel = s; delete cargado.hogar; return abrir('hogar', true); };
-// Perfil: Ficha, Héroe, Progreso, Recuerdos y Owner se renderizan en React; app.js solo conserva la sección activa.
-IslaBridge.perfilSel = () => perfilSel;
+store.hooks.aviso = (txt, ms) => aviso(txt, ms);
+store.hooks.sesionCaducada = () => sesionCaducada();
 const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
@@ -165,7 +142,7 @@ function petalos(n, modo) {
 const quitarAmbiente = () => document.querySelectorAll('#petalas .ambiente').forEach(p => p.remove());
 
 let me = null, fin = {}, tot = {}, previa = {}, ocupado = false, saltar = null, enviando = false;
-let tabActual = 'inicio', cargado = {}, rankSel = 'monedas', hogarSel = 'mascota', gachaSel = 'invocar', gachaPag = 1, gtQ = '', gtRef = '', gtPm = 1, gtPs = 1, gtMia = 0, gtSuya = 0, abiertas = [], abiertasVistas = new Set(), sondeando = false, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, perfilSel = 'ficha', tiendaSel = 'tienda', invSel = 'objetos', merPag = 1, subPag = 1, publicando = false, avisosOn = false, refrescandoClima = false;
+let tabActual = 'inicio', rankSel = 'monedas', abiertas = [], abiertasVistas = new Set(), sondeando = false, eventos = {}, eventosT = 0, cargandoEventos = false, gachaVencida = false, publicando = false, avisosOn = false, refrescandoClima = false;
 
 function leerAvisos() { try { return localStorage.getItem('isla_avisos') === '1'; } catch (_) { return false; } }
 function guardarAvisos(v) { try { localStorage.setItem('isla_avisos', v ? '1' : '0'); } catch (_) {} }
@@ -214,9 +191,9 @@ function aviso(txt, ms) {
   const t = $('#toast'); t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
-function limpiarTabs() { IslaBridge.setMe(null); eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); for (const k of TABS) { const e = $('#t-' + k); if (e && k !== 'inicio') { IslaBridge.unmount(k); e.innerHTML = ''; } } }
+function limpiarTabs() { IslaBridge.setMe(null); eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); store.reiniciar(); }
 function sesionCaducada() {
-  me = null; cargado = {}; limpiarTabs();
+  me = null; store.vaciar(); limpiarTabs();
   aviso('Tu sesión caducó. Conéctate de nuevo.');
   vista('login');
 }
@@ -346,7 +323,7 @@ async function sondearAbiertas() {
     }
     for (const p of d.perdidas) avisarGacha('😬 ' + p.por + ' te ganó a ' + p.nombre + '.', 'isla-gacha-perdida-' + p.nombre);
     if (d.perdidas.length) { cargarEventos(true); if (tabActual === 'gacha') { delete cargado.gacha; abrir('gacha', true); return; } }
-    if (cambio && tabActual === 'gacha' && gachaSel === 'invocar') dibujar('gacha');
+    if (cambio && tabActual === 'gacha' && S.gachaSel === 'invocar') dibujar('gacha');
   } catch (_) {
   } finally { sondeando = false; }
 }
@@ -378,7 +355,7 @@ function tickEventos(ahora) {
     const ab = abiertas.filter(a => a.fin > ahora);
     if (ab.length !== abiertas.length) {
       abiertas = ab;
-      if (tabActual === 'gacha' && gachaSel === 'invocar') dibujar('gacha');
+      if (tabActual === 'gacha' && S.gachaSel === 'invocar') dibujar('gacha');
     }
     const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
     const lista = pend || trato || ab.length > 0 || rest === 0;
@@ -474,7 +451,7 @@ async function jugar(k) {
   try {
     const [d] = await Promise.all([api('/api/rpg/' + k, {}), esperaAnim()]);
     $('#anim').hidden = true;
-    cargado = {};
+    store.vaciar();
     aplicar(d.me); mostrar(k, d.resultado);
   } catch (e) {
     $('#anim').hidden = true;
@@ -590,14 +567,14 @@ function cabPerfil(d) {
 function pintarPerfil(d, base) {
   const ops = [['ficha', 'Ficha'], ['heroe', 'Héroe'], ['progreso', 'Progreso'], ['historial', 'Recuerdos']];
   if (me && me.owner) ops.push(['owner', 'Owner']);
-  const seg = segHtml('Sección del perfil', ops, perfilSel, 'p');
-  const cuerpo = perfilSel === 'historial' ? pintarHistorial(d) : perfilSel === 'heroe' ? pintarHeroe(d, base) : perfilSel === 'progreso' ? pintarProgreso(d, base) : perfilSel === 'owner' ? pintarOwner(d, base) : pintarFicha(d, base);
-  const avisos = perfilSel === 'ficha'
+  const seg = segHtml('Sección del perfil', ops, S.perfilSel, 'p');
+  const cuerpo = S.perfilSel === 'historial' ? pintarHistorial(d) : S.perfilSel === 'heroe' ? pintarHeroe(d, base) : S.perfilSel === 'progreso' ? pintarProgreso(d, base) : S.perfilSel === 'owner' ? pintarOwner(d, base) : pintarFicha(d, base);
+  const avisos = S.perfilSel === 'ficha'
     ? `<div class="bloque vidrio"><div class="fila"><strong>🔔 Avisos por WhatsApp</strong><span class="etiq ${d.avisosWa ? '' : 'nar'}">${d.avisosWa ? 'Activados' : 'Apagados'}</span></div>
         <p class="mut peq">Te escribo cuando termine una expedición o te superen en una subasta.</p>
         <div class="btns uno">${botonPost('/api/avisos', { activo: !d.avisosWa }, d.avisosWa ? 'Desactivar avisos' : 'Activar avisos', '')}</div></div>`
     : '';
-  return cabPerfil(perfilSel === 'ficha' ? d : null) + seg + cuerpo + avisos + '<button type="button" class="link salir" data-salir>Cerrar sesión</button>';
+  return cabPerfil(S.perfilSel === 'ficha' ? d : null) + seg + cuerpo + avisos + '<button type="button" class="link salir" data-salir>Cerrar sesión</button>';
 }
 
 const botonPost = (ruta, cuerpo, txt, extra) => `<button type="button" class="mini" data-post="${esc(ruta)}" data-body="${esc(JSON.stringify(cuerpo))}" ${extra || ''}>${esc(txt)}</button>`;
@@ -978,42 +955,42 @@ function pintarGachaTratos(d, base) {
       <div class="btns uno">${botonPost('/api/gacha/cancelar', {}, 'Cancelar propuesta')}</div></div>`;
   }
 
-  const busca = `<div class="campo" style="margin-top:6px"><input class="txt corto" id="gt-q" data-v="gtq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador por nombre" aria-label="Buscar jugador" value="${esc(gtQ)}"><button type="button" class="mini" data-buscar="gacha">Buscar</button></div>`;
+  const busca = `<div class="campo" style="margin-top:6px"><input class="txt corto" id="gt-q" data-v="gtq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador por nombre" aria-label="Buscar jugador" value="${esc(S.gtQ)}"><button type="button" class="mini" data-buscar="gacha">Buscar</button></div>`;
   let cuerpo;
   if (d.objetivo) {
     const o = d.objetivo;
-    const mia = o.mias.cartas.find(c => c.id === gtMia) || null;
-    const suya = o.suyas.cartas.find(c => c.id === gtSuya) || null;
-    const resumen = `<p class="peq" style="margin-top:12px">Tu carta: <b>${gtMia ? '#' + gtMia + (mia ? ' ' + esc(mia.nombre) : '') : 'sin elegir'}</b> · De ${esc(o.alias)}: <b>${gtSuya ? '#' + gtSuya + (suya ? ' ' + esc(suya.nombre) : '') : 'sin elegir'}</b></p>`;
+    const mia = o.mias.cartas.find(c => c.id === S.gtMia) || null;
+    const suya = o.suyas.cartas.find(c => c.id === S.gtSuya) || null;
+    const resumen = `<p class="peq" style="margin-top:12px">Tu carta: <b>${S.gtMia ? '#' + S.gtMia + (mia ? ' ' + esc(mia.nombre) : '') : 'sin elegir'}</b> · De ${esc(o.alias)}: <b>${S.gtSuya ? '#' + S.gtSuya + (suya ? ' ' + esc(suya.nombre) : '') : 'sin elegir'}</b></p>`;
     const sinMia = 'Elige una carta tuya.', sinAmbas = 'Elige una carta tuya y una de ' + o.alias + '.';
     cuerpo = `<div class="bloque vidrio"><div class="fila"><strong>Trato con ${esc(o.alias)}</strong><button type="button" class="mini" data-gt-quitar>Cambiar</button></div>
       <p class="mut peq">Elige una carta tuya y una suya para proponer un cambio, o regala la tuya.</p></div>
-      ${titulo('Tus cartas')}${o.mias.cartas.length ? `<div class="gc-rejilla">${o.mias.cartas.map(c => miniSel(c, 'gt-mia', gtMia)).join('')}</div>${pagerGt('m', o.mias)}` : vacio('No tienes cartas para ofrecer.')}
-      ${titulo('Cartas de ' + esc(o.alias))}${o.suyas.cartas.length ? `<div class="gc-rejilla">${o.suyas.cartas.map(c => miniSel(c, 'gt-suya', gtSuya)).join('')}</div>${pagerGt('s', o.suyas)}` : vacio('Todavía no tiene cartas.')}
+      ${titulo('Tus cartas')}${o.mias.cartas.length ? `<div class="gc-rejilla">${o.mias.cartas.map(c => miniSel(c, 'gt-mia', S.gtMia)).join('')}</div>${pagerGt('m', o.mias)}` : vacio('No tienes cartas para ofrecer.')}
+      ${titulo('Cartas de ' + esc(o.alias))}${o.suyas.cartas.length ? `<div class="gc-rejilla">${o.suyas.cartas.map(c => miniSel(c, 'gt-suya', S.gtSuya)).join('')}</div>${pagerGt('s', o.suyas)}` : vacio('Todavía no tiene cartas.')}
       ${resumen}
       <div class="btns">
-        ${botonPost('/api/gacha/proponer', { ref: o.ref, mia: gtMia, suya: gtSuya }, 'Proponer cambio', !gtMia || !gtSuya ? `aria-disabled="true" data-motivo="${esc(sinAmbas)}"` : '')}
-        ${botonPost('/api/gacha/regalar', { ref: o.ref, id: gtMia }, 'Regalar mi carta', !gtMia ? `aria-disabled="true" data-motivo="${esc(sinMia)}"` : `data-confirmar="¿Regalar ${esc(mia ? mia.nombre : 'esta carta')} a ${esc(o.alias)}? No se puede deshacer."`)}
+        ${botonPost('/api/gacha/proponer', { ref: o.ref, mia: S.gtMia, suya: S.gtSuya }, 'Proponer cambio', !S.gtMia || !S.gtSuya ? `aria-disabled="true" data-motivo="${esc(sinAmbas)}"` : '')}
+        ${botonPost('/api/gacha/regalar', { ref: o.ref, id: S.gtMia }, 'Regalar mi carta', !S.gtMia ? `aria-disabled="true" data-motivo="${esc(sinMia)}"` : `data-confirmar="¿Regalar ${esc(mia ? mia.nombre : 'esta carta')} a ${esc(o.alias)}? No se puede deshacer."`)}
       </div>
       <p class="mut peq" style="margin-top:8px">${esc(o.alias)} tiene ${dur(d.ventanaS)} para aceptar o rechazar la propuesta.</p>`;
   } else {
     const lista = d.resultados.length
       ? `<div class="bloque vidrio">${d.resultados.map(j => `<div class="fil"><div class="nom"><strong>${esc(j.alias)}</strong></div><button type="button" class="mini" data-gt-elegir="${esc(j.ref)}">Elegir</button></div>`).join('')}</div>`
-      : gtQ ? vacio('No encontré a nadie con ese nombre.') : '';
+      : S.gtQ ? vacio('No encontré a nadie con ese nombre.') : '';
     cuerpo = `${titulo('Nuevo trato')}<p class="mut peq">Busca a otro jugador para cambiar o regalarle una carta.</p>${busca}${lista}`;
   }
   return pendiente + cuerpo;
 }
 function pintarGacha(d, base) {
-  const seg = segHtml('Sección del gacha', [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']], gachaSel, 'gs');
-  const mia = gachaSel === 'coleccion' ? { total: d.total, valor: d.valor } : gachaSel === 'tratos' ? null : d.mia;
+  const seg = segHtml('Sección del gacha', [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']], S.gachaSel, 'gs');
+  const mia = S.gachaSel === 'coleccion' ? { total: d.total, valor: d.valor } : S.gachaSel === 'tratos' ? null : d.mia;
   return cabEvento('Gacha', 'Invoca, colecciona y cambia personajes de anime.', ICONOS.gacha, mia ? [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]] : statsBase())
-    + seg + (gachaSel === 'coleccion' ? pintarGachaColeccion(d) : gachaSel === 'tratos' ? pintarGachaTratos(d, base) : pintarGachaInvocar(d, base));
+    + seg + (S.gachaSel === 'coleccion' ? pintarGachaColeccion(d) : S.gachaSel === 'tratos' ? pintarGachaTratos(d, base) : pintarGachaInvocar(d, base));
 }
 
 function pintarHogar(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === hogarSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mundo', 'Tu mascota y tu granja.') + seg + (hogarSel === 'mascota' ? pintarMascota(d, base) : pintarGranja(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del hogar">${[['mascota', 'Mascota'], ['granja', 'Granja']].map(([k, n]) => `<button type="button" data-h="${k}" aria-pressed="${k === S.hogarSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mundo', 'Tu mascota y tu granja.') + seg + (S.hogarSel === 'mascota' ? pintarMascota(d, base) : pintarGranja(d, base));
 }
 
 function filaRanking(r, extra, valor) {
@@ -1204,14 +1181,14 @@ const vSubastas = (d, base) => {
 
 const SECCIONES_TIENDA = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
 function pintarTienda(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección de la tienda">${SECCIONES_TIENDA.map(([k, n]) => `<button type="button" data-s="${k}" aria-pressed="${k === tiendaSel}">${n}</button>`).join('')}</div>`;
-  const v = { tienda: vTienda, bazar: vBazar, mercado: vMercado, subastas: vSubastas }[tiendaSel];
+  const seg = `<div class="seg" role="group" aria-label="Sección de la tienda">${SECCIONES_TIENDA.map(([k, n]) => `<button type="button" data-s="${k}" aria-pressed="${k === S.tiendaSel}">${n}</button>`).join('')}</div>`;
+  const v = { tienda: vTienda, bazar: vBazar, mercado: vMercado, subastas: vSubastas }[S.tiendaSel];
   return cab('Tienda', 'Compra, vende y subasta con otros jugadores.', [['Cartera', fmt(d.cartera)], ['Nivel', me.nivel]]) + seg + v(d, base);
 }
 
 function pintarInventario(d, base) {
-  const seg = `<div class="seg" role="group" aria-label="Sección del inventario">${[['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']].map(([k, n]) => `<button type="button" data-i="${k}" aria-pressed="${k === invSel}">${n}</button>`).join('')}</div>`;
-  return cab('Mochila', 'Tus herramientas, equipo y materiales.', invSel === 'objetos' && d.bolsa && d.items ? [['Monedas', fmt(me.monedas)], ['Espacios', d.items.length + '/' + d.bolsa.max], ['Nivel', me.nivel]] : undefined) + seg + (invSel === 'objetos' ? pintarObjetos(d, base) : invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base));
+  const seg = `<div class="seg" role="group" aria-label="Sección del inventario">${[['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']].map(([k, n]) => `<button type="button" data-i="${k}" aria-pressed="${k === S.invSel}">${n}</button>`).join('')}</div>`;
+  return cab('Mochila', 'Tus herramientas, equipo y materiales.', S.invSel === 'objetos' && d.bolsa && d.items ? [['Monedas', fmt(me.monedas)], ['Espacios', d.items.length + '/' + d.bolsa.max], ['Nivel', me.nivel]] : undefined) + seg + (S.invSel === 'objetos' ? pintarObjetos(d, base) : S.invSel === 'forja' ? pintarForja(d) : pintarEquipo(d, base));
 }
 
 const pips = (n, m) => `<span class="pips">${'<i class="pip on"></i>'.repeat(n)}${'<i class="pip"></i>'.repeat(Math.max(0, m - n))}</span>`;
@@ -1296,7 +1273,7 @@ function pintarOwner(d, base) {
 }
 
 const valores = {};
-let ciudadSel = 'banco', progSel = 'misiones', jugQ = '', clanQ = '';
+let progSel = 'misiones';
 const SECCIONES_CIUDAD = [['banco', 'Banco'], ['negocios', 'Negocios'], ['casino', 'Casino'], ['altar', 'Altar'], ['jugadores', 'Jugadores']];
 const campo = (id, v, ph, o = {}) => `<input class="txt" id="${id}" data-v="${v}" type="${o.tipo || 'number'}" ${o.tipo === 'text' ? 'maxlength="24" autocomplete="off"' : 'inputmode="numeric" min="1"'} placeholder="${esc(ph)}" aria-label="${esc(ph)}" value="${esc(valores[v] !== undefined ? valores[v] : (o.def || ''))}">`;
 const camposAttr = o => `data-campos="${esc(JSON.stringify(o))}"`;
@@ -1347,18 +1324,18 @@ function pintarJugadores(d, base) {
   const res = d.resultados.length
     ? d.resultados.map(j => `<div class="bloque vidrio"><strong>${esc(j.alias)}</strong>
         <div class="btnrow">${botonPost('/api/jugadores/pagar', { ref: j.ref }, 'Pagar', camposAttr({ cantidad: '#jg-cant' }))}${botonPost('/api/jugadores/robar', { ref: j.ref }, 'Robar', `data-confirmar="¿Intentar robar a ${esc(j.alias)}? Si sale mal pagas una multa."`)}</div></div>`).join('')
-    : jugQ ? vacio('No encontré jugadores con ese nombre. Solo aparecen quienes han entrado al panel.') : '';
+    : S.jugQ ? vacio('No encontré jugadores con ese nombre. Solo aparecen quienes han entrado al panel.') : '';
   const espera = d.robo.esperaS > 0 ? `Podrás robar de nuevo en ${cuenta(d.robo.esperaS, base)}.` : 'Listo para robar.';
   return `<div class="cartera">Cartera <b>${fmt(d.cartera)}</b> monedas</div>
     <div class="bloque vidrio"><p class="mut peq">Busca a un jugador por su nombre del panel. Pagar cobra ${d.pago.tasa}% de impuesto (mínimo ${fmt(d.pago.min)}). Robar necesita ${fmt(d.robo.min)} en tu cartera y tiene ${d.robo.exito}% de éxito.</p>
       <p class="peq" style="margin-top:6px">${espera}${d.robo.escudo > 0 ? ' Tienes un escudo activo que se romperá si atacas.' : ''}</p>
-      <div class="campo" style="margin-top:10px"><input class="txt corto" id="jg-q" data-v="jq" type="text" maxlength="24" autocomplete="off" placeholder="Nombre del jugador" aria-label="Nombre del jugador" value="${esc(jugQ)}"><button type="button" class="mini" data-buscar="jug">Buscar</button></div>
+      <div class="campo" style="margin-top:10px"><input class="txt corto" id="jg-q" data-v="jq" type="text" maxlength="24" autocomplete="off" placeholder="Nombre del jugador" aria-label="Nombre del jugador" value="${esc(S.jugQ)}"><button type="button" class="mini" data-buscar="jug">Buscar</button></div>
       ${campo('jg-cant', 'pago', 'Cantidad a pagar')}</div>${res}`;
 }
 
 function pintarCiudad(d, base) {
-  const seg = segHtml('Sección de la ciudad', SECCIONES_CIUDAD, ciudadSel, 'c');
-  const v = { banco: pintarBanco, negocios: pintarNegocios, casino: pintarCasino, altar: pintarAltar, jugadores: pintarJugadores }[ciudadSel];
+  const seg = segHtml('Sección de la ciudad', SECCIONES_CIUDAD, S.ciudadSel, 'c');
+  const v = { banco: pintarBanco, negocios: pintarNegocios, casino: pintarCasino, altar: pintarAltar, jugadores: pintarJugadores }[S.ciudadSel];
   return cab('Ciudad', 'Banco, negocios, casino y otros jugadores.') + seg + v(d, base);
 }
 
@@ -1414,7 +1391,7 @@ function pintarProgreso(d, base) {
 
 function pintarClan(d, base) {
   const c = d.clan;
-  const busca = `<div class="campo" style="margin-top:10px"><input class="txt corto" id="cl-q" data-v="cq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador para invitar" aria-label="Buscar jugador" value="${esc(clanQ)}"><button type="button" class="mini" data-buscar="clan">Buscar</button></div>`;
+  const busca = `<div class="campo" style="margin-top:10px"><input class="txt corto" id="cl-q" data-v="cq" type="text" maxlength="24" autocomplete="off" placeholder="Buscar jugador para invitar" aria-label="Buscar jugador" value="${esc(S.clanQ)}"><button type="button" class="mini" data-buscar="clan">Buscar</button></div>`;
   let propio = '';
   if (c) {
     const miembros = c.miembros.map(m => `<div class="fil"><div class="nom"><strong>${m.lider ? '👑 ' : ''}${esc(m.alias)}${m.yo ? ' (tú)' : ''}</strong></div>
@@ -1444,29 +1421,22 @@ function pintarClan(d, base) {
 }
 
 const CARGA = {
-  ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[perfilSel] || '/api/ficha'), pintarPerfil],
-  inventario: [() => invSel === 'equipo' ? '/api/equipo' : invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
-  tienda: [() => tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + tiendaSel, pintarTienda],
-  hogar: [() => '/api/' + hogarSel, pintarHogar],
-  ciudad: [() => ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(jugQ) : '/api/' + ciudadSel, pintarCiudad],
+  ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[S.perfilSel] || '/api/ficha'), pintarPerfil],
+  inventario: [() => S.invSel === 'equipo' ? '/api/equipo' : S.invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
+  tienda: [() => S.tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : S.tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + S.tiendaSel, pintarTienda],
+  hogar: [() => '/api/' + S.hogarSel, pintarHogar],
+  ciudad: [() => S.ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(S.jugQ) : '/api/' + S.ciudadSel, pintarCiudad],
   rankings: ['/api/rankings', pintarRankings],
-  gacha: [() => gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : gachaSel === 'tratos' ? '/api/gacha/trato?q=' + encodeURIComponent(gtQ) + '&ref=' + encodeURIComponent(gtRef) + '&pm=' + gtPm + '&ps=' + gtPs : '/api/gacha', pintarGacha],
+  gacha: [() => S.gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : S.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + encodeURIComponent(S.gtQ) + '&ref=' + encodeURIComponent(S.gtRef) + '&pm=' + S.gtPm + '&ps=' + gtPs : '/api/gacha', pintarGacha],
   raid: ['/api/raid', pintarRaidTab],
   mazmorra: ['/api/mazmorra', pintarMazmorraTab],
-  clan: [() => '/api/clan?q=' + encodeURIComponent(clanQ), pintarClanTab]
+  clan: [() => '/api/clan?q=' + encodeURIComponent(S.clanQ), pintarClanTab]
 };
 
-function dibujar(t) {
-  const c = cargado[t];
-  if (!c) return;
-  const y = window.scrollY;
-  if (IslaBridge.migradas.has(t)) IslaBridge.render(t, c.d, c.t);
-  else $('#t-' + t).innerHTML = CARGA[t][1](c.d, c.t);
-  document.querySelectorAll('#t-' + t + ' .seg').forEach(g => { const a = g.querySelector('[aria-pressed="true"]'); if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2; });
-  if (t === tabActual) window.scrollTo(0, y);
-}
+// Repinta una pestaña con los datos que ya tiene (los islas lo hacen solas al cambiar el store).
+function dibujar(t) { if (cargado[t]) store.notificar(t); }
 async function abrir(t, forzar) {
-  if (t === 'historial' || t === 'heroe') { perfilSel = t; t = 'ficha'; }
+  if (t === 'historial' || t === 'heroe') { S.perfilSel = t; t = 'ficha'; }
   if (!TABS.includes(t)) t = 'inicio';
   const cambio = tabActual !== t;
   tabActual = t;
@@ -1478,21 +1448,7 @@ async function abrir(t, forzar) {
   try { history.replaceState(null, '', t === 'inicio' ? location.pathname : '#' + t); } catch (_) {}
   if (cambio) window.scrollTo(0, 0);
   if (t === 'inicio') return;
-  const viejo = !cargado[t] || Date.now() - cargado[t].t > 20000;
-  if (!forzar && !viejo) return dibujar(t);
-  const el = $('#t-' + t);
-  if (!el.childElementCount) el.innerHTML = esqueleto();
-  try {
-    const ruta = typeof CARGA[t][0] === 'function' ? CARGA[t][0]() : CARGA[t][0];
-    const d = await api(ruta);
-    cargado[t] = { d, t: Date.now() };
-    if (tabActual === t) dibujar(t);
-  } catch (e) {
-    if (e.estado === 401) return sesionCaducada();
-    const sinContenido = !el.childElementCount || (el.childElementCount <= 2 && el.firstElementChild.classList.contains('vacio'));
-    if (sinContenido) el.innerHTML = vacio(esc(e.message)) + '<button class="btn2" style="margin:0 auto;display:block" data-reintentar type="button">Reintentar</button>';
-    else aviso(e.message);
-  }
+  return store.cargar(t, forzar);
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (!b) return; if (b.dataset.t === tabActual) window.scrollTo({ top: 0, behavior: 'smooth' }); abrir(b.dataset.t); });
 async function publicar(b, ruta, cuerpo) {
@@ -1500,11 +1456,11 @@ async function publicar(b, ruta, cuerpo) {
   publicando = true; b.setAttribute('aria-busy', 'true');
   try {
     const d = await api(ruta, cuerpo);
-    cargado = {};
+    store.vaciar();
     if (d.me) aplicar(d.me);
     if (ruta.includes('/gacha') || ruta.includes('/raid')) cargarEventos(true);
     if (ruta.includes('/gacha/')) sondearAbiertas();
-    if (ruta.includes('/gacha/')) { gtMia = 0; gtSuya = 0; }
+    if (ruta.includes('/gacha/')) { S.gtMia = 0; S.gtSuya = 0; }
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
       const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
@@ -1520,14 +1476,14 @@ $('#v-panel').addEventListener('click', e => {
   const r = e.target.closest('button[data-r]');
   if (r) { rankSel = r.dataset.r; return dibujar('rankings'); }
   const si = e.target.closest('button[data-i]');
-  if (si) { invSel = si.dataset.i; delete cargado.inventario; return abrir('inventario', true); }
+  if (si) { S.invSel = si.dataset.i; delete cargado.inventario; return abrir('inventario', true); }
   const ss = e.target.closest('button[data-s]');
-  if (ss) { tiendaSel = ss.dataset.s; delete cargado.tienda; return abrir('tienda', true); }
+  if (ss) { S.tiendaSel = ss.dataset.s; delete cargado.tienda; return abrir('tienda', true); }
   const pg = e.target.closest('button[data-pg]');
   if (pg) {
     if (pg.getAttribute('aria-disabled') === 'true') return;
     const dir = Number(pg.dataset.dir);
-    if (pg.dataset.pg === 'mercado') merPag = Math.max(1, merPag + dir); else subPag = Math.max(1, subPag + dir);
+    if (pg.dataset.pg === 'mercado') S.merPag = Math.max(1, S.merPag + dir); else S.subPag = Math.max(1, S.subPag + dir);
     delete cargado.tienda;
     return abrir('tienda', true);
   }
@@ -1536,31 +1492,31 @@ $('#v-panel').addEventListener('click', e => {
   if (e.target.closest('[data-ir-raid]')) return abrir('raid', true);
   if (e.target.closest('[data-ir-gacha]')) {
     const g = eventos.gacha;
-    gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) && !abiertas.some(a => a.fin > Date.now()) ? 'tratos' : 'invocar';
-    gachaPag = 1;
+    S.gachaSel = g && g.trato > Date.now() && !(g.pend > Date.now()) && !abiertas.some(a => a.fin > Date.now()) ? 'tratos' : 'invocar';
+    S.gachaPag = 1;
     return abrir('gacha', true);
   }
   const ge = e.target.closest('button[data-gt-elegir]');
-  if (ge) { gtRef = ge.dataset.gtElegir; gtPm = 1; gtPs = 1; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
-  if (e.target.closest('[data-gt-quitar]')) { gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+  if (ge) { S.gtRef = ge.dataset.gtElegir; S.gtPm = 1; S.gtPs = 1; S.gtMia = 0; S.gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+  if (e.target.closest('[data-gt-quitar]')) { S.gtRef = ''; S.gtMia = 0; S.gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
   const gm = e.target.closest('button[data-gt-mia]');
-  if (gm) { const v = Number(gm.dataset.gtMia); gtMia = gtMia === v ? 0 : v; return dibujar('gacha'); }
+  if (gm) { const v = Number(gm.dataset.gtMia); S.gtMia = S.gtMia === v ? 0 : v; return dibujar('gacha'); }
   const gu = e.target.closest('button[data-gt-suya]');
-  if (gu) { const v = Number(gu.dataset.gtSuya); gtSuya = gtSuya === v ? 0 : v; return dibujar('gacha'); }
+  if (gu) { const v = Number(gu.dataset.gtSuya); S.gtSuya = S.gtSuya === v ? 0 : v; return dibujar('gacha'); }
   const gtp = e.target.closest('button[data-gt-pg]');
   if (gtp) {
     if (gtp.getAttribute('aria-disabled') === 'true') return;
     const dir = Number(gtp.dataset.dir);
-    if (gtp.dataset.gtPg === 'm') gtPm = Math.max(1, gtPm + dir); else gtPs = Math.max(1, gtPs + dir);
+    if (gtp.dataset.gtPg === 'm') S.gtPm = Math.max(1, S.gtPm + dir); else S.gtPs = Math.max(1, S.gtPs + dir);
     delete cargado.gacha;
     return abrir('gacha', true);
   }
   const gs = e.target.closest('button[data-gs]');
-  if (gs) { gachaSel = gs.dataset.gs; gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); }
+  if (gs) { S.gachaSel = gs.dataset.gs; S.gachaPag = 1; delete cargado.gacha; return abrir('gacha', true); }
   const gp = e.target.closest('button[data-gp]');
   if (gp) {
     if (gp.getAttribute('aria-disabled') === 'true') return;
-    gachaPag = Math.max(1, gachaPag + Number(gp.dataset.gp));
+    S.gachaPag = Math.max(1, S.gachaPag + Number(gp.dataset.gp));
     delete cargado.gacha;
     return abrir('gacha', true);
   }
@@ -1572,19 +1528,19 @@ $('#v-panel').addEventListener('click', e => {
   const sl = e.target.closest('button[data-sel]');
   if (sl) { selEq = Number(sl.dataset.sel); return dibujar('inventario'); }
   const pf = e.target.closest('button[data-p]');
-  if (pf) { perfilSel = pf.dataset.p; delete cargado.ficha; return abrir('ficha', true); }
+  if (pf) { S.perfilSel = pf.dataset.p; delete cargado.ficha; return abrir('ficha', true); }
   const sc = e.target.closest('button[data-c]');
-  if (sc) { ciudadSel = sc.dataset.c; delete cargado.ciudad; return abrir('ciudad', true); }
+  if (sc) { S.ciudadSel = sc.dataset.c; delete cargado.ciudad; return abrir('ciudad', true); }
   const sg = e.target.closest('button[data-g]');
   if (sg) { progSel = sg.dataset.g; return dibujar('ficha'); }
   const bs = e.target.closest('button[data-buscar]');
   if (bs) {
-    if (bs.dataset.buscar === 'gacha') { gtQ = ($('#gt-q') || {}).value || ''; gtRef = ''; gtMia = 0; gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
-    if (bs.dataset.buscar === 'jug') { jugQ = ($('#jg-q') || {}).value || ''; delete cargado.ciudad; return abrir('ciudad', true); }
-    clanQ = ($('#cl-q') || {}).value || ''; delete cargado.clan; return abrir('clan', true);
+    if (bs.dataset.buscar === 'gacha') { S.gtQ = ($('#gt-q') || {}).value || ''; S.gtRef = ''; S.gtMia = 0; S.gtSuya = 0; delete cargado.gacha; return abrir('gacha', true); }
+    if (bs.dataset.buscar === 'jug') { S.jugQ = ($('#jg-q') || {}).value || ''; delete cargado.ciudad; return abrir('ciudad', true); }
+    S.clanQ = ($('#cl-q') || {}).value || ''; delete cargado.clan; return abrir('clan', true);
   }
   const h = e.target.closest('button[data-h]');
-  if (h) { hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
+  if (h) { S.hogarSel = h.dataset.h; delete cargado.hogar; return abrir('hogar', true); }
   const rn = e.target.closest('button[data-renombrar]');
   if (rn) {
     const n = window.prompt('Nuevo nombre (2 a 16 letras o números):', rn.dataset.renombrar);
@@ -1634,7 +1590,7 @@ $('#form').addEventListener('submit', async e => {
   enviando = true; b.textContent = 'Entrando…';
   try {
     await api('/api/auth/login', { codigo });
-    previa = {}; cargado = {}; limpiarTabs();
+    previa = {}; store.vaciar(); limpiarTabs();
     aplicar(await api('/api/me'));
     $('#codigo').value = ''; vista('panel'); abrir('inicio');
   } catch (x) { msg.textContent = x.message; }
@@ -1642,7 +1598,7 @@ $('#form').addEventListener('submit', async e => {
 });
 async function salir() {
   try { await api('/api/auth/logout', {}); } catch (_) {}
-  me = null; cargado = {}; previa = {}; limpiarTabs();
+  me = null; store.vaciar(); previa = {}; limpiarTabs();
   vista('login');
 }
 $('#top-ava').addEventListener('click', () => abrir('ficha'));
