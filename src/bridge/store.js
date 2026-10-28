@@ -1,4 +1,3 @@
-// Store mínimo para compartir `me` (el jugador) entre app.js y los componentes React.
 import { useSyncExternalStore } from 'react';
 
 let me = null;

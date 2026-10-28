@@ -1,5 +1,3 @@
-// Registro de islas: cada pestaña del panel legacy (#t-<pestaña>) se monta una vez con su anfitrión,
-// que se encarga de pedir los datos al store y repintarse (ver islands/TabHost.jsx y state/panel.js).
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import Rankings from '../islands/Rankings.jsx';
@@ -16,7 +14,6 @@ import TabHost from '../islands/TabHost.jsx';
 
 const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, gacha: Gacha, inventario: Inventario, ficha: Perfil, ciudad: Ciudad, tienda: Tienda, hogar: Hogar };
 
-/** Monta todas las pestañas. Se llama una sola vez, cuando el HTML del panel ya está en el DOM. */
 export function montarIslas() {
   for (const [t, Isla] of Object.entries(ISLAS)) {
     const el = document.getElementById('t-' + t);
