@@ -17,6 +17,8 @@ const BOT_NUMBER = '5219633122232';
 const TITULO = 'Isla · Panel';
 
 const $ = s => document.querySelector(s);
+// Los módulos React pueden reemplazar contenido de una pestaña; no escribir texto en nodos ausentes.
+const setText = (selector, value) => { const el = $(selector); if (el) el.textContent = value; return el; };
 const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICONOS = {
@@ -185,7 +187,7 @@ function vista(v) {
   if (v === 'login') { petalos(14, 'ambiente'); document.title = TITULO; }
 }
 function aviso(txt, ms) {
-  const t = $('#toast'); t.textContent = txt; t.hidden = false;
+  const t = $('#toast'); if (!t) return; t.textContent = txt; t.hidden = false;
   clearTimeout(aviso.t); aviso.t = setTimeout(() => (t.hidden = true), ms || 3500);
 }
 function limpiarTabs() { IslaBridge.setMe(null); eventos = {}; eventosT = 0; abiertas = []; abiertasVistas.clear(); store.reiniciar(); }
@@ -202,10 +204,10 @@ function multChip(m) {
 }
 
 function pintarClima(c) {
-  $('#cc-em').textContent = c.emoji;
-  $('#cc-nom').textContent = c.nombre + (c.raro ? ' · raro' : '');
-  $('#cc-desc').textContent = c.desc;
-  $('#cc-sig').textContent = c.siguiente.emoji + ' ' + c.siguiente.nombre;
+  setText('#cc-em', c.emoji);
+  setText('#cc-nom', c.nombre + (c.raro ? ' · raro' : ''));
+  setText('#cc-desc', c.desc);
+  setText('#cc-sig', c.siguiente.emoji + ' ' + c.siguiente.nombre);
   $('#cc-resta').dataset.fin = Date.now() + c.faltaS * 1000;
   $('#lluvia').hidden = !/lluv|torment/i.test(c.nombre);
 }
@@ -214,6 +216,7 @@ let botAntes = true;
 let animMon = 0;
 function contarMonedas(desde, hasta) {
   const el = $('#monedas'), caja = el.parentElement;
+  if (!el) return;
   if (desde === null || desde === hasta || reducir) { el.textContent = fmt(hasta); return; }
   const t0 = performance.now(), id = ++animMon;
   caja.classList.remove('sube', 'baja');
@@ -233,9 +236,9 @@ function aplicar(d) {
   botAntes = d.bot !== false;
   me = d; IslaBridge.setMe(d); fin = {}; tot = {};
   for (const k in ACC) { fin[k] = Date.now() + (d.esperas[k] || 0) * 1000; if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot; }
-  $('#alias').textContent = d.alias;
-  $('#nivel').textContent = 'Nivel ' + d.nivel;
-  $('#xp').textContent = fmt(d.xp) + ' / ' + fmt(d.xpSig) + ' XP';
+  setText('#alias', d.alias);
+  setText('#nivel', 'Nivel ' + d.nivel);
+  setText('#xp', fmt(d.xp) + ' / ' + fmt(d.xpSig) + ' XP');
   contarMonedas(prevMon, d.monedas);
   $('#xpbar').style.width = Math.min(100, d.xp / d.xpSig * 100) + '%';
   $('#hero-ava').innerHTML = avatar(d, 84, true);
@@ -253,7 +256,7 @@ function pintarEvento(e) {
   const caja = $('#evento-x2');
   if (!e || !e.activo || !(e.restaS > 0)) { caja.hidden = true; return; }
   caja.dataset.fin = Date.now() + e.restaS * 1000;
-  $('#ev-mult').textContent = 'x' + e.mult;
+  setText('#ev-mult', 'x' + e.mult);
   $('#ev-resta').dataset.fin = caja.dataset.fin;
   caja.hidden = false;
 }
@@ -290,7 +293,7 @@ function montar() {
 }
 function montarMultiplicadores() {
   const mult = me && me.clima ? me.clima.mult : {};
-  for (const k in ACC) $('#m-' + k).innerHTML = multChip(mult[k]);
+  for (const k in ACC) { const el = $('#m-' + k); if (el) el.innerHTML = multChip(mult[k]); }
 }
 
 function notificar(k) {
@@ -366,18 +369,20 @@ function tickEventos(ahora) {
     const rest = Math.max(0, Math.ceil((g.fin - ahora) / 1000));
     const lista = pend || trato || ab.length > 0 || rest === 0;
     const p = $('#p-gacha');
-    if (p.dataset.base === undefined) p.dataset.base = p.textContent;
-    p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
-    $('#c-gacha').classList.toggle('espera', !lista);
-    $('#b-gacha').textContent = pend || ab.length ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest);
+    if (p) {
+      if (p.dataset.base === undefined) p.dataset.base = p.textContent;
+      p.textContent = pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : trato ? 'Te propusieron un cambio de cartas.' : p.dataset.base;
+    }
+    const cg = $('#c-gacha'); if (cg) cg.classList.toggle('espera', !lista);
+    setText('#b-gacha', pend || ab.length ? 'Reclamar' : trato ? 'Ver trato' : rest === 0 ? 'Invocar' : dur(rest));
     if (lista) n++;
     if ((g.pend && !pend || g.trato && !trato) && !gachaVencida) { gachaVencida = true; cargarEventos(true); }
   }
   if (r) {
     const rest = Math.max(0, Math.ceil((r.fin - ahora) / 1000));
     const lista = r.n > 0 && rest === 0;
-    $('#c-raid').classList.toggle('espera', !lista);
-    $('#b-raid').textContent = r.n === 0 ? 'Ver jefes' : rest === 0 ? 'Atacar' : dur(rest);
+    const cr = $('#c-raid'); if (cr) cr.classList.toggle('espera', !lista);
+    setText('#b-raid', r.n === 0 ? 'Ver jefes' : rest === 0 ? 'Atacar' : dur(rest));
     if (lista) n++;
   }
   const fin = document.querySelector('[data-gc-fin]');
@@ -399,14 +404,17 @@ function tick() {
   let listas = 0, menor = Infinity;
   for (const k in ACC) {
     const rest = Math.max(0, Math.ceil((fin[k] - ahora) / 1000)), lista = rest === 0;
-    const c = $('#c-' + k), b = c.querySelector('button');
+    const c = $('#c-' + k);
+    if (!c) continue;
+    const b = c.querySelector('button');
+    if (!b) continue;
     c.hidden = tot[k] === undefined;
     if (c.hidden) continue;
     c.classList.toggle('espera', !lista);
-    $('#t-' + k).textContent = lista ? 'Listo' : mmss(rest);
+    setText('#t-' + k, lista ? 'Listo' : mmss(rest));
     b.textContent = lista ? ACC[k].n : 'En espera';
     b.setAttribute('aria-disabled', String(!lista));
-    $('#r-' + k).style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
+    const aro = $('#r-' + k); if (aro) aro.style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
     if (lista) listas++; else menor = Math.min(menor, rest);
     if (previa[k] === false && lista) notificar(k);
     previa[k] = lista;
@@ -430,9 +438,15 @@ function tick() {
 }
 setInterval(tick, 1000);
 
+let refrescoEnCurso = null;
 async function refrescar() {
-  try { aplicar(await api('/api/me')); }
-  catch (e) { if (e.estado === 401) sesionCaducada(); }
+  if (refrescoEnCurso) return refrescoEnCurso;
+  refrescoEnCurso = (async () => {
+    try { aplicar(await api('/api/me')); }
+    catch (e) { if (e.estado === 401) sesionCaducada(); }
+    finally { refrescoEnCurso = null; }
+  })();
+  return refrescoEnCurso;
 }
 setInterval(() => {
   if (me && !ocupado && (!document.hidden || avisosActivos())) refrescar();
@@ -443,7 +457,7 @@ function animar(k) {
   d.className = 'dib ' + a.fx;
   $('#aicono').className = 'ic';
   $('#aicono').innerHTML = ICONOS[a.ic];
-  $('#acap').textContent = a.v;
+  setText('#acap', a.v);
   const ch = d.querySelector('.chispas');
   if (!ch.children.length) ch.innerHTML = Array.from({ length: 8 }, (_, i) => `<i style="--a:${i * 45}deg;--n:${i}"></i>`).join('');
   $('#anim').hidden = false;
@@ -475,12 +489,12 @@ function hoja(o) {
   $('#h-icono').innerHTML = o.icono || '';
   $('#halo').style.setProperty('--col', col);
   $('#halo').style.color = col;
-  $('#h-zona').textContent = o.zona || '';
-  $('#h-titulo').textContent = o.titulo;
-  const rz = $('#h-rareza'); rz.textContent = o.rareza ? 'Rareza: ' + o.rareza : ''; rz.style.color = col;
-  $('#h-chips').replaceChildren(...o.chips.map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
-  $('#h-espera').textContent = o.pie || '';
-  $('#h-ok').textContent = o.boton || 'Volver a acciones';
+  setText('#h-zona', o.zona || '');
+  setText('#h-titulo', o.titulo);
+  const rz = $('#h-rareza'); if (rz) { rz.textContent = o.rareza ? 'Rareza: ' + o.rareza : ''; rz.style.color = col; }
+  const chips = $('#h-chips'); if (chips) chips.replaceChildren(...(o.chips || []).map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
+  setText('#h-espera', o.pie || '');
+  setText('#h-ok', o.boton || 'Volver a acciones');
   const caja = $('#hoja .hoja');
   caja.classList.toggle('mal', !!o.mal);
   caja.classList.toggle('leg', !o.mal && o.rareza === 'Legendaria');
