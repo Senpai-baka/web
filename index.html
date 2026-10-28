@@ -1,27 +1,6 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <script>
-      (function () {
-        function show(t) {
-          var d = document.getElementById('dbg-err');
-          if (!d) {
-            d = document.createElement('pre');
-            d.id = 'dbg-err';
-            d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;margin:0;padding:10px;max-height:60vh;overflow:auto;background:#b00020;color:#fff;font:12px/1.4 monospace;white-space:pre-wrap;word-break:break-word';
-            (document.body || document.documentElement).appendChild(d);
-          }
-          d.textContent += t + '\n\n';
-        }
-        window.addEventListener('error', function (e) {
-          show('ERROR: ' + e.message + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '') + '\n' + ((e.error && e.error.stack) || ''));
-        });
-        window.addEventListener('unhandledrejection', function (e) {
-          var r = e.reason || {};
-          show('PROMESA: ' + (r.message || r) + '\n' + (r.stack || ''));
-        });
-      })();
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#100d17" />
