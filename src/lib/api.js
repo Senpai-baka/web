@@ -5,7 +5,17 @@ const espera = ms => new Promise(r => setTimeout(r, ms));
 const idPeticion = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
 const REINTENTABLE = new Set([502, 503, 504]);
 
-export async function api(ruta, cuerpo) {
+const enVuelo = new Map();
+// Si ya hay una consulta GET idéntica en curso, se comparte su resultado en vez de pedirla otra vez
+export function api(ruta, cuerpo) {
+  if (cuerpo) return pedir(ruta, cuerpo);
+  if (enVuelo.has(ruta)) return enVuelo.get(ruta);
+  const p = pedir(ruta).finally(() => enVuelo.delete(ruta));
+  enVuelo.set(ruta, p);
+  return p;
+}
+
+async function pedir(ruta, cuerpo) {
   const post = !!cuerpo;
   const id = post ? idPeticion() : null;
   const intentos = post ? 2 : 3;
@@ -13,7 +23,7 @@ export async function api(ruta, cuerpo) {
   for (let i = 0; i < intentos; i++) {
     if (i) await espera(i * 900);
     const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), post ? 25000 : 15000);
+    const t = setTimeout(() => ctl.abort(), post ? 25000 : (i ? 15000 : 10000));
     let r;
     try {
       r = await fetch(API + ruta, {
