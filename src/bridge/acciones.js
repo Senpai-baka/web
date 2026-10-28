@@ -1,45 +1,60 @@
-// Funciones que app.js (script clásico) expone en window.IslaBridge para que las islas puedan actuar.
-// Se leen en el momento de usarlas (no al importar), porque app.js se carga después de main.jsx.
+// Lo que las islas hacen sobre el panel.
+//  - Selecciones, páginas y búsquedas de cada pestaña: viven en el store (src/state/panel.js); aquí solo se nombran.
+//  - publicar / aviso / cartas abiertas del gacha: siguen en app.js (script clásico) y se leen del puente en el momento de usarlas,
+//    porque app.js se carga después de main.jsx.
+import { sel, vista, fijar, notificar } from '../state/panel.js';
+
 const puente = () => window.IslaBridge || {};
 
 /** POST a la API con el mismo flujo del legacy: marca el botón ocupado, muestra resultado/aviso y recarga la pestaña. */
 export const publicar = (boton, ruta, cuerpo) => puente().publicar?.(boton, ruta, cuerpo);
 /** Mensaje flotante (#toast). */
 export const aviso = (txt, ms) => puente().aviso?.(txt, ms);
-/** Búsqueda de jugadores en la pestaña Clan (guarda la consulta en app.js y recarga). */
-export const buscarClan = q => puente().buscarClan?.(q);
-export const consultaClan = () => puente().consultaClan?.() ?? '';
 
-// Gacha: la sección, la página y las cartas "abiertas" (reclamables por todos) viven en app.js.
-export const gachaSel = () => puente().gachaSel?.() ?? 'invocar';
-export const gachaIr = s => puente().gachaIr?.(s);
-export const gachaPagina = dir => puente().gachaPagina?.(dir);
+const en = (lista, s) => lista.includes(s);
+const mas = (n, dir) => Math.max(1, n + dir);
+
+// Clan
+export const buscarClan = q => fijar('clan', { clanQ: q || '' });
+export const consultaClan = () => vista('clan').clanQ;
+
+// Gacha: sección y página; las cartas "abiertas" (reclamables por todos) las sondea app.js.
+export const gachaSel = () => vista('gacha').gachaSel;
+export const gachaIr = s => fijar('gacha', { gachaSel: s, gachaPag: 1 });
+export const gachaPagina = dir => fijar('gacha', { gachaPag: mas(sel.gachaPag, dir) });
 export const abiertasGacha = () => puente().abiertas?.() ?? [];
 
-// Inventario: estado temporal conservado por el panel legacy mientras se migran sus subsecciones.
-export const inventarioSeccion = () => puente().invSel?.() ?? 'objetos';
-export const cambiarInventario = s => puente().invCambiar?.(s);
+// Inventario
+export const inventarioSeccion = () => vista('inventario').invSel;
+export const cambiarInventario = s => en(['objetos', 'equipo', 'forja'], s) && fijar('inventario', { invSel: s });
 
-// Ciudad: la sección activa y la búsqueda de jugadores viven en app.js (de ahí sale la ruta que se pide a la API).
-export const ciudadSeccion = () => puente().ciudadSel?.() ?? 'banco';
-export const ciudadIr = s => puente().ciudadIr?.(s);
-export const buscarJugadores = q => puente().buscarJugadores?.(q);
-export const consultaJugadores = () => puente().consultaJugadores?.() ?? '';
+// Ciudad
+export const ciudadSeccion = () => vista('ciudad').ciudadSel;
+export const ciudadIr = s => en(['banco', 'negocios', 'casino', 'altar', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
+export const buscarJugadores = q => fijar('ciudad', { jugQ: q || '' });
+export const consultaJugadores = () => vista('ciudad').jugQ;
 
-// Tienda: la sección activa y las páginas de Mercado/Subastas viven en app.js (definen la ruta que se pide a la API).
-export const tiendaSeccion = () => puente().tiendaSel?.() ?? 'tienda';
-export const tiendaIr = s => puente().tiendaIr?.(s);
-export const tiendaPagina = (k, dir) => puente().tiendaPagina?.(k, dir);
+// Tienda
+export const tiendaSeccion = () => vista('tienda').tiendaSel;
+export const tiendaIr = s => en(['tienda', 'bazar', 'mercado', 'subastas'], s) && fijar('tienda', { tiendaSel: s });
+export const tiendaPagina = (k, dir) => fijar('tienda', k === 'mercado' ? { merPag: mas(sel.merPag, dir) } : { subPag: mas(sel.subPag, dir) });
 
-// Hogar (Mascota y Granja): la sección activa vive en app.js (define la ruta que se pide a la API).
-export const hogarSeccion = () => puente().hogarSel?.() ?? 'mascota';
-export const hogarIr = s => puente().hogarIr?.(s);
+// Hogar (Mascota y Granja)
+export const hogarSeccion = () => vista('hogar').hogarSel;
+export const hogarIr = s => en(['mascota', 'granja'], s) && fijar('hogar', { hogarSel: s });
 
-// Gacha → Tratos: la búsqueda, el jugador elegido, las páginas y las cartas marcadas viven en app.js
-// (definen la ruta que se pide a la API y se reinician tras cada trato publicado).
-export const tratoEstado = () => puente().tratoEstado?.() ?? { q: '', mia: 0, suya: 0 };
-export const tratoElegir = ref => puente().tratoElegir?.(ref);
-export const tratoQuitar = () => puente().tratoQuitar?.();
-export const buscarTrato = q => puente().buscarTrato?.(q);
-export const tratoCarta = (lado, id) => puente().tratoCarta?.(lado, id);
-export const tratoPagina = (k, dir) => puente().tratoPagina?.(k, dir);
+// Perfil: la sección la cambia el delegado data-p de app.js; la isla solo la lee.
+export const perfilSeccion = () => vista('ficha').perfilSel;
+
+// Gacha → Tratos: la búsqueda y el jugador elegido definen la ruta; las cartas marcadas solo cambian lo que se ve.
+// Tras cada trato publicado, app.js reinicia las cartas marcadas.
+export const tratoEstado = () => ({ q: vista('gacha').gtQ, mia: sel.gtMia, suya: sel.gtSuya });
+export const tratoElegir = ref => fijar('gacha', { gtRef: ref, gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0 });
+export const tratoQuitar = () => fijar('gacha', { gtRef: '', gtMia: 0, gtSuya: 0 });
+export const buscarTrato = q => fijar('gacha', { gtQ: q || '', gtRef: '', gtMia: 0, gtSuya: 0 });
+export const tratoPagina = (k, dir) => fijar('gacha', k === 'm' ? { gtPm: mas(sel.gtPm, dir) } : { gtPs: mas(sel.gtPs, dir) });
+export const tratoCarta = (lado, id) => {
+  id = Number(id);
+  if (lado === 'mia') sel.gtMia = sel.gtMia === id ? 0 : id; else sel.gtSuya = sel.gtSuya === id ? 0 : id;
+  notificar('gacha');
+};

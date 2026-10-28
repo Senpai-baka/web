@@ -1,8 +1,7 @@
-// Monta/actualiza "islas" de React dentro de las pestañas del panel legacy (#t-<pestaña>).
-// Para revertir una pestaña: quítala de ISLAS y vuelve a pintarse con el código viejo de app.js.
+// Registro de islas: cada pestaña del panel legacy (#t-<pestaña>) se monta una vez con su anfitrión,
+// que se encarga de pedir los datos al store y repintarse (ver islands/TabHost.jsx y state/panel.js).
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { flushSync } from 'react-dom';
 import Rankings from '../islands/Rankings.jsx';
 import Clan from '../islands/Clan.jsx';
 import Raid from '../islands/Raid.jsx';
@@ -13,30 +12,14 @@ import Perfil from '../islands/Perfil.jsx';
 import Ciudad from '../islands/Ciudad.jsx';
 import Tienda from '../islands/Tienda.jsx';
 import Hogar from '../islands/Hogar.jsx';
-import { Seguro } from '../islands/ui.jsx';
+import TabHost from '../islands/TabHost.jsx';
 
 const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, gacha: Gacha, inventario: Inventario, ficha: Perfil, ciudad: Ciudad, tienda: Tienda, hogar: Hogar };
-const raices = new Map();
 
-export const migradas = new Set(Object.keys(ISLAS));
-
-export function render(t, d, base) {
-  const el = document.getElementById('t-' + t);
-  const Isla = ISLAS[t];
-  if (!el || !Isla) return false;
-  let r = raices.get(t);
-  if (!r || r.el !== el) {
-    r = { el, root: createRoot(el) };
-    raices.set(t, r);
+/** Monta todas las pestañas. Se llama una sola vez, cuando el HTML del panel ya está en el DOM. */
+export function montarIslas() {
+  for (const [t, Isla] of Object.entries(ISLAS)) {
+    const el = document.getElementById('t-' + t);
+    if (el) createRoot(el).render(<TabHost t={t} Isla={Isla} />);
   }
-  // flushSync: app.js centra el botón activo y restaura el scroll justo después de dibujar.
-  flushSync(() => r.root.render(<Seguro reset={d}><Isla d={d} base={base} /></Seguro>));
-  return true;
-}
-
-export function unmount(t) {
-  const r = raices.get(t);
-  if (!r) return;
-  r.root.unmount();
-  raices.delete(t);
 }
