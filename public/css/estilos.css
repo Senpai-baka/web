@@ -52,6 +52,11 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .ava-i img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ava .lv{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);min-width:26px;padding:1px 8px;border-radius:99px;background:var(--sakura);color:#231713;font-size:12px;font-weight:900;text-align:center}
 .clima{display:flex;gap:14px;align-items:center;padding:14px 16px;margin-top:8px;border-radius:18px}
+.evento-x2{display:flex;gap:14px;align-items:center;padding:14px 16px;margin-top:8px;border-radius:18px;border:1px solid rgba(255,210,138,.45);background:linear-gradient(135deg,rgba(232,148,106,.22),rgba(255,210,138,.08))}
+.evento-x2[hidden]{display:none}
+.evento-x2 .em{font-size:34px;line-height:1}
+.evento-x2 strong{font-family:var(--serif);color:#fff;font-size:18px}
+.evento-x2 p{line-height:1.4}
 .clima .em{font-size:38px;line-height:1}
 .clima strong{font-family:var(--serif);color:#fff;font-size:18px}
 .clima p{line-height:1.4}
@@ -398,7 +403,6 @@ input.txt.corto{margin-top:0;height:40px}
 .kpis b{display:block;font-family:var(--serif);font-size:20px}
 .kpis span{font-size:12px;color:var(--mut)}
 
-/* ===== Tema Ocaso suave ===== */
 :root{--naranja:#dc8a62;--ch:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);--ch1:polygon(13px 0,100% 0,100% calc(100% - 13px),calc(100% - 13px) 100%,0 100%,0 13px)}
 body{background-image:radial-gradient(rgba(195,187,220,.06) 1px,transparent 1.5px);background-size:18px 18px}
 body::before{background:radial-gradient(70vmax 40vmax at 85% -8%,rgba(232,148,106,.12),transparent 60%),radial-gradient(60vmax 50vmax at -10% 108%,rgba(195,187,220,.10),transparent 60%)}
@@ -431,7 +435,6 @@ body::before{background:radial-gradient(70vmax 40vmax at 85% -8%,rgba(232,148,10
 #toast{bottom:calc(104px + env(safe-area-inset-bottom))}
 #petalas i{opacity:.55}
 
-/* ===== Tema Aire: espaciado, jerarquía y accesibilidad (capa final, no toca la lógica) ===== */
 :root{
   --mut:#aba3be;
   --e1:8px;--e2:12px;--e3:16px;--e4:24px;--e5:36px;
@@ -446,7 +449,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,su
 #app{padding-left:20px;padding-right:20px}
 @media (min-width:720px){#app{max-width:600px}.nav{max-width:572px}}
 
-/* Cabeceras de página y de sección */
 .top{padding-bottom:var(--e2)}
 h1{margin:var(--e4) 0 var(--e1)}
 .cabp{margin:var(--e2) 0 var(--e1)}
@@ -461,7 +463,6 @@ h1{margin:var(--e4) 0 var(--e1)}
 .sd .cuerpo{padding-bottom:var(--e2)}
 .sd .cuerpo>.bloque:first-child,.sd .cuerpo>.lista>.bloque:first-child{margin-top:var(--e1)}
 
-/* Tarjetas y bloques */
 .bloque{padding:var(--e3) 18px;margin-top:var(--e3)}
 .hud{gap:10px;padding:var(--e3) 18px;margin-top:var(--e2)}
 .chip-s{padding:7px 12px}
@@ -482,7 +483,6 @@ h1{margin:var(--e4) 0 var(--e1)}
   .ticket>.etiq{padding:10px;font-size:14px}
 }
 
-/* Listas, pares clave-valor y cifras */
 .kv{padding:11px 0}
 .kv span:first-child{font-size:15px}
 .fil{padding:14px 4px;gap:14px}
@@ -504,7 +504,6 @@ h1{margin:var(--e4) 0 var(--e1)}
 .aviso-i{margin-top:var(--e3);padding:var(--e2) var(--e3);font-size:15px}
 .vacio{padding:var(--e5) var(--e3)}
 
-/* Botones y controles: objetivo táctil mínimo 44px */
 .mini{height:auto;min-height:44px;padding:8px 14px;font-size:15px;line-height:1.25}
 .btns{gap:var(--e2);margin-top:18px}
 .btnrow{gap:var(--e2);margin-top:var(--e3)}
@@ -520,12 +519,10 @@ label{margin:var(--e4) 0 var(--e1)}
 @media (min-width:430px){.seg button{padding:10px 12px;font-size:15px}}
 .cartera{margin:var(--e3) 0 var(--e1);padding:8px 14px}
 
-/* Navegación inferior */
 .nav button{font-size:12px;padding:10px 2px 6px;min-height:58px}
 .nav svg{width:24px;height:24px}
 #app.con-nav{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 
-/* Tarjeta del jefe Raid */
 .rd{margin-top:20px}
 .rd-arena{height:180px}
 .rd-arena .zn{font-size:13px;padding:4px 12px;left:14px;top:12px}
@@ -545,7 +542,6 @@ label{margin:var(--e4) 0 var(--e1)}
 .rd-in .mini{min-height:52px;font-size:16px}
 .rd-intro{margin:var(--e2) 0 0;color:var(--mut)}
 
-/* ===== Inicio: distribución por paneles (resumen, recolectar, recompensas, eventos, explorar) ===== */
 .resumen{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:var(--e2);margin-top:var(--e2)}
 .resumen .clima{margin-top:0}
 .listas-t{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;padding:16px}
@@ -580,7 +576,6 @@ label{margin:var(--e4) 0 var(--e1)}
 .at-t small{font-size:13px;line-height:1.35;color:var(--mut)}
 @media (prefers-reduced-motion:reduce){.atajo:active{transform:none}}
 
-/* ===== Cabecera de cada pestaña ===== */
 .cab-t{position:relative;isolation:isolate;margin:var(--e2) 0 var(--e1);padding:var(--e3);clip-path:var(--ch);background:linear-gradient(135deg,rgba(195,187,220,.35),rgba(195,187,220,.05) 60%)}
 .cab-t::before{content:"";position:absolute;inset:1px;z-index:-1;clip-path:var(--ch1);background:radial-gradient(120% 90% at 0 0,rgba(232,148,106,.16),transparent 60%),linear-gradient(160deg,#1d1727,#151119)}
 .cab-top{display:flex;align-items:center;gap:14px}
@@ -593,7 +588,6 @@ label{margin:var(--e4) 0 var(--e1)}
 .cab-st b{display:block;font:800 19px/1.2 var(--serif);color:var(--petal);font-variant-numeric:tabular-nums}
 .cab-st span{font-size:12.5px;color:var(--mut)}
 
-/* ===== Respuesta al tocar y entrada de pestañas ===== */
 .accion,.mini,.btn,.btn2,.atajo,.seg button,.nav button{transition:transform .12s ease,filter .15s,background .15s,opacity .15s}
 .accion:active,.mini:active,.btn:active,.btn2:active,.seg button:active{transform:scale(.97)}
 .nav button:active{transform:scale(.92)}
@@ -606,7 +600,6 @@ label{margin:var(--e4) 0 var(--e1)}
   .toco,#v-panel>div:not([hidden]){animation:none}
 }
 
-/* ===== Filtros, comparación y estados de carga ===== */
 .filtros{display:flex;gap:8px;overflow-x:auto;padding:4px 20px 8px;margin:var(--e2) -20px 0;scrollbar-width:none;scroll-snap-type:x proximity}
 .filtros::-webkit-scrollbar{display:none}
 .cuerpo .filtros{margin-left:0;margin-right:0;padding-left:0;padding-right:0}
@@ -631,7 +624,6 @@ label{margin:var(--e4) 0 var(--e1)}
 @keyframes brilla{from{background-position:100% 0}to{background-position:-100% 0}}
 @media (prefers-reduced-motion:reduce){.esq-cab,.esq-b,.esq-fila i{animation:none}}
 
-/* Mazmorra interactiva */
 .cb-run{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:space-between;margin-top:12px;font-size:13.5px;color:var(--mut)}
 .cb-run b{color:var(--petal)}
 .cb-run .etiq{margin-left:2px;font-style:normal;font-size:11px;padding:1px 8px}
