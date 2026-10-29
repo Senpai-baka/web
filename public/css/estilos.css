@@ -129,6 +129,9 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .fil .pt{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(195,187,220,.35);color:var(--lav)}
 .fil .pt svg{width:18px;height:18px}
 .fil .mini{flex:none}
+.fil .rav{position:relative;flex:none;width:38px;height:38px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#322544,#4a3a62);border:1px solid rgba(195,187,220,.35);font-family:var(--serif);font-weight:800;font-size:16px;color:var(--petal)}
+.fil .rav img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fil.yo .rav{border-color:var(--oro)}
 .seg{display:flex;gap:2px;padding:4px;margin:16px 0 4px;border-radius:15px;background:rgba(255,255,255,.05);border:1px solid var(--linea);overflow-x:auto;scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
 .seg button{flex:1 0 auto;padding:9px 14px;border-radius:11px;border:0;background:transparent;font-weight:700;font-size:14px;color:var(--mut);cursor:pointer;white-space:nowrap}
