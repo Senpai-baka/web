@@ -94,15 +94,16 @@ export const premios = lista => lista.map((p, i) => medalla(i) + ' ' + fmt(p)).j
 
 export function Avatar({ r }) {
   const me = useMe();
-  const [fallo, setFallo] = useState(false);
+  const [fallo, setFallo] = useState(0);
   const v = r.yo ? me?.foto : r.foto;
-  useEffect(() => { setFallo(false); }, [v]);
+  const url = r.yo ? me?.fotoUrl : r.fotoUrl;
+  useEffect(() => { setFallo(0); }, [v, url]);
   const inicial = (String(r.nombre || '?').trim().charAt(0) || '?').toUpperCase();
   const ref = !r.yo && r.ref ? '&ref=' + encodeURIComponent(r.ref) : '';
   return (
     <span className="rav" aria-hidden="true">
       <span>{inicial}</span>
-      {v && !fallo ? <img src={`${API}/api/foto?v=${encodeURIComponent(v)}${ref}`} alt="" decoding="async" loading="lazy" onError={() => setFallo(true)} /> : null}
+      {v && fallo < (url ? 2 : 1) ? <img src={url && !fallo ? url : `${API}/api/foto?v=${encodeURIComponent(v)}${ref}`} alt="" decoding="async" loading="lazy" onError={() => setFallo(f => f + 1)} /> : null}
     </span>
   );
 }
