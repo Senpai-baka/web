@@ -1445,19 +1445,6 @@ function pintarClan(d, base) {
   return `${titulo('Tu clan')}${propio}${sec('cl-guerra', 'Guerra de clanes', '', `<div class="lista">${guerra}</div>`)}${sec('cl-top', 'Top clanes', '', `<div class="lista">${top}</div>`)}`;
 }
 
-const CARGA = {
-  ficha: [() => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[S.perfilSel] || '/api/ficha'), pintarPerfil],
-  inventario: [() => S.invSel === 'equipo' ? '/api/equipo' : S.invSel === 'forja' ? '/api/forja' : '/api/inventario', pintarInventario],
-  tienda: [() => S.tiendaSel === 'mercado' ? '/api/mercado?pagina=' + merPag : S.tiendaSel === 'subastas' ? '/api/subastas?pagina=' + subPag : '/api/' + S.tiendaSel, pintarTienda],
-  hogar: [() => '/api/' + S.hogarSel, pintarHogar],
-  ciudad: [() => S.ciudadSel === 'jugadores' ? '/api/jugadores?q=' + encodeURIComponent(S.jugQ) : '/api/' + S.ciudadSel, pintarCiudad],
-  rankings: ['/api/rankings', pintarRankings],
-  gacha: [() => S.gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + gachaPag : S.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + encodeURIComponent(S.gtQ) + '&ref=' + encodeURIComponent(S.gtRef) + '&pm=' + S.gtPm + '&ps=' + gtPs : '/api/gacha', pintarGacha],
-  raid: ['/api/raid', pintarRaidTab],
-  mazmorra: ['/api/mazmorra', pintarMazmorraTab],
-  clan: [() => '/api/clan?q=' + encodeURIComponent(S.clanQ), pintarClanTab]
-};
-
 function dibujar(t) { if (cargado[t]) store.notificar(t); }
 async function abrir(t, forzar) {
   if (t === 'historial' || t === 'heroe') { S.perfilSel = t; t = 'ficha'; }
@@ -1627,16 +1614,32 @@ async function salir() {
 }
 $('#top-ava').addEventListener('click', () => abrir('ficha'));
 
+let reintentoArranque = 0;
+async function arrancar() {
+  clearTimeout(reintentoArranque);
+  if (me) return;
+  let d;
+  try { d = await api('/api/me'); }
+  catch (e) {
+    vista('login');
+    if (e && e.estado === 401) return;
+    console.error('[isla] no se pudo restaurar la sesión', e);
+    $('#err').textContent = 'No pude conectar con Isla. Reintentando…';
+    reintentoArranque = setTimeout(arrancar, 5000);
+    return;
+  }
+  $('#err').textContent = '';
+  try { aplicar(d); } catch (e) { console.error('[isla] error al pintar el panel', e); }
+  vista('panel');
+  abrir(location.hash.slice(1) || 'inicio');
+}
+
 (async function () {
   if (BOT_NUMBER) { const wa = $('#wa'); wa.href = 'https://wa.me/' + BOT_NUMBER + '?text=%2Fweb'; wa.hidden = false; }
   avisosOn = leerAvisos();
   montar();
   pintarCampana();
-  try {
-    aplicar(await api('/api/me'));
-    vista('panel');
-    abrir(location.hash.slice(1) || 'inicio');
-  } catch (_) { vista('login'); }
+  arrancar();
 })();
 
 const sinMov = matchMedia('(prefers-reduced-motion: reduce)').matches;
