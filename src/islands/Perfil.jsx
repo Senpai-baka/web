@@ -7,6 +7,7 @@ import PerfilTop, { Salir } from './PerfilTop.jsx';
 import PerfilHeroe from './PerfilHeroe.jsx';
 import PerfilHistorial from './PerfilHistorial.jsx';
 import PerfilOwner from './PerfilOwner.jsx';
+import FotoPerfil from './FotoPerfil.jsx';
 import { perfilSeccion } from '../bridge/acciones.js';
 
 const fmtN = v => fmt(Number(v || 0));
@@ -31,6 +32,7 @@ function PerfilFicha({ d, base }) {
       {[['ficha','Ficha'],['heroe','Héroe'],['progreso','Progreso'],['historial','Recuerdos'],...(me?.owner ? [['owner','Owner']] : [])].map(([key,label]) => <button key={key} type="button" data-p={key} aria-pressed={key === 'ficha'}>{label}</button>)}
     </div>
     {avisos.length > 0 && <div className="aviso-i">{avisos.map(x => <p key={x}>{x}</p>)}</div>}
+    <FotoPerfil />
     <Sec k="perfil-finanzas-react" titulo="Finanzas"><Cifras lista={[["Cartera", fmtN(d.cartera)], ["Banco", fmtN(d.banco)], ["Total", fmtN(d.total)]]}/><div className="bloque vidrio"><Kv label="Bono de ingresos">+{d.bonoIngresos || 0}%</Kv><Kv label="Prestigio">{d.prestigio?.n ?? 0}/{d.prestigio?.max ?? 0}{d.prestigio?.bono ? ` · +${d.prestigio.bono}%` : ''}</Kv></div></Sec>
     <Sec k="perfil-atributos-react" titulo="Atributos"><div className="bloque vidrio"><BarraStat nombre="Fuerza" valor={stats.fuerza}/><BarraStat nombre="Vigor" valor={stats.vigor}/><BarraStat nombre="Suerte" valor={stats.suerte}/></div></Sec>
     {(b.escudoS > 0 || b.xpS > 0) && <Sec k="perfil-activos-react" titulo="Activos"><div className="bloque vidrio">{b.escudoS > 0 && <Kv label="Escudo anti-robo"><Countdown fin={base + b.escudoS * 1000}/></Kv>}{b.xpS > 0 && <Kv label="Boost de XP x2"><Countdown fin={base + b.xpS * 1000}/></Kv>}</div></Sec>}
