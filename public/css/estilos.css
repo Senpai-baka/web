@@ -143,7 +143,7 @@ h3{font-weight:700;font-size:15px;color:#fff;margin:12px 0 2px}
 .mini{height:40px;padding:0 14px;border-radius:11px;border:1px solid rgba(232,148,106,.55);background:rgba(232,148,106,.12);font-weight:700;cursor:pointer;font-size:14px;transition:transform .12s}
 .mini:active{transform:scale(.97)}
 .mini[data-post$="/comprar"],.mini[data-post$="/pujar"],.mini[data-post$="/publicar"],.mini[data-post$="/crear"],.mini[data-post$="/mejorar"],.mini[data-post$="/equipar"]{background:var(--sakura);border-color:var(--sakura);color:#231713}
-.mini[data-post$="/expulsar"],.mini[data-post$="/disolver"],.mini[data-post$="/salir"],.mini[data-post$="/robar"],.mini[data-post$="/cancelar"],.mini[data-post$="/vender"],.mini[data-post$="/desmontar"],.mini[data-post$="/vender-hasta"]{background:transparent;border-color:rgba(221,133,145,.4);color:#dd8591}
+.mini[data-post$="/expulsar"],.mini[data-post$="/disolver"],.mini[data-post$="/salir"],.mini[data-post$="/robar"],.mini[data-post$="/cancelar"],.mini[data-post$="/vender"],.mini[data-post$="/desmontar"],.mini[data-post$="/vender-hasta"],.mini[data-post$="/desmontar-hasta"]{background:transparent;border-color:rgba(221,133,145,.4);color:#dd8591}
 .mini[data-post$="/atacar"]{background:#c9626f;border-color:#c9626f;color:#1a1020;font-weight:900}
 .mini[aria-disabled="true"],.mini[aria-disabled="true"][data-post]{border-color:rgba(195,187,220,.2);background:transparent;color:var(--mut);cursor:default}
 .btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
