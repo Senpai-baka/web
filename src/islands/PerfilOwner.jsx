@@ -21,6 +21,16 @@ export default function PerfilOwner({ d }) {
           <K v={d.instancia.node} t="Node" />
         </div>
       </div>
+      {d.web.conectados && (
+        <div className="bloque vidrio">
+          <div className="kpis">
+            <K v={fmt(d.web.conectados.ahora)} t="En la web ahora" />
+            <K v={fmt(d.web.conectados.quince)} t="Últimos 15 min" />
+            <K v={fmt(d.web.conectados.dia)} t="Últimas 24 h" />
+          </div>
+          <p className="mut peq" style={{ marginTop: 10 }}>Se cuentan jugadores distintos con la web abierta. Se reinicia si el servidor se reinicia.</p>
+        </div>
+      )}
       <div className="bloque vidrio">
         <div className="kpis">
           <K v={fmt(d.totales.usuarios)} t="Usuarios" />
