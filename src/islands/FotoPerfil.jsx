@@ -64,7 +64,7 @@ export default function FotoPerfil() {
   return (
     <Sec k="perfil-foto" titulo="Foto de perfil" extra={me?.foto ? 'Personalizada' : 'Sin foto'}>
       <div className="bloque vidrio">
-        <p className="mut peq">Elige la imagen que quieras. Se recorta en cuadrado y solo la ves tú.</p>
+        <p className="mut peq">Elige la imagen que quieras. Se recorta en cuadrado y se muestra junto a tu nombre en los rankings.</p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
           <button ref={boton} type="button" className="mini" aria-disabled={ocupado ? 'true' : undefined}
             onClick={() => { if (!ocupado) entrada.current.click(); }}>
