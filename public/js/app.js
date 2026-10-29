@@ -263,10 +263,10 @@ function pintarEvento(e) {
   const caja = $('#evento-x2');
   if (!caja) return;
   if (!e || !e.activo || !(e.restaS > 0)) { caja.hidden = true; return; }
-  caja.dataset.fin = Date.now() + e.restaS * 1000;
+  caja.dataset.vence = Date.now() + e.restaS * 1000;
   const mult = $('#ev-mult'), resta = $('#ev-resta');
   if (mult) mult.textContent = 'x' + e.mult;
-  if (resta) resta.dataset.finMin = caja.dataset.fin;
+  if (resta) { resta.dataset.finMin = caja.dataset.vence; resta.textContent = restaMin(e.restaS); }
   caja.hidden = false;
 }
 function pintarHud(d) {
@@ -442,7 +442,7 @@ function tick() {
   document.querySelectorAll('[data-fin]').forEach(e => { e.textContent = dur((Number(e.dataset.fin) - ahora) / 1000); });
   document.querySelectorAll('[data-fin-min]').forEach(e => { e.textContent = restaMin((Number(e.dataset.finMin) - ahora) / 1000); });
   const evx = $('#evento-x2');
-  if (evx && !evx.hidden && Number(evx.dataset.fin) <= ahora) evx.hidden = true;
+  if (evx && !evx.hidden && Number(evx.dataset.vence) <= ahora) evx.hidden = true;
   document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
   document.querySelectorAll('[data-n-listas]').forEach(e => { e.textContent = listas; });
   const pt = $('#pt-inicio');
