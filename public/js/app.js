@@ -266,7 +266,7 @@ function pintarEvento(e) {
   caja.dataset.fin = Date.now() + e.restaS * 1000;
   const mult = $('#ev-mult'), resta = $('#ev-resta');
   if (mult) mult.textContent = 'x' + e.mult;
-  if (resta) resta.dataset.fin = caja.dataset.fin;
+  if (resta) resta.dataset.finMin = caja.dataset.fin;
   caja.hidden = false;
 }
 function pintarHud(d) {
@@ -406,6 +406,12 @@ function tickEventos(ahora) {
   }
   return n;
 }
+function restaMin(s) {
+  const m = Math.max(1, Math.ceil(s / 60));
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? h + ' h ' + r + ' min' : h + ' h';
+}
 function tick() {
   if (!me) return;
   const ahora = Date.now();
@@ -434,6 +440,7 @@ function tick() {
   vis.forEach(z => z.classList.remove('ancha'));
   if (vis.length % 2) vis[vis.length - 1].classList.add('ancha');
   document.querySelectorAll('[data-fin]').forEach(e => { e.textContent = dur((Number(e.dataset.fin) - ahora) / 1000); });
+  document.querySelectorAll('[data-fin-min]').forEach(e => { e.textContent = restaMin((Number(e.dataset.finMin) - ahora) / 1000); });
   const evx = $('#evento-x2');
   if (evx && !evx.hidden && Number(evx.dataset.fin) <= ahora) evx.hidden = true;
   document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
