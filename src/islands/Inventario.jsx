@@ -3,11 +3,12 @@ import { Cab, Seg, Sec, Vacio, Accion, Cifras, Countdown } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { inventarioSeccion, cambiarInventario, aviso } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
+import { Elixires, ElixiresForja, EfectosActivos } from './Elixires.jsx';
 
 const OPCIONES = [['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']];
 const FILTROS = [
   ['todo', 'Todo'], ['herramientas', 'Herramientas'], ['cofres', 'Cofres'],
-  ['consumibles', 'Consumibles'], ['reliquias', 'Reliquias'], ['materiales', 'Materiales'],
+  ['consumibles', 'Consumibles'], ['elixires', 'Elixires'], ['reliquias', 'Reliquias'], ['materiales', 'Materiales'],
 ];
 const rarezaCofre = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' };
 
@@ -18,7 +19,7 @@ function ItemIcon({ emoji, cantidad, color }) {
 }
 function Filtro({ valor, onCambio, cantidades }) {
   return <div className="filtros" role="group" aria-label="Filtrar objetos">
-    {FILTROS.filter(([key]) => key === 'todo' || cantidades[key] > 0).map(([key, label]) =>
+    {FILTROS.filter(([key]) => key === 'todo' || key === 'elixires' || cantidades[key] > 0).map(([key, label]) =>
       <button key={key} type="button" className="fch" aria-pressed={valor === key} onClick={() => onCambio(key)}>
         {label}{key !== 'todo' && <i>{cantidades[key]}</i>}
       </button>)}
@@ -80,13 +81,14 @@ function ObjetosReact({ d, base }) {
     ['herramientas', 'Herramientas', d.herramientas || [], (items) => <Herramientas lista={items}/>],
     ['cofres', 'Cofres', d.cofres || [], (items) => <Cofres lista={items} max={d.cofresMax || 1}/>],
     ['consumibles', 'Consumibles', d.consumibles || [], (items) => <Consumibles lista={items} tope={d.tope || 0} base={base}/>],
+    ['elixires', 'Elixires y pociones', d.objetos || [], (items) => <Elixires lista={items} tope={d.topeObjetos || 10}/>],
     ['reliquias', 'Reliquias', d.reliquias || [], (items) => <Reliquias lista={items} bono={d.bonoReliquias || 0}/>],
     ['materiales', 'Materiales', d.materiales || [], (items) => <Materiales lista={items} valor={d.valorMateriales || 0}/>],
   ], [d, base]);
-  const cantidades = Object.fromEntries(partes.map(([key, , items]) => [key, items.length]));
+  const cantidades = Object.fromEntries(partes.map(([key, , items]) => [key, key === 'elixires' ? items.filter(o => o.cantidad > 0).length : items.length]));
   const visible = partes.filter(([key]) => filtro === 'todo' || filtro === key);
-  return <><Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades}/>
-    {visible.map(([key, titulo, items, render]) => <Sec key={key} k={key} titulo={titulo} extra={key === 'cofres' ? `hasta ${d.cofresMax} a la vez` : key === 'consumibles' ? `máx. ${d.tope} de cada uno` : key === 'reliquias' ? `${items.filter(x => x.tiene).length}/${items.length}` : ''}>
+  return <><EfectosActivos lista={d.efectos} base={base}/><Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades}/>
+    {visible.map(([key, titulo, items, render]) => <Sec key={key} k={key} titulo={titulo} extra={key === 'cofres' ? `hasta ${d.cofresMax} a la vez` : key === 'consumibles' ? `máx. ${d.tope} de cada uno` : key === 'elixires' ? `${cantidades.elixires} de ${items.length}` : key === 'reliquias' ? `${items.filter(x => x.tiene).length}/${items.length}` : ''}>
       {render(items)}
     </Sec>)}
   </>;
@@ -132,18 +134,19 @@ function EquipoReact({ d }) {
         <p className="peq">{activo.desc}</p>
         <p className="mut peq">{(RAREZAS_EQUIPO[activo.rareza] || RAREZAS_EQUIPO.comun)[0]} · Nivel {activo.ilvl} · Mejora +{activo.plus || 0}</p>
         <p className="mut peq">Durabilidad: {activo.dur}/{activo.durMax}{activo.roto ? ' · roto, sin bonos' : ''}</p>
-        {m ? <p className="mut peq">Siguiente mejora: {fmt(m.monedas)} monedas · {m.hierro} hierro{m.oro ? ` · ${m.oro} oro` : ''} · {m.prob}% de éxito</p> : <p className="mut peq">Mejora al máximo (+{d.maxPlus ?? '—'}).</p>}
+        {m ? <p className="mut peq">Siguiente mejora: {fmt(m.monedas)} monedas · {m.hierro} hierro{m.oro ? ` · ${m.oro} oro` : ''} · {m.prob}% de éxito{m.piedraUtil ? ` (${m.probPiedra}% con 💎, tienes ${d.piedras || 0})` : ''}</p> : <p className="mut peq">Mejora al máximo (+{d.maxPlus ?? '—'}).</p>}
         {actual ? <div className="cmp"><p className="mut peq">Comparado con lo que llevas puesto ({actual.etiqueta})</p>{stat('Nivel', activo.ilvl, actual.ilvl)}{stat('Mejora', activo.plus || 0, actual.plus || 0, `+${activo.plus || 0}`, `+${actual.plus || 0}`)}{stat('Rareza', Object.keys(RAREZAS_EQUIPO).indexOf(activo.rareza), Object.keys(RAREZAS_EQUIPO).indexOf(actual.rareza), (RAREZAS_EQUIPO[activo.rareza] || RAREZAS_EQUIPO.comun)[0], (RAREZAS_EQUIPO[actual.rareza] || RAREZAS_EQUIPO.comun)[0])}{stat('Durabilidad', activo.dur, actual.dur, `${activo.dur}/${activo.durMax}`, `${actual.dur}/${actual.durMax}`)}</div> : null}
         <div className="btns">
           {activo.equipado ? <Accion ruta="/api/equipo/desequipar" cuerpo={{ tipo: activo.tipo }}>Quitar</Accion> : <Accion ruta="/api/equipo/equipar" cuerpo={{ id: activo.id }}>Equipar</Accion>}
           {m ? <Accion ruta="/api/equipo/mejorar" cuerpo={{ id: activo.id }} motivo={!m.puede ? 'Te faltan monedas o materiales.' : null}>Mejorar +{(activo.plus || 0) + 1}</Accion> : <button className="mini" type="button" aria-disabled="true" onClick={() => aviso('Esta pieza ya alcanzó su mejora máxima.')}>Al máximo</button>}
+          {m && <Accion ruta="/api/equipo/mejorar" cuerpo={{ id: activo.id, piedra: true }} motivo={!(d.piedras > 0) ? 'No tienes Piedra de bendición. Fabrícala en Forja.' : !m.piedraUtil ? 'Esta mejora ya tiene 100% de éxito: guarda la piedra.' : !m.puede ? 'Te faltan monedas o materiales.' : null}>💎 Con piedra · {m.probPiedra}%</Accion>}
           {activo.reparar && <Accion ruta="/api/equipo/reparar" cuerpo={{ id: activo.id }} motivo={!activo.reparar.puede ? 'Te faltan monedas.' : null}>Reparar {fmt(activo.reparar.monedas)}</Accion>}
           <Accion ruta="/api/equipo/desmontar" cuerpo={{ id: activo.id }} confirmar={`¿Desmontar este equipo? Recibirás ${activo.desmonte}.`}>Desmontar</Accion>
           <Accion ruta="/api/equipo/vender" cuerpo={{ id: activo.id }} confirmar={`¿Vender este equipo por ${fmt(activo.precio)} monedas?`}>Vender {fmt(activo.precio)}</Accion>
         </div>
       </div>}
     </Sec>
-    {d.reparacion?.cantidad > 0 && <Sec k="reparar-react" titulo="Reparaciones" extra={`${d.reparacion.cantidad} piezas dañadas`}><p className="mut peq">El equipo se desgasta al cazar y en la mazmorra; si llega a 0 deja de dar bonos.</p><div className="btns uno"><Accion ruta="/api/equipo/reparar" cuerpo={{ todo: true }} motivo={!d.reparacion.puede ? 'Te faltan monedas.' : null}>Reparar todo · {fmt(d.reparacion.total)} monedas</Accion></div></Sec>}
+    {d.reparacion?.cantidad > 0 && <Sec k="reparar-react" titulo="Reparaciones" extra={`${d.reparacion.cantidad} piezas dañadas`}><p className="mut peq">El equipo se desgasta al cazar y en la mazmorra; si llega a 0 deja de dar bonos.</p><div className="btns"><Accion ruta="/api/equipo/reparar" cuerpo={{ todo: true }} motivo={!d.reparacion.puede ? 'Te faltan monedas.' : null}>Reparar todo · {fmt(d.reparacion.total)}</Accion><Accion ruta="/api/objetos/usar" cuerpo={{ clave: 'kit_reparacion' }} motivo={!(d.kits > 0) ? 'No tienes Kits de reparación. Fabrícalos en Forja.' : !d.kitUtil ? 'Tu equipo puesto no necesita reparación.' : null}>🧰 Kit ({d.kits || 0}) · gratis</Accion></div><p className="mut peq" style={{ marginTop: 8 }}>El kit repara solo lo que llevas puesto.</p></Sec>}
     {items.length > 0 && <Sec k="lote-react" titulo="Venta en lote"><p className="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p><select className="txt" aria-label="Rareza máxima para vender" value={rarezaLote} onChange={e => setRarezaLote(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select><div className="btns uno"><Accion ruta="/api/equipo/vender-hasta" cuerpo={{ rareza: rarezaLote }} confirmar="¿Vender en lote? No se puede deshacer.">Vender en lote</Accion></div></Sec>}
     {items.length > 0 && (() => {
       const lote = d.lotes?.[rarezaDesm];
@@ -159,6 +162,8 @@ function EquipoReact({ d }) {
 
 
 function ForjaReact({ d }) {
+  const objetos = d.objetos || [];
+  const listos = objetos.filter(o => o.puede).length;
   const materiales = (d.materiales || []).filter(m => Number(m.cantidad) > 0);
   const recetas = d.recetas || [];
   const valor = Number(d.valorMateriales || 0);
@@ -172,6 +177,9 @@ function ForjaReact({ d }) {
         </div>)}</div>
         <div className="btns uno"><Accion ruta="/api/forja/fabricar" cuerpo={{ clave: r.clave }} motivo={!r.puede ? 'Te faltan materiales o tu inventario está lleno.' : null}>Fabricar</Accion></div>
       </div>)}</div> : <Vacio>No hay recetas disponibles por ahora.</Vacio>}
+    </Sec>
+    <Sec k="forja-elixires-react" titulo="Elixires y pociones" extra={`${listos} listo${listos === 1 ? '' : 's'}`}>
+      <ElixiresForja lista={objetos} tope={d.topeObjetos || 10}/>
     </Sec>
     <Sec k="forja-materiales-react" titulo="Vender materiales" extra={materiales.length ? `${materiales.length} tipos` : ''}>
       {materiales.length ? <>
