@@ -1028,3 +1028,52 @@ nav,.nav,.tabs,.tab-host,.paginas,.filtros{scrollbar-width:thin;scrollbar-color:
   .rd .btns, .rd .btnrow { gap: 6px; }
   .rd .mini, .rd .btns button, .rd .btnrow button { padding: 9px 5px; font-size: 13px; }
 }
+
+
+/* ===== Correccion definitiva: energia amarilla y botones legibles ===== */
+/* Energia de combate: tono oro/amarillo, sin afectar otras barras. */
+.cb-ener, .cb-ener span { color: #ffd85e !important; }
+.cb-ener .pip.on {
+  background: linear-gradient(90deg, #f2b91b, #fff0a6) !important;
+  border-color: #ffd85e !important;
+  box-shadow: 0 0 7px rgba(255, 216, 94, .38) !important;
+}
+/* El selector de accion real usa data-post con rutas como /api/raid/atacar.
+   Aplicar alta especificidad para vencer estilos globales anteriores. */
+.rd button.mini[data-post$="/atacar"],
+.rd button[data-post$="/atacar"],
+.rd .btns button[data-post$="/atacar"],
+.rd .btnrow button[data-post$="/atacar"],
+button.mini.cb-golpe, button.cb-golpe {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #74334b, #4b2036) !important;
+  border: 1px solid rgba(255, 177, 201, .65) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.65) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18) !important;
+}
+.rd button.mini[data-post$="/posicion"],
+.rd button.mini[data-post$="/posición"],
+.rd button[data-post$="/posicion"],
+.rd button[data-post$="/posición"],
+.rd .btns button[data-post$="/posicion"],
+.rd .btns button[data-post$="/posición"],
+.rd .btnrow button[data-post$="/posicion"],
+.rd .btnrow button[data-post$="/posición"],
+button.mini.cb-acc {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #49346f, #2c2148) !important;
+  border: 1px solid rgba(195, 170, 245, .65) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.65) !important;
+}
+.rd .btns, .rd .btnrow, .cb-prim {
+  min-width: 0;
+  gap: 8px;
+}
+.rd .btns button, .rd .btnrow button, .cb-prim button {
+  min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+  text-align: center; line-height: 1.25;
+}
+@media (max-width: 380px) {
+  .rd .btns, .rd .btnrow, .cb-prim { gap: 6px; }
+  .rd .btns button, .rd .btnrow button, .cb-prim button { padding: 9px 5px; font-size: 13px; }
+}
