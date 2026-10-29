@@ -915,3 +915,116 @@ nav,.nav,.tabs,.tab-host,.paginas,.filtros{scrollbar-width:thin;scrollbar-color:
 @media(min-width:700px){#app{max-width:720px;padding-left:24px;padding-right:24px}.top{padding-top:20px}.hero{margin-left:-24px;margin-right:-24px;height:300px}.hero-in{left:24px;right:24px}.rejilla{gap:14px}.grupo{margin-top:28px}.bloque{padding:18px}}
 @media(max-width:420px){#app{padding-left:13px;padding-right:13px}.bloque{padding:12px}.sec,summary.sec{margin-top:21px}.gc-carta{gap:10px}.gc-carta .gc-img{width:96px}.gc-in strong{font-size:17px}.ticket{gap:10px}.ticket .accion{min-width:88px;padding:0 9px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ===== Isla RPG · Animaciones de Inicio (equilibradas y ligeras) ===== */
+/* Todo queda limitado a #t-inicio: no modifica las demás pantallas. */
+@keyframes isla-inicio-entrada{
+  from{opacity:0;transform:translate3d(0,10px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes isla-inicio-hero-brillo{
+  0%,100%{opacity:.34;transform:translate3d(0,0,0) scale(1)}
+  50%{opacity:.68;transform:translate3d(-1%,1%,0) scale(1.025)}
+}
+@keyframes isla-inicio-avatar-flota{
+  0%,100%{transform:translate3d(0,0,0)}
+  50%{transform:translate3d(0,-3px,0)}
+}
+@keyframes isla-inicio-icono-respira{
+  0%,100%{filter:drop-shadow(0 0 0 rgba(205,184,255,0));transform:scale(1)}
+  50%{filter:drop-shadow(0 2px 7px rgba(205,184,255,.2));transform:scale(1.035)}
+}
+@keyframes isla-inicio-xp-destello{
+  0%,100%{box-shadow:0 0 8px rgba(205,184,255,.22)}
+  50%{box-shadow:0 0 13px rgba(205,184,255,.38)}
+}
+#t-inicio>.hero{animation:isla-inicio-entrada .48s cubic-bezier(.2,.7,.2,1) both}
+#t-inicio .hero{position:relative}
+#t-inicio .hero::before{
+  content:"";position:absolute;inset:-12%;z-index:1;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(ellipse at 76% 28%,rgba(190,151,255,.2),transparent 43%),radial-gradient(ellipse at 18% 18%,rgba(240,173,145,.1),transparent 38%);
+  animation:isla-inicio-hero-brillo 7s ease-in-out infinite;will-change:opacity
+}
+#t-inicio .hero-in{animation:isla-inicio-entrada .55s .08s ease-out both}
+#t-inicio .ava{animation:isla-inicio-avatar-flota 4.8s 1s ease-in-out infinite}
+#t-inicio .xpb div{animation:isla-inicio-xp-destello 3.8s 1.2s ease-in-out infinite}
+#t-inicio .hud.vidrio,
+#t-inicio .resumen>.clima,
+#t-inicio .resumen>.listas-t,
+#t-inicio #recompensas>.ticket,
+#t-inicio .atajos>.atajo,
+#t-inicio .rejilla>.zona,
+#t-inicio .eventos>.ticket{
+  animation:isla-inicio-entrada .42s ease-out both
+}
+#t-inicio .resumen>.clima{animation-delay:.08s}
+#t-inicio .resumen>.listas-t{animation-delay:.14s}
+#t-inicio .rejilla>.zona:nth-child(2),#t-inicio .atajos>.atajo:nth-child(2),#t-inicio #recompensas>.ticket:nth-child(2){animation-delay:.05s}
+#t-inicio .rejilla>.zona:nth-child(3),#t-inicio .atajos>.atajo:nth-child(3),#t-inicio #recompensas>.ticket:nth-child(3){animation-delay:.1s}
+#t-inicio .rejilla>.zona:nth-child(4),#t-inicio .atajos>.atajo:nth-child(4){animation-delay:.15s}
+#t-inicio .rejilla>.zona:nth-child(n+5),#t-inicio .atajos>.atajo:nth-child(n+5){animation-delay:.2s}
+#t-inicio .zona .aro,#t-inicio .atajo .at-i,#t-inicio .clima .em{transition:transform .22s ease,filter .22s ease}
+#t-inicio .zona:focus-visible,#t-inicio .atajo:focus-visible{outline:2px solid var(--isla-lilac);outline-offset:3px}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  #t-inicio .zona:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.2),0 0 0 1px color-mix(in srgb,var(--z) 22%,transparent)}
+  #t-inicio .zona:hover .aro,#t-inicio .atajo:hover .at-i{transform:translateY(-2px) scale(1.04);filter:drop-shadow(0 3px 8px color-mix(in srgb,var(--z,var(--isla-lilac)) 24%,transparent))}
+  #t-inicio .atajo:hover{transform:translateY(-2px);border-color:rgba(205,184,255,.35)}
+  #t-inicio .ticket:hover{border-color:color-mix(in srgb,var(--z,var(--isla-lilac)) 42%,rgba(205,184,255,.1))}
+}
+@media(max-width:600px){
+  #t-inicio .hero::before{animation-duration:9s}
+  #t-inicio .ava{animation-duration:5.5s}
+  #t-inicio .hud.vidrio,#t-inicio .resumen>.clima,#t-inicio .resumen>.listas-t,
+  #t-inicio #recompensas>.ticket,#t-inicio .atajos>.atajo,#t-inicio .rejilla>.zona,#t-inicio .eventos>.ticket{animation-duration:.34s}
+}
+@media(prefers-reduced-motion:reduce){
+  #t-inicio>.hero,#t-inicio .hero-in,#t-inicio .hero::before,#t-inicio .ava,#t-inicio .xpb div,
+  #t-inicio .hud.vidrio,#t-inicio .resumen>.clima,#t-inicio .resumen>.listas-t,
+  #t-inicio #recompensas>.ticket,#t-inicio .atajos>.atajo,#t-inicio .rejilla>.zona,#t-inicio .eventos>.ticket{
+    animation:none!important;will-change:auto
+  }
+  #t-inicio .zona,#t-inicio .atajo,#t-inicio .zona .aro,#t-inicio .atajo .at-i,#t-inicio .clima .em{transition:none!important}
+}
+
+
+
+/* ===== Fix visual: botones Atacar / Posición en mazmorra ===== */
+/* Limita el ajuste a los controles de mazmorra; no cambia acciones ni lógica. */
+.rd .btns, .rd .btnrow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+.rd .btnrow { grid-auto-flow: row; }
+.rd .mini, .rd .btns button, .rd .btnrow button {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 42px;
+  height: auto;
+  padding: 9px 8px;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  color: #f7f1ff;
+  background: linear-gradient(145deg, #302342, #21182f);
+  border: 1px solid rgba(205,190,235,.28);
+  box-shadow: none;
+}
+.rd .mini[data-post$="/atacar"], .rd .btns [data-post$="/atacar"], .rd .btnrow [data-post$="/atacar"] {
+  color: #fff7fb;
+  background: linear-gradient(135deg, #843b58, #5c2948);
+  border-color: rgba(244,174,205,.5);
+}
+.rd .mini[data-post$="/posicion"], .rd .mini[data-post$="/posición"],
+.rd .btns [data-post$="/posicion"], .rd .btns [data-post$="/posición"],
+.rd .btnrow [data-post$="/posicion"], .rd .btnrow [data-post$="/posición"] {
+  color: #f5edff;
+  background: linear-gradient(135deg, #40305f, #2b2145);
+  border-color: rgba(195,170,245,.48);
+}
+@media (max-width: 380px) {
+  .rd .btns, .rd .btnrow { gap: 6px; }
+  .rd .mini, .rd .btns button, .rd .btnrow button { padding: 9px 5px; font-size: 13px; }
+}
