@@ -103,6 +103,7 @@ function EquipoReact({ d }) {
   const [filtro, setFiltro] = useState('todo');
   const [seleccion, setSeleccion] = useState(null);
   const [rarezaLote, setRarezaLote] = useState(d.rarezas?.[0]?.clave || 'comun');
+  const [rarezaDesm, setRarezaDesm] = useState(d.rarezas?.[0]?.clave || 'comun');
   const activo = items.find(i => String(i.id) === String(seleccion)) || items.find(i => i.equipado) || items[0] || null;
   const filtros = [['todo', 'Todo', items.length], ...Object.entries(TIPOS_EQUIPO).map(([k, [n]]) => [k, n, items.filter(i => i.tipo === k).length])];
   const vistos = filtro === 'todo' ? items : items.filter(i => i.tipo === filtro);
@@ -144,6 +145,14 @@ function EquipoReact({ d }) {
     </Sec>
     {d.reparacion?.cantidad > 0 && <Sec k="reparar-react" titulo="Reparaciones" extra={`${d.reparacion.cantidad} piezas dañadas`}><p className="mut peq">El equipo se desgasta al cazar y en la mazmorra; si llega a 0 deja de dar bonos.</p><div className="btns uno"><Accion ruta="/api/equipo/reparar" cuerpo={{ todo: true }} motivo={!d.reparacion.puede ? 'Te faltan monedas.' : null}>Reparar todo · {fmt(d.reparacion.total)} monedas</Accion></div></Sec>}
     {items.length > 0 && <Sec k="lote-react" titulo="Venta en lote"><p className="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p><select className="txt" aria-label="Rareza máxima para vender" value={rarezaLote} onChange={e => setRarezaLote(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select><div className="btns uno"><Accion ruta="/api/equipo/vender-hasta" cuerpo={{ rareza: rarezaLote }} confirmar="¿Vender en lote? No se puede deshacer.">Vender en lote</Accion></div></Sec>}
+    {items.length > 0 && (() => {
+      const lote = d.lotes?.[rarezaDesm];
+      const hay = lote ? lote.cantidad > 0 : true;
+      return <Sec k="desmontar-lote-react" titulo="Desmontar en lote"><p className="mut peq">Desmonta todo el equipo que no llevas puesto hasta la rareza elegida y recibe sus materiales.</p>
+        <select className="txt" aria-label="Rareza máxima para desmontar" value={rarezaDesm} onChange={e => setRarezaDesm(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select>
+        {lote && <p className="mut peq" style={{ marginTop: 8 }}>{lote.cantidad > 0 ? `${lote.cantidad} ${lote.cantidad === 1 ? 'objeto' : 'objetos'} · recibirás ${lote.desmonte}` : 'No hay equipo para desmontar con ese filtro.'}</p>}
+        <div className="btns uno"><Accion ruta="/api/equipo/desmontar-hasta" cuerpo={{ rareza: rarezaDesm }} motivo={!hay ? 'No hay equipo para desmontar con ese filtro.' : null} confirmar={lote ? `¿Desmontar ${lote.cantidad} ${lote.cantidad === 1 ? 'objeto' : 'objetos'}? Recibirás ${lote.desmonte}. No se puede deshacer.` : '¿Desmontar en lote? No se puede deshacer.'}>Desmontar en lote</Accion></div></Sec>;
+    })()}
     {d.casa && <Sec k="casa-react" titulo="Tu hogar" extra={`${d.casa.emoji} ${d.casa.nombre}`}><div className="bloque vidrio"><div className="fila"><strong>{d.casa.emoji} {d.casa.nombre}</strong><span className="mut peq">Nv {d.casa.nivel}/{d.casa.max}</span></div><p className="mut peq">{d.casa.perks.parcelas} parcelas · +{d.casa.perks.bolsa} de bolsa · +{d.casa.perks.ofertas} ofertas · +{d.casa.perks.ingresos}% ingresos</p>{d.casa.siguiente ? <><p className="mut peq">Siguiente: {d.casa.siguiente.emoji} {d.casa.siguiente.nombre} · {fmt(d.casa.siguiente.costo)} monedas</p><p className="mut peq">+{d.casa.siguiente.perks.parcelas} parcelas · +{d.casa.siguiente.perks.bolsa} bolsa · +{d.casa.siguiente.perks.ofertas} ofertas · +{d.casa.siguiente.perks.ingresos}% ingresos</p><div className="btns uno"><Accion ruta="/api/casa/mejorar" cuerpo={{}} motivo={(d.cartera || 0) < d.casa.siguiente.costo ? 'Te faltan monedas.' : null}>Mejorar hogar</Accion></div></> : <p className="mut peq">Tu hogar está al máximo.</p>}</div></Sec>}
   </>;
 }
