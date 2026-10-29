@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { dur, fmt } from '../lib/format.js';
+import { API } from '../lib/api.js';
 import { useMe } from '../bridge/store.js';
 import { publicar, aviso } from '../bridge/acciones.js';
 
@@ -91,10 +92,26 @@ export class Seguro extends React.Component {
 export const plural = n => `${n} miembro${n === 1 ? '' : 's'}`;
 export const premios = lista => lista.map((p, i) => medalla(i) + ' ' + fmt(p)).join(' · ');
 
-export function Fila({ r, extra, valor }) {
+export function Avatar({ r }) {
+  const me = useMe();
+  const [fallo, setFallo] = useState(false);
+  const v = r.yo ? me?.foto : r.foto;
+  useEffect(() => { setFallo(false); }, [v]);
+  const inicial = (String(r.nombre || '?').trim().charAt(0) || '?').toUpperCase();
+  const ref = !r.yo && r.ref ? '&ref=' + encodeURIComponent(r.ref) : '';
+  return (
+    <span className="rav" aria-hidden="true">
+      <span>{inicial}</span>
+      {v && !fallo ? <img src={`${API}/api/foto?v=${encodeURIComponent(v)}${ref}`} alt="" decoding="async" loading="lazy" onError={() => setFallo(true)} /> : null}
+    </span>
+  );
+}
+
+export function Fila({ r, extra, valor, avatar }) {
   return (
     <div className={`fil ${r.yo || r.mio ? 'yo' : ''}`}>
       <span className="pos">{medalla(r.pos - 1)}</span>
+      {avatar && <Avatar r={r} />}
       <div className="nom">
         <strong>{r.nombre}{r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}</strong>
         {extra && <span className="mut peq">{extra}</span>}

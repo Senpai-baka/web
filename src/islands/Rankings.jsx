@@ -20,14 +20,14 @@ export default function Rankings({ d, base }) {
 
   let cuerpo;
   if (sel === 'monedas') {
-    cuerpo = filas(d.monedas, 'Aún no hay datos.', (r, i) => <Fila key={i} r={r} valor={fmt(r.valor)} />);
+    cuerpo = filas(d.monedas, 'Aún no hay datos.', (r, i) => <Fila key={i} r={r} avatar valor={fmt(r.valor)} />);
   } else if (sel === 'xp') {
     cuerpo = (
       <>
         <p className="mut peq" style={{ marginTop: 12 }}>
           Se reinicia en <Countdown fin={base + d.cierraXpS * 1000} />. Premios: {premios(d.premiosXp)}
         </p>
-        {filas(d.xpSemana, 'Nadie ha sumado XP esta semana.', (r, i) => <Fila key={i} r={r} valor={fmt(r.valor) + ' XP'} />)}
+        {filas(d.xpSemana, 'Nadie ha sumado XP esta semana.', (r, i) => <Fila key={i} r={r} avatar valor={fmt(r.valor) + ' XP'} />)}
       </>
     );
   } else if (sel === 'clanes') {
