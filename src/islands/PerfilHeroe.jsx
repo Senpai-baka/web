@@ -13,7 +13,7 @@ const Dato = ({ ok, children }) => <li className={ok ? 'ok' : 'no'}>{ok ? '✓' 
 
 function Clase({ d, base }) {
   const c = d.clase;
-  const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y reinicia tu energía. ¿Continuar?` : undefined;
+  const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y conserva tu energía actual. ¿Continuar?` : undefined;
   return (
     <>
       {c ? (
@@ -36,7 +36,7 @@ function Clase({ d, base }) {
             <div className="habs">
               {k.habilidades.map(h => (
                 <div className={'hab ' + (h.abierta ? '' : 'cerrada')} key={h.n}>
-                  <span>{h.nombre} <span className="mut peq">Nv {h.nivel} · {h.costo}⚡ · {h.efecto}</span></span>
+                  <span>{h.nombre} <span className="mut peq">Nv {h.nivel} · {h.costo}⚡ · {h.efecto}{k.actual && h.maestria > 0 ? ' · ★' + h.maestria : ''}</span></span>
                   {k.actual && (
                     <Accion
                       ruta="/api/heroe/habilidad"
@@ -60,6 +60,73 @@ function Clase({ d, base }) {
           </div>
         ))}
       </div>
+    </>
+  );
+}
+
+function Rara({ x, r, d, nombres }) {
+  const faltanMats = x.mats.some(m => m.tengo < m.necesita);
+  const hayEquipada = r.raras.some(y => y.equipada);
+  const motivoAprender = !x.permitida ? 'Tu clase no puede aprender esta habilidad.'
+    : !x.abierta ? 'Necesitas nivel ' + x.nivel + '.'
+    : !x.pergaminos ? 'Te falta el pergamino. Sale de cofres de plata y oro.'
+    : r.estudio < x.estudio ? 'Te faltan puntos de estudio.'
+    : d.cartera < x.monedas ? 'Te faltan monedas.'
+    : faltanMats ? 'Te faltan materiales.'
+    : null;
+  const cambio = hayEquipada && !x.equipada;
+  return (
+    <div className={'bloque vidrio' + (x.permitida ? '' : ' cerrada')}>
+      <div className="fila">
+        <strong>{x.emoji} {x.nombre}</strong>
+        {x.equipada ? <span className="etiq">Equipada</span> : x.aprendida ? <span className="etiq nar">Aprendida</span> : null}
+      </div>
+      <p className="mut peq">{x.efecto} · {x.costoEnergia}⚡ · Nv {x.nivel} · {x.clases.length ? x.clases.map(c => nombres[c] || c).join(', ') : 'Todas las clases'}</p>
+      {x.aprendida ? (
+        <p className="peq">
+          Maestría <Pips n={x.rango} m={d.raras.rangoMax} /> <span className="mut">{x.rango >= d.raras.rangoMax ? 'Máxima' : x.usos + '/' + x.siguiente + ' usos'}</span>
+        </p>
+      ) : (
+        <>
+          <ul className="req">
+            <Dato ok={x.pergaminos > 0}>Pergamino ({x.pergaminos})</Dato>
+            <Dato ok={r.estudio >= x.estudio}>{fmt(x.estudio)} de estudio</Dato>
+            <Dato ok={d.cartera >= x.monedas}>{fmt(x.monedas)} monedas</Dato>
+          </ul>
+          <div style={{ marginTop: 8 }}>
+            {x.mats.map(m => (
+              <span key={m.clave} className="chip-e" style={{ '--r': m.tengo >= m.necesita ? '#8fc4ad' : '#dd8591', marginRight: 6 }}>
+                {m.emoji} {m.tengo}/{m.necesita}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+      <div className="btns uno">
+        {x.aprendida ? (
+          <Accion
+            ruta="/api/heroe/rara-equipar"
+            cuerpo={{ id: x.id }}
+            confirmar={cambio ? 'Cambiar la habilidad rara equipada cuesta ' + fmt(r.cambio) + ' monedas. ¿Continuar?' : undefined}
+            motivo={x.equipada ? 'Ya la tienes equipada.' : !x.permitida ? 'Tu clase no puede usar esta habilidad.' : null}
+          >{x.equipada ? 'Equipada' : cambio ? 'Equipar · ' + fmt(r.cambio) : 'Equipar'}</Accion>
+        ) : (
+          <Accion ruta="/api/heroe/rara-aprender" cuerpo={{ id: x.id }} motivo={motivoAprender}>Aprender</Accion>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Raras({ d }) {
+  const r = d.raras;
+  if (!d.clase || !r) return <p className="mut peq">Elige una clase para desbloquear habilidades raras.</p>;
+  const nombres = Object.fromEntries(d.clases.lista.map(k => [k.id, k.nombre]));
+  return (
+    <>
+      <p className="peq">📚 Estudio: <b>{fmt(r.estudio)}</b>/{fmt(r.tope)} <span className="mut">(ganas {Math.round(r.ratio * 100)}% de tu XP)</span></p>
+      <p className="mut peq">Los pergaminos salen de cofres de plata y oro, que dan los jefes y las expediciones. La habilidad rara equipada se suma a la de tu clase y gasta su propia energía.</p>
+      {r.raras.map(x => <Rara key={x.id} x={x} r={r} d={d} nombres={nombres} />)}
     </>
   );
 }
@@ -185,6 +252,7 @@ export default function PerfilHeroe({ d, base }) {
     <>
       <p className="peq mut" style={{ marginTop: 8 }}>Cartera: <b>{fmt(d.cartera)}</b> monedas · Nivel {d.nivel}</p>
       <Sec k="h-clase" titulo="Clase y habilidades" extra={d.clase ? d.clase.nombre : ''}><Clase d={d} base={base} /></Sec>
+      <Sec k="h-raras" titulo="Habilidades raras" extra={d.raras ? '📚 ' + fmt(d.raras.estudio) : ''}><Raras d={d} /></Sec>
       <Sec k="h-tal" titulo="Talentos" extra={d.clase ? d.talentos.libres + ' libres' : ''}><Talentos d={d} /></Sec>
       <Sec k="h-atr" titulo="Atributos" extra={d.atributos.libres + ' libres'}><Atributos d={d} /></Sec>
       <Sec k="h-exp" titulo="Expediciones" extra={d.expedicion.curso ? 'En curso' : ''}><Expediciones d={d} base={base} /></Sec>
