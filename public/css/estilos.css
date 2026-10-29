@@ -1077,3 +1077,46 @@ button.mini.cb-acc {
   .rd .btns, .rd .btnrow, .cb-prim { gap: 6px; }
   .rd .btns button, .rd .btnrow button, .cb-prim button { padding: 9px 5px; font-size: 13px; }
 }
+
+/* ===== Energia del Inicio: amarillo dorado con glow ===== */
+#t-inicio .en .pips .pip.on,
+#t-inicio #hud .en .pips .pip.on,
+#hud .en .pips .pip.on {
+  background: linear-gradient(135deg, #ffe878 0%, #ffc928 55%, #f3a900 100%) !important;
+  border-color: #ffe16a !important;
+  box-shadow: 0 0 5px rgba(255, 205, 46, .78),
+              0 0 12px rgba(255, 190, 25, .42) !important;
+}
+#t-inicio .en .pips .pip:not(.on),
+#t-inicio #hud .en .pips .pip:not(.on),
+#hud .en .pips .pip:not(.on) {
+  border-color: rgba(255, 218, 105, .35);
+  background: rgba(255, 210, 70, .07);
+}
+#t-inicio .en .mut, #t-inicio #hud .en .mut, #hud .en .mut {
+  color: #ffe6a0 !important;
+}
+
+/* ===== Colores de iconos de atributos: solo iconos, no textos ===== */
+/* Vigor: corazón rojo */
+#hud .chip-s[title="Vigor"] svg,
+.stat-r:nth-child(2) .si-ic svg {
+  color: #ff4d62 !important;
+  filter: drop-shadow(0 0 4px rgba(255, 55, 80, .48));
+}
+/* Fuerza: plateado */
+#hud .chip-s[title="Fuerza"] svg,
+.stat-r:nth-child(1) .si-ic svg {
+  color: #dce5f2 !important;
+  filter: drop-shadow(0 0 4px rgba(210, 225, 245, .38));
+}
+/* Suerte: verde */
+#hud .chip-s[title="Suerte"] svg,
+.stat-r:nth-child(3) .si-ic svg {
+  color: #55e58b !important;
+  filter: drop-shadow(0 0 4px rgba(60, 235, 125, .42));
+}
+/* El contenedor de cada icono también hereda el color correspondiente */
+.stat-r:nth-child(1) .si-ic { color: #dce5f2 !important; border-color: rgba(210,225,245,.34); background: rgba(210,225,245,.08); }
+.stat-r:nth-child(2) .si-ic { color: #ff4d62 !important; border-color: rgba(255,77,98,.36); background: rgba(255,77,98,.09); }
+.stat-r:nth-child(3) .si-ic { color: #55e58b !important; border-color: rgba(85,229,139,.34); background: rgba(85,229,139,.08); }
