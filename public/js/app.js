@@ -43,7 +43,21 @@ const NAV = [
   ['ciudad', 'Ciudad', svg('<path d="M4 21 V9 L10 6 V21"/><path d="M10 21 V4 L20 8 V21"/><path d="M3 21 H21"/><path d="M13 10 H17 M13 14 H17"/>')],
   ['rankings', 'Ranking', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')]
 ];
-const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid', 'mazmorra', 'sala', 'clan'];
+const TABS = [
+  'inicio',
+  'ficha',
+  'inventario',
+  'tienda',
+  'hogar',
+  'ciudad',
+  'rankings',
+  'gacha',
+  'raid',
+  'mazmorra',
+  'sala',
+  'clan',
+  'encargos'
+];
 const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', sala: 'inicio', clan: 'inicio' };
 const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
