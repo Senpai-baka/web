@@ -1,8 +1,8 @@
 import React from 'react';
 import { Vacio, Accion, Countdown, useAhora } from './ui.jsx';
 import { cambiarInventario } from '../bridge/acciones.js';
+import { fmt } from '../lib/format.js';
 
-// Color de cada objeto (el mismo lenguaje que las rarezas: el borde del slot y el chip toman este tono)
 export const COLOR_OBJETO = {
   elixir_fuerza: '#e8946a', elixir_suerte: '#8fc4ad', tonico_fortuna: '#e0b96a',
   elixir_furia: '#dd8591', piel_piedra: '#8fb4d6', esencia_cazador: '#b69be0',
@@ -26,8 +26,6 @@ function Slot({ emoji, cantidad, color, falta }) {
 }
 
 const Chip = ({ color, children }) => <span className="chip-e" style={{ '--r': color }}>{children}</span>;
-
-// ---- Efectos activos (banda superior de la Mochila) ----
 
 function BarraTiempo({ fin, total, nombre }) {
   const ahora = useAhora();
@@ -65,8 +63,6 @@ export function EfectosActivos({ lista, base }) {
   );
 }
 
-// ---- Mochila > Objetos > Elixires y pociones ----
-
 export function Elixires({ lista, tope }) {
   const mios = lista.filter(o => o.cantidad > 0);
   if (!mios.length) {
@@ -101,11 +97,10 @@ export function Elixires({ lista, tope }) {
   );
 }
 
-// ---- Forja > Elixires y pociones (recetas) ----
-
 function Receta({ o, max }) {
   const color = colorDe(o.clave);
-  const motivo = o.puede ? null : o.lleno ? 'Ya tienes el máximo de este objeto.' : 'Te faltan materiales.';
+  const faltanMats = o.receta.some(x => x.tengo < x.necesita);
+  const motivo = o.puede ? null : o.lleno ? 'Ya tienes el máximo de este objeto.' : faltanMats ? 'Te faltan materiales.' : 'No te alcanzan las monedas.';
   return (
     <div className="bloque vidrio rec" style={{ '--r': color }}>
       <div className="fila">
@@ -124,6 +119,7 @@ function Receta({ o, max }) {
           );
         })}
       </div>
+      {o.costo > 0 && <p className="peq" style={{ marginTop: 8 }}>💰 Costo: <b>{fmt(o.costo)}</b> monedas por unidad</p>}
       <div className="btnrow">
         <Accion ruta="/api/objetos/fabricar" cuerpo={{ clave: o.clave, n: 1 }} motivo={motivo}>Fabricar</Accion>
         {o.maxFab > 1 && <Accion ruta="/api/objetos/fabricar" cuerpo={{ clave: o.clave, n: o.maxFab }}>Fabricar x{o.maxFab}</Accion>}
