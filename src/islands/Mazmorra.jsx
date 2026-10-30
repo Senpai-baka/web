@@ -55,7 +55,7 @@ export function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u })
 
 const textoPeligro = p => (p > 0 ? `+${p} nivel${p === 1 ? '' : 'es'} sobre ti` : 'de tu nivel');
 
-function Amenaza({ m }) {
+export function Amenaza({ m }) {
   if (!m.nivelMon) return null;
   return (
     <p className="peq cb-amenaza" style={{ textAlign: 'center', margin: '6px 0' }}>
@@ -87,18 +87,23 @@ function Energia({ h }) {
   );
 }
 
+const rangoNivel = t => (t.nivelMax == null ? `Nv ${t.nivelMin}+` : `Nv ${t.nivelMin}-${t.nivelMax}`);
+
 function Tier({ d, t, base }) {
   const e = t.entrada;
   const espera = d.esperaS > 0;
-  const motivo = t.bloqueada ? `Se desbloquea en el nivel ${t.nivelMin}.` : espera ? 'Tus heridas siguen frescas.' : '';
+  const muyBajo = d.nivel < t.nivelMin;
+  const motivoNivel = muyBajo ? `Se desbloquea en el nivel ${t.nivelMin}.` : `Solo para niveles ${t.nivelMin} a ${t.nivelMax}. Tu nivel: ${d.nivel}.`;
+  const motivo = t.bloqueada ? motivoNivel : espera ? 'Tus heridas siguen frescas.' : '';
   const entrar = (extra, txt) => <Accion ruta="/api/mazmorra/entrar" cuerpo={{ mazmorra: t.clave, ...extra }} motivo={motivo}>{txt}</Accion>;
   return (
     <div className="bloque vidrio">
       <div className="fila">
         <strong>{t.emoji} {t.nombre}</strong>
-        <span className={'etiq ' + (t.bloqueada ? 'nar' : '')}>{t.bloqueada ? '🔒 Nv ' + t.nivelMin : 'Nv ' + t.nivelMin + '+'}</span>
+        <span className={'etiq ' + (t.bloqueada ? 'nar' : '')}>{t.bloqueada ? '🔒 ' + rangoNivel(t) : rangoNivel(t)}</span>
       </div>
       <p className="mut peq">{t.desc}</p>
+      {t.bloqueada && !muyBajo && <p className="peq">Ya superaste esta mazmorra. Entra a una de nivel mayor.</p>}
       <p className="peq">
         👹 Monstruos {t.desfase[0] === t.desfase[1] ? `+${t.desfase[0]}` : `+${t.desfase[0]} a +${t.desfase[1]}`} niveles sobre ti · ⭐ {t.elite}% élite · 🎁 x{t.recompensa}
       </p>
@@ -124,7 +129,7 @@ function Entrada({ d, base }) {
         <div className="bloque vidrio">
           <strong>🕳️ Elige tu mazmorra</strong>
           <p className="mut peq">
-            Cada piso genera enemigos distintos, de tu nivel o más fuertes. Los jefes aparecen cada {d.jefeCada} pisos y siempre sueltan equipo.
+            Cada piso genera enemigos distintos, de tu nivel o más fuertes, y se adaptan a tu fuerza, vida y equipo. Cada mazmorra solo admite su rango de niveles. Los jefes aparecen cada {d.jefeCada} pisos y siempre sueltan equipo.
             Si caes pierdes el {d.perdida}% de las monedas reunidas; conservas equipo y cofres. Puedes volver a entrar cada {d.esperaTotalMin} minutos.
           </p>
           {d.esperaS > 0 && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
