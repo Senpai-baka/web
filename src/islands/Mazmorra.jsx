@@ -53,9 +53,22 @@ export function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u })
   );
 }
 
+const textoPeligro = p => (p > 0 ? `+${p} nivel${p === 1 ? '' : 'es'} sobre ti` : 'de tu nivel');
+
+function Amenaza({ m }) {
+  if (!m.nivelMon) return null;
+  return (
+    <p className="peq cb-amenaza" style={{ textAlign: 'center', margin: '6px 0' }}>
+      {m.elite && <><em className="etiq nar">⭐ Élite</em>{' '}</>}
+      Nv <b>{m.nivelMon}</b> · {textoPeligro(m.peligro)}
+    </p>
+  );
+}
+
 function BarraRun({ r, base }) {
   return (
     <div className="cb-run">
+      {r.mazmorra && <span>{r.mazmorra.emoji} <b>{r.mazmorra.nombre}</b></span>}
       <span>📍 Piso <b>{r.piso}</b>{r.seguro && <> <em className="etiq">Asegurada</em></>}</span>
       <span>💰 <b>{fmt(r.botin)}</b></span>
       <span>🎒 <b>{r.equipo.length}</b>{r.cofres.length ? ' ' + r.cofres.join(' ') : ''}</span>
@@ -74,11 +87,53 @@ function Energia({ h }) {
   );
 }
 
+function Tier({ d, t, base }) {
+  const e = t.entrada;
+  const espera = d.esperaS > 0;
+  const motivo = t.bloqueada ? `Se desbloquea en el nivel ${t.nivelMin}.` : espera ? 'Tus heridas siguen frescas.' : '';
+  const entrar = (extra, txt) => <Accion ruta="/api/mazmorra/entrar" cuerpo={{ mazmorra: t.clave, ...extra }} motivo={motivo}>{txt}</Accion>;
+  return (
+    <div className="bloque vidrio">
+      <div className="fila">
+        <strong>{t.emoji} {t.nombre}</strong>
+        <span className={'etiq ' + (t.bloqueada ? 'nar' : '')}>{t.bloqueada ? '🔒 Nv ' + t.nivelMin : 'Nv ' + t.nivelMin + '+'}</span>
+      </div>
+      <p className="mut peq">{t.desc}</p>
+      <p className="peq">
+        👹 Monstruos {t.desfase[0] === t.desfase[1] ? `+${t.desfase[0]}` : `+${t.desfase[0]} a +${t.desfase[1]}`} niveles sobre ti · ⭐ {t.elite}% élite · 🎁 x{t.recompensa}
+      </p>
+      {t.check ? <p className="peq">💾 Guardado: piso {t.check}{t.record > t.check ? ` · Récord: piso ${t.record}` : ''}</p> : null}
+      {!t.bloqueada && espera && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
+      <div className="btns">
+        {entrar({}, (t.check ? 'Continuar piso ' + t.check : 'Entrar') + ' · ' + fmt(e.normal))}
+        {entrar({ seguro: true }, 'Con seguro · ' + fmt(e.normal + e.seguro))}
+        {t.check ? entrar({ inicio: true }, 'Desde piso 1 · ' + fmt(e.inicio)) : null}
+      </div>
+    </div>
+  );
+}
+
 function Entrada({ d, base }) {
   const e = d.entrada;
   const espera = d.esperaS > 0;
   const motivo = espera && 'Tus heridas siguen frescas.';
   const entrar = (cuerpo, txt) => <Accion ruta="/api/mazmorra/entrar" cuerpo={cuerpo} motivo={motivo}>{txt}</Accion>;
+  if (d.mazmorras && d.mazmorras.length) {
+    return (
+      <>
+        <div className="bloque vidrio">
+          <strong>🕳️ Elige tu mazmorra</strong>
+          <p className="mut peq">
+            Cada piso genera enemigos distintos, de tu nivel o más fuertes. Los jefes aparecen cada {d.jefeCada} pisos y siempre sueltan equipo.
+            Si caes pierdes el {d.perdida}% de las monedas reunidas; conservas equipo y cofres. Puedes volver a entrar cada {d.esperaTotalMin} minutos.
+          </p>
+          {d.esperaS > 0 && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
+          <p className="mut peq" style={{ marginTop: 8 }}>El seguro evita perder monedas y retroceder al caer.</p>
+        </div>
+        {d.mazmorras.map(t => <Tier key={t.clave} d={d} t={t} base={base} />)}
+      </>
+    );
+  }
   return (
     <div className="bloque vidrio">
       <strong>🕳️ Mazmorra</strong>
@@ -113,6 +168,7 @@ function Combate({ d, r, c, h, clase, base }) {
       <BarraRun r={r} base={base} />
       <Escena key={clave + ':' + anim} nombre={c.nombre} jefe={c.jefe} clase={clase} buff={c.buff}
         hp={r.hp} hpMax={r.hpMax} ehp={c.hp} ehpMax={c.hpMax} u={anim ? c.ultimo : null} />
+      <Amenaza m={c} />
       <div className="cb-log vidrio" aria-live="polite">
         {log.length
           ? log.map((l, i) => <p key={i} className={i === log.length - 1 ? 'nuevo' : ''}>{t(l)}</p>)
@@ -153,6 +209,7 @@ function Descanso({ d, r, h, clase, base }) {
       <BarraRun r={r} base={base} />
       <Escena nombre={s.nombre} jefe={s.jefe} clase={clase} buff={null}
         hp={r.hp} hpMax={r.hpMax} ehp={s.hp} ehpMax={s.hp} u={null} />
+      <Amenaza m={s} />
       <Energia h={h} />
       <div className="btns">
         <Accion ruta="/api/mazmorra/pelear" motivo={expirada}>⚔️ Pelear</Accion>
