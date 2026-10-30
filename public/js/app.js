@@ -4,6 +4,7 @@ if (!window.IslaLib || !window.IslaBridge) {
   throw new Error('IslaLib/IslaBridge no definidos: despliega src/main.jsx junto con public/js/app.js');
 }
 const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib;
+const tiempo = s => (s >= 3600 ? dur(s) : mmss(s));
 const IslaBridge = window.IslaBridge;
 const { store } = IslaBridge;
 const S = store.sel;
@@ -42,8 +43,8 @@ const NAV = [
   ['ciudad', 'Ciudad', svg('<path d="M4 21 V9 L10 6 V21"/><path d="M10 21 V4 L20 8 V21"/><path d="M3 21 H21"/><path d="M13 10 H17 M13 14 H17"/>')],
   ['rankings', 'Ranking', svg('<path d="M8 21 H16 M12 17 V21"/><path d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/><path d="M7 6 H4 V8 A3 3 0 0 0 7 11 M17 6 H20 V8 A3 3 0 0 1 17 11"/>')]
 ];
-const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid', 'mazmorra', 'clan'];
-const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', clan: 'inicio' };
+const TABS = ['inicio', 'ficha', 'inventario', 'tienda', 'hogar', 'ciudad', 'rankings', 'gacha', 'raid', 'mazmorra', 'sala', 'clan'];
+const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', sala: 'inicio', clan: 'inicio' };
 const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
@@ -427,7 +428,7 @@ function tick() {
     c.hidden = tot[k] === undefined;
     if (c.hidden) continue;
     c.classList.toggle('espera', !lista);
-    $('#t-' + k).textContent = lista ? 'Listo' : mmss(rest);
+    $('#t-' + k).textContent = lista ? 'Listo' : tiempo(rest);
     b.textContent = lista ? ACC[k].n : 'En espera';
     b.setAttribute('aria-disabled', String(!lista));
     $('#r-' + k).style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
@@ -443,7 +444,7 @@ function tick() {
   document.querySelectorAll('[data-fin-min]').forEach(e => { e.textContent = restaMin((Number(e.dataset.finMin) - ahora) / 1000); });
   const evx = $('#evento-x2');
   if (evx && !evx.hidden && Number(evx.dataset.vence) <= ahora) evx.hidden = true;
-  document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
+  document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? tiempo(menor) + ' · Isla' : TITULO;
   document.querySelectorAll('[data-n-listas]').forEach(e => { e.textContent = listas; });
   const pt = $('#pt-inicio');
   if (pt) pt.hidden = !listas;
@@ -479,7 +480,7 @@ $('#anim').addEventListener('click', () => saltar && saltar());
 async function jugar(k) {
   if (ocupado) return;
   const rest = Math.ceil((fin[k] - Date.now()) / 1000);
-  if (rest > 0) return aviso('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[k].ya + '.');
+  if (rest > 0) return aviso('Aún faltan ' + tiempo(rest) + ' para volver a ' + ACC[k].ya + '.');
   ocupado = true; animar(k);
   try {
     const [d] = await Promise.all([api('/api/rpg/' + k, {}), esperaAnim()]);
@@ -1481,7 +1482,7 @@ async function publicar(b, ruta, cuerpo) {
     if (ruta.includes('/gacha/')) { S.gtMia = 0; S.gtSuya = 0; }
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
-      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
+      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') || ruta.includes('/sala') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
       hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null });
     } else if (d.mensaje) aviso(d.mensaje);
     await abrir(tabActual, true);
