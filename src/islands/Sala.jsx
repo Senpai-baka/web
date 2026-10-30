@@ -53,7 +53,7 @@ function Entrada({ d, base }) {
         <strong>🏰 Mazmorra en equipo</strong>
         <p className="mut peq">
           De {d.reglas.min} a {d.reglas.max} jugadores. Cada uno actúa en su turno y el monstruo escala con el tamaño del equipo.
-          Al iniciar, cada jugador paga la entrada.
+          Al iniciar, cada jugador paga la entrada. Cada uno puede usar hasta {d.reglas.pocionesMax} pociones por sala y solo cobra botín el que actúa en el piso.
         </p>
         {espera && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
         <div className="btns">
@@ -86,8 +86,8 @@ function Entrada({ d, base }) {
   );
 }
 
-function Equipo({ s }) {
-  const sinRevivir = s.revives.usados >= s.revives.max && `La sala ya usó sus ${s.revives.max} revivires.`;
+function Equipo({ s, sinPocion }) {
+  const sinRevivir = (s.revives.usados >= s.revives.max && `La sala ya usó sus ${s.revives.max} revivires.`) || sinPocion || '';
   return (
     <div className="rd-top">
       <h4>Equipo</h4>
@@ -191,11 +191,13 @@ function Explorando({ s, base, yo, clase }) {
   );
 }
 
-function Combate({ s, base, yo, h, pociones, clase }) {
+function Combate({ s, base, yo, h, pociones, clase, reglas }) {
   const c = s.combate;
   const caido = !yo || yo.caido;
   const turno = caido ? 'Estás caído. Pide que te revivan o retírate.' : !c.miTurno ? 'Todavía no es tu turno.' : '';
-  const motivoPocion = turno || (!pociones && 'No tienes pociones.') || (yo.hp >= yo.hpMax && 'Ya tienes la vida completa.') || '';
+  const usadas = (yo && yo.pociones) || 0;
+  const limite = usadas >= reglas.pocionesMax && 'Ya usaste tus pociones de esta sala.';
+  const motivoPocion = turno || limite || (!pociones && 'No tienes pociones.') || (yo.hp >= yo.hpMax && 'Ya tienes la vida completa.') || '';
   const motivoAsalto = turno || (s.asalto.usado && 'El asalto ya se usó en esta partida.') || '';
   return (
     <>
@@ -211,7 +213,7 @@ function Combate({ s, base, yo, h, pociones, clase }) {
       <Registro log={s.log} />
       <div className="cb-prim">
         <Accion ruta="/api/sala/golpe" cls="cb-acc cb-golpe" motivo={turno}><b>⚔️ Golpe</b><small>Ataque básico</small></Accion>
-        <Accion ruta="/api/sala/pocion" cls="cb-acc cb-poc" motivo={motivoPocion}><b>🧪 Poción</b><small>{pociones} en la bolsa</small></Accion>
+        <Accion ruta="/api/sala/pocion" cls="cb-acc cb-poc" motivo={motivoPocion}><b>🧪 Poción</b><small>{usadas}/{reglas.pocionesMax} usadas · {pociones} en la bolsa</small></Accion>
       </div>
       {h && h.habilidades.length > 0 && (
         <div className="cb-habs">
@@ -230,7 +232,7 @@ function Combate({ s, base, yo, h, pociones, clase }) {
       <div className="btns" style={{ marginTop: 8 }}>
         <Accion ruta="/api/sala/asalto" motivo={motivoAsalto}>🔥 Asalto del equipo</Accion>
       </div>
-      <Equipo s={s} />
+      <Equipo s={s} sinPocion={limite} />
       <Salidas s={s} />
       <p className="mut peq" style={{ marginTop: 8 }}>
         Si se agota tu turno se juega un golpe automático. Si te duermes varias veces seguidas, caes.
@@ -252,7 +254,7 @@ function Vista({ d, base }) {
         Cartera: <b>{fmt(s.yo.cartera)}</b> · Pociones: <b>{s.yo.pociones}</b>
       </p>
       {s.combate
-        ? <Combate s={s} base={base} yo={yo} h={h} pociones={s.yo.pociones} clase={clase} />
+        ? <Combate s={s} base={base} yo={yo} h={h} pociones={s.yo.pociones} clase={clase} reglas={d.reglas} />
         : <Explorando s={s} base={base} yo={yo} clase={clase} />}
     </>
   );
