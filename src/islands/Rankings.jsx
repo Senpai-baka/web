@@ -3,7 +3,7 @@ import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
 import { Cab, Seg, Vacio, Countdown, Fila, Kv, filas, plural, premios, medalla } from './ui.jsx';
 
-const OPCIONES = [['monedas', 'Monedas'], ['xp', 'XP semanal'], ['clanes', 'Clanes'], ['guerra', 'Guerra']];
+const OPCIONES = [['monedas', 'Monedas'], ['xp', 'XP semanal'], ['clanes', 'Clanes'], ['mazmorra', 'Mazmorras'], ['guerra', 'Guerra']];
 
 const ICONO = (
   <>
@@ -16,7 +16,10 @@ const ICONO = (
 export default function Rankings({ d, base }) {
   const me = useMe();
   const [sel, setSel] = useState('monedas');
+  const [tier, setTier] = useState(null);
   const g = d.guerra;
+  const mz = d.mazmorras || [];
+  const actual = mz.find(x => x.clave === tier) || mz[0] || null;
 
   let cuerpo;
   if (sel === 'monedas') {
@@ -34,6 +37,17 @@ export default function Rankings({ d, base }) {
     cuerpo = filas(d.clanes, 'Aún no hay clanes.', (c, i) => (
       <Fila key={i} r={c} extra={`Nv ${c.nivel} · ${plural(c.miembros)}`} valor={fmt(c.banco)} />
     ));
+  } else if (sel === 'mazmorra') {
+    cuerpo = !actual ? <Vacio>No hay mazmorras disponibles.</Vacio> : (
+      <>
+        <Seg aria="Mazmorra" opciones={mz.map(x => [x.clave, x.emoji + ' ' + x.nombre])} valor={actual.clave} onCambio={setTier} />
+        <p className="mut peq" style={{ marginTop: 12 }}>
+          Niveles {actual.nivelMax == null ? actual.nivelMin + '+' : actual.nivelMin + ' a ' + actual.nivelMax}. Gana quien llegó al piso más alto; si empatan, quien lo logró primero.
+          {actual.mio > 0 ? ' Tu récord: piso ' + fmt(actual.mio) + '.' : ''}
+        </p>
+        {filas(actual.ranking, 'Nadie ha registrado un piso aquí todavía.', (r, i) => <Fila key={i} r={r} avatar valor={'Piso ' + fmt(r.valor)} />)}
+      </>
+    );
   } else if (!g) {
     cuerpo = <Vacio>La guerra de clanes no está disponible.</Vacio>;
   } else {
@@ -58,7 +72,7 @@ export default function Rankings({ d, base }) {
     );
   }
 
-  const lista = (sel === 'monedas' ? d.monedas : sel === 'xp' ? d.xpSemana : sel === 'clanes' ? d.clanes : g && g.ranking) || [];
+  const lista = (sel === 'monedas' ? d.monedas : sel === 'xp' ? d.xpSemana : sel === 'clanes' ? d.clanes : sel === 'mazmorra' ? (actual ? actual.ranking : []) : g && g.ranking) || [];
   const mia = sel === 'guerra'
     ? (g && g.mio ? { pos: g.mio.puesto } : null)
     : lista.find(r => r.yo || r.mio);

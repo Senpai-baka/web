@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { cargar } from '../state/panel.js';
 import { Cab, Countdown, Accion, Campo, Barra, Vacio } from './ui.jsx';
-import { Escena } from './Mazmorra.jsx';
+import { Escena, Amenaza } from './Mazmorra.jsx';
 
 const ICONO = (
   <>
@@ -12,6 +12,10 @@ const ICONO = (
 );
 
 const t = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+
+const rangoNivel = m => (m.nivelMax == null ? `Nv ${m.nivelMin}+` : `Nv ${m.nivelMin}-${m.nivelMax}`);
+
+const motivoTier = (d, m) => (d.nivel < m.nivelMin ? `Se desbloquea en el nivel ${m.nivelMin}.` : `Solo para niveles ${m.nivelMin} a ${m.nivelMax}. Tu nivel: ${d.nivel}.`);
 
 function useSondeo(activo, ms) {
   useEffect(() => {
@@ -56,11 +60,31 @@ function Entrada({ d, base }) {
           Al iniciar, cada jugador paga la entrada. Cada uno puede usar hasta {d.reglas.pocionesMax} pociones por sala y solo cobra botín el que actúa en el piso.
         </p>
         {espera && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
-        <div className="btns">
-          <Accion ruta="/api/sala/crear" cuerpo={{ publica: true }} motivo={motivo}>Crear sala pública</Accion>
-          <Accion ruta="/api/sala/crear" cuerpo={{ publica: false }} motivo={motivo}>Crear sala privada</Accion>
-        </div>
+        <p className="mut peq" style={{ marginTop: 8 }}>
+          Cada mazmorra solo admite su rango de niveles. Los monstruos se adaptan a la fuerza, vida y equipo del equipo.
+        </p>
       </div>
+      {(d.mazmorras || []).map(m => {
+        const motivoM = m.bloqueada ? motivoTier(d, m) : motivo;
+        return (
+          <div key={m.clave} className="bloque vidrio">
+            <div className="fila">
+              <strong>{m.emoji} {m.nombre}</strong>
+              <span className={'etiq ' + (m.bloqueada ? 'nar' : '')}>{m.bloqueada ? '🔒 ' : ''}{rangoNivel(m)}</span>
+            </div>
+            <p className="mut peq">{m.desc}</p>
+            <p className="peq">
+              👹 Monstruos {m.desfase[0] === m.desfase[1] ? `+${m.desfase[0]}` : `+${m.desfase[0]} a +${m.desfase[1]}`} niveles sobre el equipo · ⭐ {m.elite}% élite · 🎁 x{m.recompensa}
+              {' · '}Entrada {fmt(m.entrada.normal)}
+            </p>
+            {m.check ? <p className="peq">💾 Guardado: piso {m.check}{m.record > m.check ? ` · Récord: piso ${m.record}` : ''}</p> : null}
+            <div className="btns">
+              <Accion ruta="/api/sala/crear" cuerpo={{ publica: true, mazmorra: m.clave }} motivo={motivoM}>Crear sala pública</Accion>
+              <Accion ruta="/api/sala/crear" cuerpo={{ publica: false, mazmorra: m.clave }} motivo={motivoM}>Crear sala privada</Accion>
+            </div>
+          </div>
+        );
+      })}
       <div className="bloque vidrio">
         <strong>🔑 Unirse con código</strong>
         <div className="btns">
@@ -75,9 +99,12 @@ function Entrada({ d, base }) {
             <div key={a.id} className="fil">
               <div className="nom">
                 <strong>{a.id} · {a.lider}</strong>
-                <span className="mut peq">{a.jugadores}/{a.max} jugadores · cierra en <Countdown fin={base + a.restaS * 1000} /></span>
+                <span className="mut peq">
+                  {a.mazmorra ? `${a.mazmorra.emoji} ${a.mazmorra.nombre} (${rangoNivel(a.mazmorra)}) · ` : ''}
+                  {a.jugadores}/{a.max} jugadores · cierra en <Countdown fin={base + a.restaS * 1000} />
+                </span>
               </div>
-              <Accion ruta="/api/sala/unir" cuerpo={{ id: a.id }} motivo={motivo}>Unirme</Accion>
+              <Accion ruta="/api/sala/unir" cuerpo={{ id: a.id }} motivo={a.bloqueada ? motivoTier(d, a.mazmorra) : motivo}>Unirme</Accion>
             </div>
           ))
           : <Vacio>No hay salas abiertas ahora mismo.</Vacio>}
@@ -112,6 +139,7 @@ function Equipo({ s, sinPocion }) {
 function Barra2({ s, base, yo }) {
   return (
     <div className="cb-run">
+      {s.mazmorra && <span>{s.mazmorra.emoji} <b>{s.mazmorra.nombre}</b></span>}
       <span>📍 Piso <b>{s.piso}</b></span>
       <span>👥 <b>{s.miembros.filter(m => !m.fuera).length}</b></span>
       <span>💰 <b>{fmt(yo ? yo.botin : 0)}</b></span>
@@ -143,6 +171,7 @@ function Lobby({ s, base }) {
   return (
     <div className="bloque vidrio">
       <strong>🏰 Sala {s.id}</strong>
+      {s.mazmorra && <p className="peq">{s.mazmorra.emoji} <b>{s.mazmorra.nombre}</b> · {rangoNivel(s.mazmorra)}</p>}
       <p className="mut peq">
         {s.publica ? 'Pública' : 'Privada'} · {s.n}/{s.max} jugadores · cierra en <Countdown fin={base + s.restaS * 1000} />
       </p>
@@ -180,6 +209,7 @@ function Explorando({ s, base, yo, clase }) {
         <Escena nombre={sg.nombre} jefe={sg.jefe} clase={clase} buff={null}
           hp={yo.hp} hpMax={yo.hpMax} ehp={sg.hp} ehpMax={sg.hp} u={null} />
       )}
+      {sg && <Amenaza m={sg} />}
       <Registro log={s.log} />
       <Equipo s={s} />
       <div className="btns" style={{ marginTop: 10 }}>
@@ -205,6 +235,7 @@ function Combate({ s, base, yo, h, pociones, clase, reglas }) {
       {yo && (
         <Escena nombre={c.nombre} jefe={c.jefe} clase={clase} buff={yo.buff} hp={yo.hp} hpMax={yo.hpMax} ehp={c.hp} ehpMax={c.hpMax} u={null} />
       )}
+      <Amenaza m={c} />
       <p className="peq" style={{ textAlign: 'center', margin: '6px 0' }}>
         {c.miTurno ? <b>🎯 Es tu turno</b> : <>🎯 Turno de <b>{c.nombreTurno}</b></>}
         {' · '}<Countdown fin={base + c.turnoRestaS * 1000} />
