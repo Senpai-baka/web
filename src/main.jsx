@@ -17,7 +17,7 @@ function App() {
     loaded.current = true;
     montarIslas();
     const script = document.createElement('script');
-    script.src = '/js/app.js?v=17';
+    script.src = '/js/app.js?v=18';
     script.async = false;
     script.onload = () => {
       document.documentElement.dataset.islaReactMounted = 'true';
