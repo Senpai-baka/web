@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { fmt } from '../lib/format.js';
 import { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio } from '../lib/arteCombate.js';
 import { Cab, Countdown, Accion } from './ui.jsx';
+import { Sprite, useCuadro, hojaHeroe, hojaMonstruo } from './Sprite.jsx';
 
 const ICONO = (
   <>
@@ -13,16 +14,72 @@ const ICONO = (
 const t = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 const pct = (v, max) => (max ? Math.round(v / max * 100) : 0);
 
+const AURA_JEFE = '<defs><radialGradient id="cbAuraE"><stop offset="0" stop-color="#ff5a6a" stop-opacity=".42"/><stop offset="1" stop-color="#ff5a6a" stop-opacity="0"/></radialGradient></defs><circle cx="300" cy="130" r="96" fill="url(#cbAuraE)" class="cb-aura"/>';
+const SOMBRA_HEROE = '<ellipse cx="80" cy="178" rx="32" ry="5" fill="#000" opacity=".4"/>';
+const SOMBRA_MON = '<ellipse cx="300" cy="178" rx="42" ry="5" fill="#000" opacity=".4"/>';
+
+function HeroeSprite({ hoja, buff, ataca, estocada, golpeado, cae }) {
+  // reposo → ataque (estocada) → reposo; si lo golpean, cuadro de daño tras la embestida del enemigo
+  const tramos = [];
+  if (ataca) tramos.push([0, 600, 1]);
+  if (golpeado) tramos.push([350, 850, 2]);
+  const f = useCuadro(tramos, cae ? 2 : 0);
+  return (
+    <>
+      {buff && (
+        <>
+          <circle cx="80" cy="144" r="50" fill="#e8d3c0" fillOpacity=".1" />
+          <circle cx="80" cy="144" r="50" fill="none" stroke="#e8d3c0" strokeWidth="2" strokeDasharray="6 5" className="cb-aura" />
+        </>
+      )}
+      <g dangerouslySetInnerHTML={{ __html: SOMBRA_HEROE }} />
+      <g className={estocada ? 'cb-sp-estocada' : ''}>
+        <g className="cb-idle h"><Sprite hoja={hoja} cuadro={f} /></g>
+      </g>
+    </>
+  );
+}
+
+function MonstruoSprite({ hoja, jefe, ataca, golpeado, cae }) {
+  const tramos = [];
+  if (golpeado) tramos.push([120, 650, 2]);
+  if (ataca) tramos.push([300, 950, 1]);
+  const f = useCuadro(tramos, cae ? 2 : 0);
+  const fig = (
+    <>
+      <g dangerouslySetInnerHTML={{ __html: SOMBRA_MON }} />
+      <g className={ataca ? 'cb-sp-embiste' : ''}>
+        <g className={hoja.vuela ? 'cb-vuela' : 'cb-idle'}><Sprite hoja={hoja} cuadro={f} /></g>
+      </g>
+    </>
+  );
+  return (
+    <>
+      {jefe && <g dangerouslySetInnerHTML={{ __html: AURA_JEFE }} />}
+      {jefe ? <g transform="translate(300 176) scale(1.25) translate(-300 -176)">{fig}</g> : fig}
+    </>
+  );
+}
+
 export function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u }) {
   const pH = pct(hp, hpMax), pE = pct(ehp, ehpMax);
   const golpeE = u && u.dano > 0, golpeH = u && u.recibido > 0;
+  const hojaH = hojaHeroe(clase), hojaM = hojaMonstruo(nombre);
   return (
     <div className={`cb-arena ${jefe ? 'jefe' : ''}`} style={{ '--z': colorMonstruo(nombre) }}>
       <svg viewBox="0 0 400 200" aria-hidden="true">
         <rect y="176" width="400" height="24" fill="#0b0810" opacity=".75" />
         <rect y="176" width="400" height="1.5" fill="#fff" opacity=".08" />
-        <g className={`cb-her ${u && u.hab ? 'cast' : ''} ${golpeH ? 'golpeado' : ''}`} dangerouslySetInnerHTML={{ __html: arteHeroe(clase, buff) }} />
-        <g className={`cb-mon ${golpeE ? 'golpeado' : ''}`} dangerouslySetInnerHTML={{ __html: arteMonstruo(nombre, jefe) }} />
+        <g className={`cb-her ${u && u.hab ? 'cast' : ''} ${golpeH ? 'golpeado' : ''}`}>
+          {hojaH
+            ? <HeroeSprite hoja={hojaH} buff={buff} ataca={golpeE || (u && u.hab)} estocada={golpeE && !u.hab} golpeado={golpeH} cae={hpMax > 0 && hp <= 0} />
+            : <g dangerouslySetInnerHTML={{ __html: arteHeroe(clase, buff) }} />}
+        </g>
+        <g className={`cb-mon ${golpeE ? 'golpeado' : ''}`}>
+          {hojaM
+            ? <MonstruoSprite hoja={hojaM} jefe={jefe} ataca={golpeH} golpeado={golpeE} cae={ehpMax > 0 && ehp <= 0} />
+            : <g dangerouslySetInnerHTML={{ __html: arteMonstruo(nombre, jefe) }} />}
+        </g>
         {golpeE && (
           <>
             <path className="cb-tajo" d="M262 96L346 164" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
