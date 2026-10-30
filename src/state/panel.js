@@ -23,6 +23,7 @@ export const RUTAS = {
   raid: () => '/api/raid',
   mazmorra: () => '/api/mazmorra',
   sala: () => '/api/sala',
+  encargos: () => '/api/encargos',
   clan: () => '/api/clan?q=' + enc(sel.clanQ),
 };
 

@@ -11,9 +11,10 @@ import Perfil from '../islands/Perfil.jsx';
 import Ciudad from '../islands/Ciudad.jsx';
 import Tienda from '../islands/Tienda.jsx';
 import Hogar from '../islands/Hogar.jsx';
+import Encargos from '../islands/Encargos.jsx';
 import TabHost from '../islands/TabHost.jsx';
 
-const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, sala: Sala, gacha: Gacha, inventario: Inventario, ficha: Perfil, ciudad: Ciudad, tienda: Tienda, hogar: Hogar };
+const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, sala: Sala, gacha: Gacha, inventario: Inventario, ficha: Perfil, ciudad: Ciudad, tienda: Tienda, hogar: Hogar, encargos: Encargos };
 
 export function montarIslas() {
   for (const [t, Isla] of Object.entries(ISLAS)) {
