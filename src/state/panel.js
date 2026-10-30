@@ -22,6 +22,7 @@ export const RUTAS = {
     : sel.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + enc(sel.gtQ) + '&ref=' + enc(sel.gtRef) + '&pm=' + sel.gtPm + '&ps=' + sel.gtPs : '/api/gacha'),
   raid: () => '/api/raid',
   mazmorra: () => '/api/mazmorra',
+  sala: () => '/api/sala',
   clan: () => '/api/clan?q=' + enc(sel.clanQ),
 };
 
