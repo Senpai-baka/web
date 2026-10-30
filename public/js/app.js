@@ -4,6 +4,7 @@ if (!window.IslaLib || !window.IslaBridge) {
   throw new Error('IslaLib/IslaBridge no definidos: despliega src/main.jsx junto con public/js/app.js');
 }
 const { API, api, fmt, mmss, esc, dur, hace } = window.IslaLib;
+const tiempo = s => (s >= 3600 ? dur(s) : mmss(s));
 const IslaBridge = window.IslaBridge;
 const { store } = IslaBridge;
 const S = store.sel;
@@ -427,7 +428,7 @@ function tick() {
     c.hidden = tot[k] === undefined;
     if (c.hidden) continue;
     c.classList.toggle('espera', !lista);
-    $('#t-' + k).textContent = lista ? 'Listo' : mmss(rest);
+    $('#t-' + k).textContent = lista ? 'Listo' : tiempo(rest);
     b.textContent = lista ? ACC[k].n : 'En espera';
     b.setAttribute('aria-disabled', String(!lista));
     $('#r-' + k).style.strokeDashoffset = lista ? 182 : Math.round(182 * rest / tot[k]);
@@ -443,7 +444,7 @@ function tick() {
   document.querySelectorAll('[data-fin-min]').forEach(e => { e.textContent = restaMin((Number(e.dataset.finMin) - ahora) / 1000); });
   const evx = $('#evento-x2');
   if (evx && !evx.hidden && Number(evx.dataset.vence) <= ahora) evx.hidden = true;
-  document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? mmss(menor) + ' · Isla' : TITULO;
+  document.title = listas ? '(' + listas + ') Listo · Isla' : menor < Infinity ? tiempo(menor) + ' · Isla' : TITULO;
   document.querySelectorAll('[data-n-listas]').forEach(e => { e.textContent = listas; });
   const pt = $('#pt-inicio');
   if (pt) pt.hidden = !listas;
@@ -479,7 +480,7 @@ $('#anim').addEventListener('click', () => saltar && saltar());
 async function jugar(k) {
   if (ocupado) return;
   const rest = Math.ceil((fin[k] - Date.now()) / 1000);
-  if (rest > 0) return aviso('Aún faltan ' + mmss(rest) + ' para volver a ' + ACC[k].ya + '.');
+  if (rest > 0) return aviso('Aún faltan ' + tiempo(rest) + ' para volver a ' + ACC[k].ya + '.');
   ocupado = true; animar(k);
   try {
     const [d] = await Promise.all([api('/api/rpg/' + k, {}), esperaAnim()]);
