@@ -13,7 +13,7 @@ const ICONO = (
 const t = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 const pct = (v, max) => (max ? Math.round(v / max * 100) : 0);
 
-function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u }) {
+export function Escena({ nombre, jefe, clase, buff, hp, hpMax, ehp, ehpMax, u }) {
   const pH = pct(hp, hpMax), pE = pct(ehp, ehpMax);
   const golpeE = u && u.dano > 0, golpeH = u && u.recibido > 0;
   return (
@@ -181,6 +181,18 @@ function Cuerpo({ d, base }) {
     );
   }
   if (!d.activo) return <>{resumen}<Entrada d={d} base={base} /></>;
+  if (d.enSala && !d.run.expirada) {
+    return (
+      <>
+        {resumen}
+        <div className="bloque vidrio">
+          <strong>🏰 Estás en una sala de equipo</strong>
+          <p className="mut peq">Esta expedición se juega desde el panel de sala.</p>
+          <div className="btns uno"><button type="button" className="mini" data-ir="sala">Ir a la sala</button></div>
+        </div>
+      </>
+    );
+  }
 
   const r = d.run, h = d.heroe, clase = h && h.clase;
   return (
