@@ -67,4 +67,4 @@ function arteHeroe(clase, buff) {
   return `${aura}<ellipse cx="80" cy="178" rx="32" ry="5" fill="#000" opacity=".4"/><g class="cb-idle h"><path d="M56 178C56 144 64 126 80 126S104 144 104 178Z" fill="${c}"/><path d="M70 130H90L88 142H72Z" fill="${a}" opacity=".4"/><circle cx="80" cy="110" r="15" fill="#e9cdb6"/>${gorro}<circle cx="86" cy="111" r="2" fill="#1a1020"/>${arma}</g>`;
 }
 
-export { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio };
+export { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio, claveMonstruo };
