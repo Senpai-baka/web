@@ -24,6 +24,9 @@ export const RUTAS = {
   mazmorra: () => '/api/mazmorra',
   sala: () => '/api/sala',
   encargos: () => '/api/encargos',
+  encuentro: () => '/api/encuentro',
+  alquimia: () => '/api/alquimia',
+  mundial: () => '/api/mundial',
   clan: () => '/api/clan?q=' + enc(sel.clanQ),
 };
 
