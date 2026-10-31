@@ -1,9 +1,17 @@
 import { sel, vista, fijar, notificar } from '../state/panel.js';
+import { e } from '../core/estado.js';
+import { publicar as publicarAccion } from '../core/acciones.js';
+import { aviso as avisoToast } from '../core/avisos.js';
+import { abrir, irPerfil } from '../core/navegar.js';
+import { salir } from '../core/sesion.js';
+import { vigilarGacha } from '../core/eventos.js';
 
-const puente = () => window.IslaBridge || {};
-
-export const publicar = (boton, ruta, cuerpo) => puente().publicar?.(boton, ruta, cuerpo);
-export const aviso = (txt, ms) => puente().aviso?.(txt, ms);
+export const publicar = (boton, ruta, cuerpo) => publicarAccion(boton, ruta, cuerpo);
+export const aviso = (txt, ms) => avisoToast(txt, ms);
+export const irA = t => abrir(t);
+export const perfilIr = s => irPerfil(s);
+export const cerrarSesion = () => salir();
+export const vigilarFinGacha = fin => vigilarGacha(fin);
 
 const en = (lista, s) => lista.includes(s);
 const mas = (n, dir) => Math.max(1, n + dir);
@@ -14,7 +22,7 @@ export const consultaClan = () => vista('clan').clanQ;
 export const gachaSel = () => vista('gacha').gachaSel;
 export const gachaIr = s => fijar('gacha', { gachaSel: s, gachaPag: 1 });
 export const gachaPagina = dir => fijar('gacha', { gachaPag: mas(sel.gachaPag, dir) });
-export const abiertasGacha = () => puente().abiertas?.() ?? [];
+export const abiertasGacha = () => e.abiertas;
 
 export const inventarioSeccion = () => vista('inventario').invSel;
 export const cambiarInventario = s => en(['objetos', 'equipo', 'forja'], s) && fijar('inventario', { invSel: s });

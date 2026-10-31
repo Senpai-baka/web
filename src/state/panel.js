@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { api } from '../lib/api.js';
+import { sincronizar } from '../core/reloj.js';
 
 const SEL0 = {
   perfilSel: 'ficha', invSel: 'objetos', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota',
@@ -45,6 +46,7 @@ export const scrollGuardado = () => scrollY;
 export function notificar(t) {
   scrollY = window.scrollY;
   versiones[t] = versionDe(t) + 1;
+  sincronizar();
   subs.forEach(f => f());
 }
 

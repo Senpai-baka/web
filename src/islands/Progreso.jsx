@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Cab, Seg, Accion, Vacio } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';
+import { perfilIr } from '../bridge/acciones.js';
 
 const OPCIONES = [['misiones', 'Misiones'], ['logros', 'Logros'], ['maestria', 'Maestría'], ['titulos', 'Títulos']];
 const num = v => fmt(Number(v || 0));
@@ -71,7 +72,7 @@ export default function Progreso({ d = {}, base }) {
   return <>
     <section className="perfil"><div className="hero-in"><div className="quien"><h1>{alias}</h1><span className="peq mut">Nivel {nivel}</span><div className="xpb"><div style={{ width: `${xpPct}%` }}/></div><span className="peq mut">{num(me?.xp)} / {num(me?.xpSig)} XP</span></div></div></section>
     <div className="seg" role="group" aria-label="Sección del perfil">
-      {[['ficha','Ficha'],['heroe','Héroe'],['progreso','Progreso'],['historial','Recuerdos'],...(me?.owner ? [['owner','Owner']] : [])].map(([key, label]) => <button key={key} type="button" data-p={key} aria-pressed={key === 'progreso'}>{label}</button>)}
+      {[['ficha','Ficha'],['heroe','Héroe'],['progreso','Progreso'],['historial','Recuerdos'],...(me?.owner ? [['owner','Owner']] : [])].map(([key, label]) => <button key={key} type="button" onClick={() => perfilIr(key)} aria-pressed={key === 'progreso'}>{label}</button>)}
     </div>
     <Cab titulo="Progreso" sub="Misiones, logros, maestría y títulos." stats={[["Nivel", nivel], ["XP", num(me?.xp)], ["Monedas", num(me?.monedas)]]}/>
     <Seg aria="Sección de progreso" opciones={OPCIONES} valor={seccion} onCambio={setSeccion}/>

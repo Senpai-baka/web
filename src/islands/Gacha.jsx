@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { fmt, dur } from '../lib/format.js';
-import { gachaSel, gachaIr, gachaPagina, abiertasGacha } from '../bridge/acciones.js';
+import { gachaSel, gachaIr, gachaPagina, abiertasGacha, vigilarFinGacha } from '../bridge/acciones.js';
 import { Cab, Seg, Vacio, Countdown, BotonListo, Accion, Fila, Titulo } from './ui.jsx';
 import { Carta, Mini, ChipsRareza, Pager } from './gachaUi.jsx';
 import GachaTratos from './GachaTratos.jsx';
@@ -8,6 +8,14 @@ import GachaTratos from './GachaTratos.jsx';
 const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']];
 
 const ICONO = <path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z" />;
+
+function VigiaFin({ fin }) {
+  useEffect(() => {
+    vigilarFinGacha(fin);
+    return () => vigilarFinGacha(0);
+  }, [fin]);
+  return null;
+}
 
 function Invocar({ d, base }) {
   const p = d.pendiente;
@@ -46,7 +54,8 @@ function Invocar({ d, base }) {
       {p && (
         <>
           <Titulo extra={<span className="mut peq">se escapa en <Countdown fin={base + p.restaS * 1000} /></span>}>Carta pendiente</Titulo>
-          <div className="bloque vidrio" data-gc-fin={base + p.restaS * 1000}>
+          <div className="bloque vidrio">
+            <VigiaFin fin={base + p.restaS * 1000} />
             <Carta c={p.carta} />
             <p className="mut peq" style={{ marginTop: 10 }}>
               Reclámala antes de que se acabe el tiempo. Los demás jugadores también pueden quedársela si se adelantan.

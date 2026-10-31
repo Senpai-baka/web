@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useAhora } from '../core/reloj.js';
 import { dur, fmt } from '../lib/format.js';
 import { API } from '../lib/api.js';
 import { useMe } from '../bridge/store.js';
-import { publicar, aviso } from '../bridge/acciones.js';
+import { publicar, aviso, irA } from '../bridge/acciones.js';
 
 export const MEDALLA = ['🥇', '🥈', '🥉'];
 export const medalla = i => MEDALLA[i] || (i + 1) + '.';
@@ -25,7 +26,7 @@ export function Cab({ titulo, sub, icono, stats, atras }) {
   const cifras = stats || (me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []);
   return (
     <>
-      {atras && <button type="button" className="atras" data-ir="inicio">← Inicio</button>}
+      {atras && <button type="button" className="atras" onClick={() => irA('inicio')}>← Inicio</button>}
     <div className="cabp cab-t">
       <div className="cab-top">
         {icono && (
@@ -58,14 +59,7 @@ export function Seg({ aria, opciones, valor, onCambio }) {
   );
 }
 
-export function useAhora() {
-  const [ahora, setAhora] = useState(() => Date.now());
-  useEffect(() => {
-    const i = setInterval(() => setAhora(Date.now()), 1000);
-    return () => clearInterval(i);
-  }, []);
-  return ahora;
-}
+export { useAhora };
 
 export function Countdown({ fin }) {
   const ahora = useAhora();
@@ -129,7 +123,7 @@ export const filas = (lista, vacio, fila) => lista.length ? lista.map(fila) : <V
 const CERRADAS = new Set(['heroe', 'mascota', 'clan', 'coleccion', 'reliquias', 'materiales', 'lote']);
 export function Sec({ k, titulo, extra, children }) {
   return (
-    <details className="sd" data-k={k} open={!CERRADAS.has(k)}>
+    <details className="sd" data-k={k} open={!CERRADAS.has(k)} onToggle={ev => { if (ev.currentTarget.open) CERRADAS.delete(k); else CERRADAS.add(k); }}>
       <summary><h2>{titulo}</h2><span className="ex">{extra}</span><i className="chev" /></summary>
       <div className="cuerpo">{children}</div>
     </details>

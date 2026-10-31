@@ -8,7 +8,7 @@ import PerfilHeroe from './PerfilHeroe.jsx';
 import PerfilHistorial from './PerfilHistorial.jsx';
 import PerfilOwner from './PerfilOwner.jsx';
 import FotoPerfil from './FotoPerfil.jsx';
-import { perfilSeccion } from '../bridge/acciones.js';
+import { perfilSeccion, perfilIr, cerrarSesion } from '../bridge/acciones.js';
 
 const fmtN = v => fmt(Number(v || 0));
 const porcentaje = (v, max) => max > 0 ? Math.max(0, Math.min(100, Number(v || 0) / max * 100)) : 0;
@@ -29,7 +29,7 @@ function PerfilFicha({ d, base }) {
     <Cab titulo="Perfil" sub="Tu ficha, estadísticas y progreso." stats={[["Nivel", me?.nivel ?? d.nivel ?? '—'], ["Monedas", fmtN(d.cartera)], ["Prestigio", `${d.prestigio?.n ?? 0}/${d.prestigio?.max ?? 0}`]]}/>
     <section className="perfil"><div className="hero-in"><div className="quien"><h1>{me?.alias || 'Aventurero'}</h1><span className="peq mut">Nivel {me?.nivel ?? d.nivel ?? '—'}{d.empleo?.nombre ? ` · ${d.empleo.nombre}` : ''}</span><div className="xpb"><div style={{ width: `${pctXp}%` }} /></div><span className="peq mut">{fmtN(me?.xp)} / {fmtN(me?.xpSig)} XP</span></div></div></section>
     <div className="seg" role="group" aria-label="Sección del perfil">
-      {[['ficha','Ficha'],['heroe','Héroe'],['progreso','Progreso'],['historial','Recuerdos'],...(me?.owner ? [['owner','Owner']] : [])].map(([key,label]) => <button key={key} type="button" data-p={key} aria-pressed={key === 'ficha'}>{label}</button>)}
+      {[['ficha','Ficha'],['heroe','Héroe'],['progreso','Progreso'],['historial','Recuerdos'],...(me?.owner ? [['owner','Owner']] : [])].map(([key,label]) => <button key={key} type="button" onClick={() => perfilIr(key)} aria-pressed={key === 'ficha'}>{label}</button>)}
     </div>
     {avisos.length > 0 && <div className="aviso-i">{avisos.map(x => <p key={x}>{x}</p>)}</div>}
     <FotoPerfil />
@@ -45,7 +45,7 @@ function PerfilFicha({ d, base }) {
     <Sec k="perfil-clan-react" titulo="Clan" extra={c?.nombre || 'Sin clan'}><div className="bloque vidrio">{c ? <><Kv label="Clan">{c.nombre}{c.lider ? ' · Líder' : ''}</Kv><Kv label="Nivel del clan">Nv {c.nivel}</Kv><Kv label="Miembros">{c.miembros}/{c.cupo}</Kv><Kv label="Banco del clan">{fmtN(c.banco)} monedas</Kv><Kv label="Bono de ingresos">+{c.bono}%</Kv><Kv label="Guerra de clanes">{fmtN(c.guerra?.pts)} pts{c.guerra?.puesto ? ` · puesto ${c.guerra.puesto}` : ''}</Kv>{c.guerra && <Kv label="Cierra en"><Countdown fin={base + (c.guerra.cierraS || 0) * 1000}/></Kv>}</> : <p className="mut peq">No perteneces a ningún clan. Crea uno o únete desde la sección Clan.</p>}</div></Sec>
     <Sec k="perfil-coleccion-react" titulo="Colección"><div className="bloque vidrio"><Kv label="Reliquias">{d.reliquias?.n ?? 0}/{d.reliquias?.total ?? 0}</Kv><Kv label="Hogar">{d.hogar ? `${d.hogar.emoji || '🏠'} ${d.hogar.nombre}` : 'Sin hogar'}</Kv><Kv label="Récord de mazmorra">{d.mazmorra ? `Piso ${d.mazmorra}` : 'Sin explorar'}</Kv></div></Sec>
     <Sec k="perfil-avisos-react" titulo="Avisos por WhatsApp" extra={d.avisosWa ? 'Activados' : 'Apagados'}><p className="mut peq">Te escribimos cuando termine una expedición o te superen en una subasta.</p><div className="btns uno"><Accion ruta="/api/avisos" cuerpo={{ activo: !d.avisosWa }}>{d.avisosWa ? 'Desactivar avisos' : 'Activar avisos'}</Accion></div></Sec>
-    <button type="button" className="link salir" data-salir>Cerrar sesión</button>
+    <button type="button" className="link salir" onClick={cerrarSesion}>Cerrar sesión</button>
   </>;
 }
 

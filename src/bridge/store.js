@@ -1,9 +1,5 @@
-import { useSyncExternalStore } from 'react';
+import { e, cambiar, useEstado } from '../core/estado.js';
 
-let me = null;
-const subs = new Set();
-
-export const getMe = () => me;
-export const subscribe = f => { subs.add(f); return () => subs.delete(f); };
-export function setMe(d) { me = d; subs.forEach(f => f()); }
-export const useMe = () => useSyncExternalStore(subscribe, getMe, getMe);
+export const getMe = () => e.me;
+export const setMe = d => cambiar({ me: d });
+export const useMe = () => useEstado(s => s.me);

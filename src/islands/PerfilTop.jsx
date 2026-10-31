@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMe } from '../bridge/store.js';
 import { fmt } from '../lib/format.js';
+import { perfilIr, cerrarSesion } from '../bridge/acciones.js';
 
 const num = v => fmt(Number(v || 0));
 
@@ -21,10 +22,10 @@ export default function PerfilTop({ activo }) {
         </div>
       </section>
       <div className="seg" role="group" aria-label="Sección del perfil">
-        {ops.map(([k, n]) => <button key={k} type="button" data-p={k} aria-pressed={k === activo}>{n}</button>)}
+        {ops.map(([k, n]) => <button key={k} type="button" onClick={() => perfilIr(k)} aria-pressed={k === activo}>{n}</button>)}
       </div>
     </>
   );
 }
 
-export const Salir = () => <button type="button" className="link salir" data-salir>Cerrar sesión</button>;
+export const Salir = () => <button type="button" className="link salir" onClick={cerrarSesion}>Cerrar sesión</button>;
