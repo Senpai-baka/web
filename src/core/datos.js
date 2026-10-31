@@ -43,9 +43,10 @@ export const TABS = [
   'encargos',
   'encuentro',
   'alquimia',
-  'mundial'
+  'mundial',
+  'jugador'
 ];
-export const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', sala: 'inicio', clan: 'inicio', encargos: 'inicio', encuentro: 'inicio', alquimia: 'inicio', mundial: 'inicio' };
+export const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', sala: 'inicio', clan: 'inicio', encargos: 'inicio', encuentro: 'inicio', alquimia: 'inicio', mundial: 'inicio', jugador: 'rankings' };
 export const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
