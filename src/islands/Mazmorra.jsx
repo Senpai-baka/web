@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { irA } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
 import { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio } from '../lib/arteCombate.js';
 import { Cab, Countdown, Accion } from './ui.jsx';
@@ -19,7 +20,6 @@ const SOMBRA_HEROE = '<ellipse cx="80" cy="178" rx="32" ry="5" fill="#000" opaci
 const SOMBRA_MON = '<ellipse cx="300" cy="178" rx="42" ry="5" fill="#000" opacity=".4"/>';
 
 function HeroeSprite({ hoja, buff, ataca, estocada, golpeado, cae }) {
-  // reposo → ataque (estocada) → reposo; si lo golpean, cuadro de daño tras la embestida del enemigo
   const tramos = [];
   if (ataca) tramos.push([0, 600, 1]);
   if (golpeado) tramos.push([350, 850, 2]);
@@ -307,7 +307,7 @@ function Cuerpo({ d, base }) {
         <div className="bloque vidrio">
           <strong>🏰 Estás en una sala de equipo</strong>
           <p className="mut peq">Esta expedición se juega desde el panel de sala.</p>
-          <div className="btns uno"><button type="button" className="mini" data-ir="sala">Ir a la sala</button></div>
+          <div className="btns uno"><button type="button" className="mini" onClick={() => irA('sala')}>Ir a la sala</button></div>
         </div>
       </>
     );
