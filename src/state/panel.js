@@ -4,7 +4,7 @@ import { sincronizar } from '../core/reloj.js';
 
 const SEL0 = {
   perfilSel: 'ficha', invSel: 'objetos', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota',
-  ciudadSel: 'banco', jugQ: '', gachaSel: 'invocar', gachaPag: 1, gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '',
+  ciudadSel: 'banco', jugQ: '', gachaSel: 'invocar', gachaPag: 1, gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
 };
 const enc = encodeURIComponent;
 
@@ -29,6 +29,7 @@ export const RUTAS = {
   alquimia: () => '/api/alquimia',
   mundial: () => '/api/mundial',
   clan: () => '/api/clan?q=' + enc(sel.clanQ),
+  jugador: () => '/api/perfil?ref=' + enc(sel.jugRef),
 };
 
 export const hooks = { aviso: () => {}, sesionCaducada: () => {} };

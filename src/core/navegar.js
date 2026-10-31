@@ -12,6 +12,7 @@ export async function abrir(t, forzar) {
     t = 'ficha';
   }
   if (!TABS.includes(t)) t = 'inicio';
+  if (t === 'jugador' && !store.sel.jugRef) t = 'rankings';
   const cambio = e.tab !== t;
   cambiar({ tab: t });
   try { history.replaceState(null, '', t === 'inicio' ? location.pathname : '#' + t); } catch (_) {}
@@ -19,6 +20,16 @@ export async function abrir(t, forzar) {
   if (t === 'inicio') return;
   return store.cargar(t, forzar);
 }
+
+export function verJugador(ref) {
+  if (!ref) return undefined;
+  if (e.tab !== 'jugador') store.sel.jugVolver = e.tab;
+  store.sel.jugRef = ref;
+  delete store.cache.jugador;
+  return abrir('jugador', true);
+}
+
+export const volverDeJugador = () => abrir(store.sel.jugVolver || 'rankings');
 
 export function irPerfil(seccion) {
   store.sel.perfilSel = seccion;

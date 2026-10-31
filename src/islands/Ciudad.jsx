@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
-import { ciudadSeccion, ciudadIr, buscarJugadores, consultaJugadores } from '../bridge/acciones.js';
+import { ciudadSeccion, ciudadIr, buscarJugadores, consultaJugadores, verJugador } from '../bridge/acciones.js';
 import { Cab, Seg, Vacio, Countdown, Titulo, Campo, Accion, Cifras } from './ui.jsx';
 
 const SECCIONES = [['banco', 'Banco'], ['negocios', 'Negocios'], ['casino', 'Casino'], ['altar', 'Altar'], ['jugadores', 'Jugadores']];
@@ -193,6 +193,7 @@ function Jugadores({ d, base }) {
           <div className="bloque vidrio" key={j.ref}>
             <strong>{j.alias}</strong>
             <div className="btnrow">
+              <button type="button" className="mini" onClick={() => verJugador(j.ref)}>Ver perfil</button>
               <Accion ruta="/api/jugadores/pagar" cuerpo={{ ref: j.ref }} campos={{ cantidad: pago }}>Pagar</Accion>
               <Accion ruta="/api/jugadores/robar" cuerpo={{ ref: j.ref }} confirmar={`¿Intentar robar a ${j.alias}? Si sale mal pagas una multa.`}>Robar</Accion>
             </div>

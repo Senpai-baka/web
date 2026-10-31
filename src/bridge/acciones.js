@@ -2,13 +2,15 @@ import { sel, vista, fijar, notificar } from '../state/panel.js';
 import { e } from '../core/estado.js';
 import { publicar as publicarAccion } from '../core/acciones.js';
 import { aviso as avisoToast } from '../core/avisos.js';
-import { abrir, irPerfil } from '../core/navegar.js';
+import { abrir, irPerfil, verJugador as verJugadorAjeno, volverDeJugador } from '../core/navegar.js';
 import { salir } from '../core/sesion.js';
 import { vigilarGacha } from '../core/eventos.js';
 
 export const publicar = (boton, ruta, cuerpo) => publicarAccion(boton, ruta, cuerpo);
 export const aviso = (txt, ms) => avisoToast(txt, ms);
 export const irA = t => abrir(t);
+export const verJugador = ref => verJugadorAjeno(ref);
+export const volverJugador = () => volverDeJugador();
 export const perfilIr = s => irPerfil(s);
 export const cerrarSesion = () => salir();
 export const vigilarFinGacha = fin => vigilarGacha(fin);
