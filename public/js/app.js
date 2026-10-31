@@ -33,7 +33,9 @@ const ICONOS = {
   leaf: svg('<path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z"/><path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z"/>'),
   raid: svg('<path d="M4 4 L15 15"/><path d="M13 17 L17 13"/><path d="M16 16 L20 20"/><path d="M20 4 L9 15"/><path d="M11 17 L7 13"/><path d="M8 16 L4 20"/>'),
   gacha: svg('<path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z"/>'),
-  clan: svg('<path d="M4 21 V9 L7 7 V4 H9 V7 H11 V4 H13 V7 H15 V4 H17 V7 L20 9 V21"/><path d="M3 21 H21"/><path d="M10 21 V15 A2 2 0 0 1 14 15 V21"/>')
+  clan: svg('<path d="M4 21 V9 L7 7 V4 H9 V7 H11 V4 H13 V7 H15 V4 H17 V7 L20 9 V21"/><path d="M3 21 H21"/><path d="M10 21 V15 A2 2 0 0 1 14 15 V21"/>'),
+  alquimia: svg('<path d="M9 3 H15"/><path d="M10 3 V9 L4.5 19 A2 2 0 0 0 6.3 21 H17.7 A2 2 0 0 0 19.5 19 L14 9 V3"/><path d="M7.5 15 H16.5"/>'),
+  mundial: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12 H21"/><path d="M12 3 C8 7 8 17 12 21 C16 17 16 7 12 3Z"/>')
 };
 const NAV = [
   ['inicio', 'Inicio', svg('<path d="M3 11 L12 3 L21 11"/><path d="M5 10 V20 H19 V10"/>')],
@@ -56,9 +58,16 @@ const TABS = [
   'mazmorra',
   'sala',
   'clan',
+  'encargos',
+  'encuentro',
+  'alquimia',
+  'mundial'
+];
+const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', sala: 'inicio', clan: 'inicio', encargos: 'inicio', encuentro: 'inicio', alquimia: 'inicio', mundial: 'inicio' };
   'encargos'
 ];
 const PADRE = { gacha: 'inicio', raid: 'inicio', mazmorra: 'inicio', sala: 'inicio', clan: 'inicio' };
+
 const ACC = {
   minar:  { l: 'Mina de cristal', n: 'Minar',  ya: 'minar',  p: 'Minaste',  v: 'Minando…',  ic: 'mine', fx: 'golpe',   tot: 2700, z: '#c3bbdc', g: 'r' },
   talar:  { l: 'Bosque profundo', n: 'Talar',  ya: 'talar',  p: 'Talaste',  v: 'Talando…',  ic: 'chop', fx: 'tala', tot: 1800, z: '#8fc4ad', g: 'r' },
@@ -226,7 +235,6 @@ function pintarClima(c) {
   $('#lluvia').hidden = !/lluv|torment/i.test(c.nombre);
 }
 
-// El aviso de reconexión solo sale si el bot lleva más de 45 s caído de forma seguida y no más de una vez cada 15 min
 let botCaidoDesde = 0, botAvisadoT = 0;
 function vigilarBot(d) {
   if (d.bot !== false) { botCaidoDesde = 0; return; }
@@ -360,7 +368,6 @@ async function sondearAbiertas() {
   } catch (_) {
   } finally { sondeando = false; }
 }
-// El sondeo de cartas abiertas se adapta: rápido en el Gacha, más lento en el resto y muy lento en segundo plano
 function programarSondeo() {
   const ms = document.hidden ? 30000 : tabActual === 'gacha' ? 6000 : 15000;
   setTimeout(() => {
@@ -1496,8 +1503,8 @@ async function publicar(b, ruta, cuerpo) {
     if (ruta.includes('/gacha/')) { S.gtMia = 0; S.gtSuya = 0; }
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
-      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') || ruta.includes('/sala') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
-      hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: '', boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null });
+      const ico = ruta.includes('/gacha') ? ICONOS.gacha : ruta.includes('/raid') ? ICONOS.raid : ruta.includes('/clan') ? ICONOS.clan : ruta.includes('/alquimia') ? ICONOS.alquimia : ruta.includes('/mundial') ? ICONOS.mundial : ruta.includes('/encuentro') ? ICONOS.gacha : ruta.includes('granja') ? ICONOS.leaf : ruta.includes('mazmorra') || ruta.includes('/sala') ? ICONOS.hunt : ruta.includes('/casino') ? ICONOS.dado : ruta.includes('/jugadores') ? ICONOS.mask : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda : ICONOS.gift;
+      hoja({ icono: ico, col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips, titulo: d.resultado.titulo, zona: d.resultado.zona, pie: d.mensaje && /\/(encuentro|alquimia|mundial)\//.test(ruta) ? d.mensaje : '', boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null });
     } else if (d.mensaje) aviso(d.mensaje);
     await abrir(tabActual, true);
   } catch (e) {
