@@ -3,7 +3,7 @@ import { useAhora } from '../core/reloj.js';
 import { dur, fmt } from '../lib/format.js';
 import { API } from '../lib/api.js';
 import { useMe } from '../bridge/store.js';
-import { publicar, aviso, irA } from '../bridge/acciones.js';
+import { publicar, aviso, irA, verJugador } from '../bridge/acciones.js';
 
 export const MEDALLA = ['🥇', '🥈', '🥉'];
 export const medalla = i => MEDALLA[i] || (i + 1) + '.';
@@ -103,8 +103,10 @@ export function Avatar({ r }) {
 }
 
 export function Fila({ r, extra, valor, avatar }) {
+  const ver = r.pid ? () => verJugador(r.pid) : null;
+  const clic = ver ? { role: 'button', tabIndex: 0, onClick: ver, onKeyDown: ev => { if (ev.key === 'Enter') ver(); }, style: { cursor: 'pointer' } } : {};
   return (
-    <div className={`fil ${r.yo || r.mio ? 'yo' : ''}`}>
+    <div className={`fil ${r.yo || r.mio ? 'yo' : ''}`} {...clic}>
       <span className="pos">{medalla(r.pos - 1)}</span>
       {avatar && <Avatar r={r} />}
       <div className="nom">
