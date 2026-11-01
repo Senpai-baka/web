@@ -5844,20 +5844,6 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
-.inv-cols {
-  display: grid;
-  grid-template-columns: minmax(0,1fr);
-  gap: var(--e3);
-  align-items: start;
-}
-.inv-cols>div {
-  min-width: 0;
-}
-@media (min-width:900px) {
-  .inv-cols {
-    grid-template-columns: minmax(0,1.1fr) minmax(0,1fr);
-  }
-}
 .bolsa-g.rej {
   grid-template-columns: repeat(auto-fill,minmax(68px,1fr));
   gap: 8px;
@@ -5964,4 +5950,34 @@ body {
 }
 .it.no {
   opacity: .45;
+}
+.reqs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.req {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  border: 1px solid rgba(143,196,173,.5);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--petal);
+  font-variant-numeric: tabular-nums;
+}
+.req i {
+  font-style: normal;
+}
+.req.falta {
+  border-color: rgba(221,133,145,.65);
+  color: var(--mal);
+}
+.forja-b {
+  display: grid;
+  gap: 6px;
+  flex: none;
 }

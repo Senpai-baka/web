@@ -26,7 +26,7 @@ function Heroe({ clase }) {
 
 const AREAS = { arma: 'arma', armadura: 'armadura', amuleto: 'amuleto' };
 
-export function Muneco({ items, activo, onSel, clase }) {
+function Muneco({ items, activo, onSel, clase }) {
   return (
     <div className="muneco pj vidrio">
       {Object.entries(TIPOS).map(([tipo, [nombre, emoji]]) => {
@@ -52,7 +52,7 @@ export function Muneco({ items, activo, onSel, clase }) {
   );
 }
 
-export function Bonos({ b }) {
+function Bonos({ b }) {
   const lista = [['⚔️ Daño', `+${b.dano || 0}%`], ['❤️ Vida', `+${b.vida || 0}%`], ['🪙 Ingresos', `+${b.ingresos || 0}%`], ['🍀 Suerte', `+${b.suerte || 0}`]];
   return (
     <div className="bonos">
@@ -68,7 +68,7 @@ function Bolsa({ d, items, activo, onSel }) {
     ...Object.entries(TIPOS).map(([k, [n]]) => [k, n, items.filter(i => i.tipo === k).length])
   ];
   const vistos = filtro === 'todo' ? items : items.filter(i => i.tipo === filtro);
-  const libres = filtro === 'todo' ? Math.min(10, Math.max(0, (d.bolsa?.max || 0) - items.length)) : 0;
+  const libres = filtro === 'todo' ? Math.min(4, Math.max(0, (d.bolsa?.max || 0) - items.length)) : 0;
   return (
     <>
       <div className="filtros" role="group" aria-label="Filtrar equipo">
@@ -80,10 +80,13 @@ function Bolsa({ d, items, activo, onSel }) {
         {vistos.map(it => {
           const sel = mismo(it.id, activo?.id);
           return (
-            <button key={it.id} type="button" className={`slot celda ${sel ? 'sel' : ''} ${it.rareza === 'legendaria' ? 'leg' : ''}`} style={{ '--r': colorDe(it) }} aria-label={it.etiqueta} aria-pressed={sel} onClick={() => onSel(it.id)}>
-              <span className="si">{it.emoji || '🎒'}</span>
-              {it.plus > 0 && <b className="mas">+{it.plus}</b>}
-              {it.equipado && <i className="eq">E</i>}
+            <button key={it.id} type="button" className={`it ${sel ? 'sel' : ''}`} aria-label={it.etiqueta} aria-pressed={sel} onClick={() => onSel(it.id)}>
+              <span className={`slot ${it.rareza === 'legendaria' ? 'leg' : ''}`} style={{ '--r': colorDe(it) }} aria-hidden="true">
+                <span className="si">{it.emoji || '🎒'}</span>
+                {it.plus > 0 && <b className="mas">+{it.plus}</b>}
+                {it.equipado && <i className="eq">E</i>}
+              </span>
+              <span className="it-n">{it.etiqueta}</span>
             </button>
           );
         })}
@@ -242,35 +245,19 @@ export default function Equipo({ d }) {
   const me = useMe();
   const items = Array.isArray(d.items) ? d.items : [];
   const [seleccion, setSeleccion] = useState(null);
-  const activo = items.find(i => mismo(i.id, seleccion)) || items.find(i => i.equipado) || items[0] || null;
+  const elegir = id => setSeleccion(s => (mismo(s, id) ? null : id));
+  const activo = items.find(i => mismo(i.id, seleccion)) || null;
   const actual = activo && !activo.equipado ? items.find(i => i.equipado && i.tipo === activo.tipo) : null;
-  const puestos = items.filter(i => i.equipado).length;
   const b = d.bonos || {};
   return (
     <>
-      <div className="inv-cols">
-        <div className="inv-izq">
-          <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
-            {items.length
-              ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
-              : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
-          </Sec>
-          {activo && (
-            <>
-              <Titulo>Pieza seleccionada</Titulo>
-              <Detalle d={d} activo={activo} actual={actual} />
-            </>
-          )}
-        </div>
-        <div className="inv-der">
-          <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
-            <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
-          </Sec>
-          <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
-            <Bonos b={b} />
-          </Sec>
-        </div>
-      </div>
+      <Muneco items={items} activo={activo} onSel={elegir} clase={me?.clase?.clave} />
+      <Bonos b={b} />
+      <Titulo extra={<span className="ex">{d.bolsa?.usados ?? items.length}/{d.bolsa?.max ?? '—'}</span>}>Tu equipo</Titulo>
+      {items.length
+        ? <Bolsa d={d} items={items} activo={activo} onSel={elegir} />
+        : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
+      {activo && <Detalle d={d} activo={activo} actual={actual} />}
       {d.reparacion?.cantidad > 0 && <Reparaciones d={d} />}
       {items.length > 0 && <Lotes d={d} />}
       {d.casa && <Hogar d={d} />}

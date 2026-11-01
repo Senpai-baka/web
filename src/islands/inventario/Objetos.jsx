@@ -1,14 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Vacio, Accion, Cifras, Countdown, Titulo } from '../ui.jsx';
+import React, { useMemo, useState } from 'react';
+import { Vacio, Accion, Countdown, Titulo } from '../ui.jsx';
 import { cambiarInventario } from '../../bridge/acciones.js';
-import { useMe } from '../../bridge/store.js';
-import { api } from '../../lib/api.js';
 import { fmt } from '../../lib/format.js';
 import { EfectosActivos, COLOR_OBJETO } from '../Elixires.jsx';
-import { Muneco, Bonos } from './Equipo.jsx';
 
 const FILTROS = [
-  ['todo', 'Todo'], ['cofres', 'Cofres'], ['herramientas', 'Herramientas'], ['consumibles', 'Consumibles'],
+  ['todo', 'Todo'], ['herramientas', 'Herramientas'], ['consumibles', 'Consumibles'],
   ['elixires', 'Elixires'], ['materiales', 'Materiales'], ['reliquias', 'Reliquias']
 ];
 const COLOR_COFRE = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' };
@@ -124,30 +121,6 @@ function VerMaterial({ valor }) {
   );
 }
 
-function EquipoRapido() {
-  const me = useMe();
-  const [eq, setEq] = useState(null);
-  useEffect(() => {
-    let vivo = true;
-    api('/api/equipo').then(r => { if (vivo) setEq(r); }).catch(() => {});
-    return () => { vivo = false; };
-  }, []);
-  if (!eq) return null;
-  const items = Array.isArray(eq.items) ? eq.items : [];
-  const puestos = items.filter(i => i.equipado).length;
-  return (
-    <>
-      <Titulo extra={<span className="ex">{puestos}/3</span>}>Equipado</Titulo>
-      <Muneco items={items} activo={null} onSel={() => cambiarInventario('equipo')} clase={me?.clase?.clave} />
-      <Titulo>Bonos del equipo</Titulo>
-      <Bonos b={eq.bonos || {}} />
-      <div className="btns uno">
-        <button type="button" className="mini" onClick={() => cambiarInventario('equipo')}>Gestionar equipo</button>
-      </div>
-    </>
-  );
-}
-
 export default function Objetos({ d, base }) {
   const [filtro, setFiltro] = useState('todo');
   const [seleccion, setSeleccion] = useState(null);
@@ -210,39 +183,32 @@ export default function Objetos({ d, base }) {
     return r;
   }, [piezas]);
 
-  const visibles = filtro === 'todo' ? piezas : piezas.filter(p => p.grupo === filtro);
-  const activo = visibles.find(p => p.id === seleccion) || visibles[0] || null;
-  const totalCofres = (d.cofres || []).reduce((a, c) => a + (c.cantidad || 0), 0);
-  const tengoRel = (d.reliquias || []).filter(r => r.tiene).length;
+  const elegir = id => setSeleccion(x => (x === id ? null : id));
+  const items = piezas.filter(p => p.grupo !== 'cofres');
+  const cofres = piezas.filter(p => p.grupo === 'cofres');
+  const visibles = filtro === 'todo' ? items : items.filter(p => p.grupo === filtro);
+  const activoItem = visibles.find(p => p.id === seleccion) || null;
+  const activoCofre = cofres.find(p => p.id === seleccion) || null;
 
   return (
     <>
-      <Cifras lista={[
-        ['Cofres', fmt(totalCofres)],
-        ['Herramientas', (d.herramientas || []).length],
-        ['Materiales', (d.materiales || []).length],
-        ['Reliquias', `${tengoRel}/${(d.reliquias || []).length}`]
-      ]} />
       <EfectosActivos lista={d.efectos} base={base} />
-      <div className="inv-cols">
-        <div className="inv-izq">
-          <Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades} />
-          {visibles.length ? (
-            <div className="bolsa-g rej">
-              {visibles.map(p => <Celda key={p.id} it={p} sel={activo?.id === p.id} onSel={setSeleccion} />)}
-            </div>
-          ) : <Vacio>{filtro === 'elixires' ? 'Aún no tienes elixires ni pociones. Fabrícalos en la Forja.' : 'Tu mochila está vacía. Juega y explora para conseguir objetos.'}</Vacio>}
-          {activo && (
-            <>
-              <Titulo>Objeto seleccionado</Titulo>
-              <Ficha it={activo}>{activo.ver()}</Ficha>
-            </>
-          )}
+      <Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades} />
+      {visibles.length ? (
+        <div className="bolsa-g rej">
+          {visibles.map(p => <Celda key={p.id} it={p} sel={seleccion === p.id} onSel={elegir} />)}
         </div>
-        <div className="inv-der">
-          <EquipoRapido />
-        </div>
-      </div>
+      ) : <Vacio>{filtro === 'elixires' ? 'Aún no tienes elixires ni pociones. Fabrícalos en la Forja.' : 'No tienes objetos todavía. Juega y explora para conseguirlos.'}</Vacio>}
+      {activoItem && <Ficha it={activoItem}>{activoItem.ver()}</Ficha>}
+      {cofres.length > 0 && (
+        <>
+          <Titulo extra={<span className="ex">hasta {d.cofresMax || 1} a la vez</span>}>Cofres</Titulo>
+          <div className="bolsa-g rej">
+            {cofres.map(p => <Celda key={p.id} it={p} sel={seleccion === p.id} onSel={elegir} />)}
+          </div>
+          {activoCofre && <Ficha it={activoCofre}>{activoCofre.ver()}</Ficha>}
+        </>
+      )}
     </>
   );
 }

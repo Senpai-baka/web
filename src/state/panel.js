@@ -3,7 +3,7 @@ import { api } from '../lib/api.js';
 import { sincronizar } from '../core/reloj.js';
 
 const SEL0 = {
-  perfilSel: 'ficha', invSel: 'objetos', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota',
+  perfilSel: 'ficha', invSel: 'equipo', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota',
   ciudadSel: 'banco', jugQ: '', gachaSel: 'invocar', gachaPag: 1, gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
 };
 const enc = encodeURIComponent;
