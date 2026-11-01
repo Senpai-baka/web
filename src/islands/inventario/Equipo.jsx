@@ -26,7 +26,7 @@ function Heroe({ clase }) {
 
 const AREAS = { arma: 'arma', armadura: 'armadura', amuleto: 'amuleto' };
 
-function Muneco({ items, activo, onSel, clase }) {
+export function Muneco({ items, activo, onSel, clase }) {
   return (
     <div className="muneco pj vidrio">
       {Object.entries(TIPOS).map(([tipo, [nombre, emoji]]) => {
@@ -52,7 +52,7 @@ function Muneco({ items, activo, onSel, clase }) {
   );
 }
 
-function Bonos({ b }) {
+export function Bonos({ b }) {
   const lista = [['⚔️ Daño', `+${b.dano || 0}%`], ['❤️ Vida', `+${b.vida || 0}%`], ['🪙 Ingresos', `+${b.ingresos || 0}%`], ['🍀 Suerte', `+${b.suerte || 0}`]];
   return (
     <div className="bonos">
