@@ -5,6 +5,7 @@ import { arrancar } from '../core/sesion.js';
 import { iniciarAvisos } from '../core/avisos.js';
 import { iniciarCiclos } from '../core/ciclos.js';
 import { iniciarTacto } from '../core/tacto.js';
+import { iniciarScroll } from '../core/scroll.js';
 import { petalos, quitarAmbiente } from '../core/petalos.js';
 import { ISLAS } from '../bridge/islands.jsx';
 import TabHost from '../islands/TabHost.jsx';
@@ -25,6 +26,7 @@ export default function App() {
   useEffect(() => {
     iniciarAvisos();
     iniciarTacto();
+    iniciarScroll();
     iniciarCiclos();
     arrancar();
   }, []);
