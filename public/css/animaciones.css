@@ -1335,3 +1335,88 @@
     min-height: 0;
   }
 }
+
+.msp {
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  position: relative;
+}
+.msp img {
+  display: block;
+  width: 400%;
+  height: 100%;
+  max-width: none;
+  image-rendering: pixelated;
+  user-select: none;
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(1, end);
+}
+.msp-normal img {
+  animation-name: msp-normal;
+  animation-duration: 1.8s;
+}
+.msp-feliz img {
+  animation-name: msp-feliz;
+  animation-duration: 0.7s;
+}
+.msp-aburrida img {
+  animation-name: msp-aburrida;
+  animation-duration: 3.2s;
+}
+.msp-triste img {
+  animation-name: msp-triste;
+  animation-duration: 4s;
+}
+.msp-enferma img {
+  animation-name: msp-enferma;
+  animation-duration: 2.6s;
+}
+.msp-hambrienta img {
+  animation-name: msp-hambrienta;
+  animation-duration: 1.6s;
+}
+@keyframes msp-normal {
+  0% { transform: translateX(0); }
+  60% { transform: translateX(-25%); }
+  100% { transform: translateX(-25%); }
+}
+@keyframes msp-feliz {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-50%); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes msp-aburrida {
+  0% { transform: translateX(0); }
+  70% { transform: translateX(-25%); }
+  100% { transform: translateX(-25%); }
+}
+@keyframes msp-triste {
+  0% { transform: translateX(-75%); }
+  80% { transform: translateX(-25%); }
+  90% { transform: translateX(-75%); }
+  100% { transform: translateX(-75%); }
+}
+@keyframes msp-enferma {
+  0% { transform: translateX(-75%); }
+  50% { transform: translateX(-25%); }
+  100% { transform: translateX(-25%); }
+}
+@keyframes msp-hambrienta {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-75%); }
+  100% { transform: translateX(-75%); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .msp img {
+    animation: none;
+  }
+  .msp-feliz img {
+    transform: translateX(-50%);
+  }
+  .msp-triste img,
+  .msp-enferma img,
+  .msp-hambrienta img {
+    transform: translateX(-75%);
+  }
+}
