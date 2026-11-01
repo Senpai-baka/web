@@ -7,12 +7,12 @@ import Objetos from './inventario/Objetos.jsx';
 import Equipo from './inventario/Equipo.jsx';
 import Forja from './inventario/Forja.jsx';
 
-const OPCIONES = [['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']];
+const OPCIONES = [['equipo', 'Equipamiento'], ['objetos', 'Objetos'], ['forja', 'Forja']];
 
 const SUBTITULO = {
-  objetos: 'Cofres, herramientas, consumibles, materiales y reliquias.',
   equipo: 'Lo que llevas puesto, tu bolsa y su mantenimiento.',
-  forja: 'Fabrica, prepara elixires y vende materiales.'
+  objetos: 'Herramientas, consumibles, elixires, materiales, reliquias y cofres.',
+  forja: 'Lo que puedes fabricar y los materiales que necesitas.'
 };
 
 export default function Inventario({ d, base }) {
