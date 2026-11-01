@@ -1426,3 +1426,51 @@ html[data-scroll="1"] #t-inicio *::before,
 html[data-scroll="1"] #t-inicio *::after {
   animation-play-state: paused !important;
 }
+
+@keyframes toco {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb,var(--z,#d9b8ff) 24%,transparent);
+  }
+  to {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+.toco {
+  animation: toco .75s cubic-bezier(.2,.7,.2,1);
+}
+.accion,
+.mini,
+.btn,
+.btn2,
+.atajo,
+.seg button,
+.nav button,
+.btnrow button,
+.btns button {
+  transition: transform .22s cubic-bezier(.2,.7,.2,1),filter .25s ease,background .25s ease,border-color .25s ease,box-shadow .25s ease,opacity .25s ease;
+}
+.accion:active,
+.mini:active,
+.btn:active,
+.btn2:active,
+.seg button:active,
+.btnrow button:active,
+.btns button:active {
+  transform: scale(.985);
+}
+.nav button:active {
+  transform: scale(.95);
+}
+.accion:hover,
+.cb-prim:hover,
+.cb-run:hover,
+.cb-acc:hover {
+  filter: brightness(1.04);
+}
+@media (prefers-reduced-motion:no-preference) {
+  .zona:not(.espera) .accion::after,
+  .ticket:not(.espera) .accion::after {
+    background: linear-gradient(100deg,transparent,rgba(255,255,255,.2),transparent);
+    animation: ani-barrido 7s ease-in-out 2s infinite;
+  }
+}

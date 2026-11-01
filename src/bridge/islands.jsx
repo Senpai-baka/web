@@ -1,18 +1,33 @@
-import Rankings from '../islands/Rankings.jsx';
-import Clan from '../islands/Clan.jsx';
-import Raid from '../islands/Raid.jsx';
-import Mazmorra from '../islands/Mazmorra.jsx';
-import Sala from '../islands/Sala.jsx';
-import Gacha from '../islands/Gacha.jsx';
-import Inventario from '../islands/Inventario.jsx';
-import Perfil from '../islands/Perfil.jsx';
-import Ciudad from '../islands/Ciudad.jsx';
-import Tienda from '../islands/Tienda.jsx';
-import Hogar from '../islands/Hogar.jsx';
-import Encargos from '../islands/Encargos.jsx';
-import Encuentro from '../islands/Encuentro.jsx';
-import Alquimia from '../islands/Alquimia.jsx';
-import Mundial from '../islands/Mundial.jsx';
-import Jugador from '../islands/Jugador.jsx';
+import { lazy } from 'react';
 
-export const ISLAS = { rankings: Rankings, clan: Clan, raid: Raid, mazmorra: Mazmorra, sala: Sala, gacha: Gacha, inventario: Inventario, ficha: Perfil, ciudad: Ciudad, tienda: Tienda, hogar: Hogar, encargos: Encargos, encuentro: Encuentro, alquimia: Alquimia, mundial: Mundial, jugador: Jugador };
+export const CARGAS = {
+  rankings: () => import('../islands/Rankings.jsx'),
+  clan: () => import('../islands/Clan.jsx'),
+  raid: () => import('../islands/Raid.jsx'),
+  mazmorra: () => import('../islands/Mazmorra.jsx'),
+  sala: () => import('../islands/Sala.jsx'),
+  gacha: () => import('../islands/Gacha.jsx'),
+  inventario: () => import('../islands/Inventario.jsx'),
+  ficha: () => import('../islands/Perfil.jsx'),
+  ciudad: () => import('../islands/Ciudad.jsx'),
+  tienda: () => import('../islands/Tienda.jsx'),
+  hogar: () => import('../islands/Hogar.jsx'),
+  encargos: () => import('../islands/Encargos.jsx'),
+  encuentro: () => import('../islands/Encuentro.jsx'),
+  alquimia: () => import('../islands/Alquimia.jsx'),
+  mundial: () => import('../islands/Mundial.jsx'),
+  jugador: () => import('../islands/Jugador.jsx')
+};
+
+export const ISLAS = Object.fromEntries(Object.entries(CARGAS).map(([k, f]) => [k, lazy(f)]));
+
+export function precargarIslas(primera) {
+  const lista = Object.entries(CARGAS);
+  if (primera) lista.sort(([a], [b]) => (a === primera ? -1 : b === primera ? 1 : 0));
+  const paso = () => {
+    const par = lista.shift();
+    if (!par) return;
+    par[1]().catch(() => {}).finally(() => (window.requestIdleCallback ? requestIdleCallback(paso, { timeout: 2000 }) : setTimeout(paso, 150)));
+  };
+  paso();
+}

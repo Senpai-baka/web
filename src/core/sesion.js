@@ -25,15 +25,37 @@ function vigilarBot(d) {
   }
 }
 
-export function aplicar(d) {
+const CLAVE_CACHE = 'isla_me';
+const VIDA_CACHE = 12 * 60 * 60 * 1000;
+
+function guardarCache(d, t) {
+  try { localStorage.setItem(CLAVE_CACHE, JSON.stringify({ t, me: d })); } catch (_) {}
+}
+
+function leerCache() {
+  try {
+    const g = JSON.parse(localStorage.getItem(CLAVE_CACHE) || 'null');
+    return g && g.me && g.me.esperas && Date.now() - g.t < VIDA_CACHE ? g : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function borrarCache() {
+  try { localStorage.removeItem(CLAVE_CACHE); } catch (_) {}
+}
+
+export function aplicar(d, instante) {
+  const t = instante || Date.now();
   vigilarBot(d);
   const fin = {};
   const tot = {};
   for (const k in ACC) {
-    fin[k] = Date.now() + (d.esperas[k] || 0) * 1000;
+    fin[k] = t + (d.esperas[k] || 0) * 1000;
     if (d.totales ? d.totales[k] !== undefined : true) tot[k] = d.totales ? d.totales[k] : ACC[k].tot;
   }
-  cambiar({ me: d, meT: Date.now(), fin, tot });
+  cambiar({ me: d, meT: t, fin, tot });
+  if (!instante) guardarCache(d, t);
   gancho.tick();
   anunciarRaid();
   cargarEventos();
@@ -41,6 +63,7 @@ export function aplicar(d) {
 }
 
 export function limpiarTabs() {
+  borrarCache();
   cambiar({ me: null, listas: 0 });
   reiniciarEventos();
   store.reiniciar();
@@ -86,10 +109,23 @@ let reintento = 0;
 export async function arrancar() {
   clearTimeout(reintento);
   if (e.me) return;
+  const guardado = leerCache();
+  if (guardado) {
+    aplicar(guardado.me, guardado.t);
+    cambiar({ vista: 'panel' });
+    abrir(location.hash.slice(1) || 'inicio');
+  }
   let d;
   try {
     d = await api('/api/me');
   } catch (err) {
+    if (guardado) {
+      if (err && err.estado === 401) {
+        limpiarTabs();
+        cambiar({ vista: 'login' });
+      }
+      return;
+    }
     cambiar({ vista: 'login' });
     if (err && err.estado === 401) return;
     console.error('[isla] no se pudo restaurar la sesión', err);
@@ -99,8 +135,10 @@ export async function arrancar() {
   }
   cambiar({ errLogin: '' });
   try { aplicar(d); } catch (err) { console.error('[isla] error al pintar el panel', err); }
-  cambiar({ vista: 'panel' });
-  abrir(location.hash.slice(1) || 'inicio');
+  if (!guardado) {
+    cambiar({ vista: 'panel' });
+    abrir(location.hash.slice(1) || 'inicio');
+  }
 }
 
 store.hooks.aviso = (txt, ms) => aviso(txt, ms);

@@ -14,11 +14,11 @@ export function iniciarTacto() {
   document.addEventListener('pointerdown', ev => {
     const b = ev.target.closest('button:not(:disabled):not([aria-disabled="true"]), .atajo');
     if (!b || !b.matches('.accion,.mini,.btn,.btn2,.atajo,.seg button,.nav button')) return;
-    vibra(8);
+    vibra(5);
     if (!b.matches('.accion,.mini,.btn,.btn2')) return;
     b.classList.remove('toco');
     void b.offsetWidth;
     b.classList.add('toco');
-    setTimeout(() => b.classList.remove('toco'), 500);
+    setTimeout(() => b.classList.remove('toco'), 750);
   }, { passive: true });
 }

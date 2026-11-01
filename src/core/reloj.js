@@ -28,3 +28,5 @@ export function sincronizar() {
 }
 
 export const useAhora = () => useSyncExternalStore(suscribir, () => ahora, () => ahora);
+
+export const useDeAhora = sel => useSyncExternalStore(suscribir, () => sel(ahora), () => sel(ahora));
