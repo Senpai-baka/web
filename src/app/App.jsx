@@ -7,7 +7,7 @@ import { iniciarCiclos } from '../core/ciclos.js';
 import { iniciarTacto } from '../core/tacto.js';
 import { iniciarScroll } from '../core/scroll.js';
 import { petalos, quitarAmbiente } from '../core/petalos.js';
-import { ISLAS } from '../bridge/islands.jsx';
+import { ISLAS, precargarIslas } from '../bridge/islands.jsx';
 import TabHost from '../islands/TabHost.jsx';
 import Cabecera from './Cabecera.jsx';
 import Login from './Login.jsx';
@@ -30,6 +30,10 @@ export default function App() {
     iniciarCiclos();
     arrancar();
   }, []);
+
+  useEffect(() => {
+    if (panel) precargarIslas(tab === 'inicio' ? null : tab);
+  }, [panel]);
 
   useEffect(() => {
     quitarAmbiente();
