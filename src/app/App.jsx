@@ -12,6 +12,7 @@ import * as store from '../state/panel.js';
 import TabHost from '../islands/TabHost.jsx';
 import Cabecera from './Cabecera.jsx';
 import Login from './Login.jsx';
+import Mantenimiento from './Mantenimiento.jsx';
 import Inicio from './Inicio.jsx';
 import Nav from './Nav.jsx';
 import { Animacion, Hoja, Toast } from './Superposiciones.jsx';
@@ -85,6 +86,7 @@ export default function App() {
       <main id="app" className={panel ? 'con-nav' : undefined}>
         <Cabecera panel={panel} />
         <Login visible={vista === 'login'} />
+        {vista === 'mantenimiento' && <Mantenimiento />}
         <section id="v-panel" hidden={!panel}>
           <div id="t-inicio" hidden={tab !== 'inicio'}>{panel && <Inicio />}</div>
           {TABS.filter(t => t !== 'inicio').map(t => (

@@ -1,4 +1,5 @@
 export const API = '';
+export const hooks = { mantenimiento: null };
 
 export function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }
 const espera = ms => new Promise(r => setTimeout(r, ms));
@@ -37,6 +38,13 @@ async function pedir(ruta, cuerpo) {
       continue;
     }
     clearTimeout(t);
+    if (r.status === 503) {
+      const dm = await r.clone().json().catch(() => null);
+      if (dm && dm.mantenimiento) {
+        if (hooks.mantenimiento) hooks.mantenimiento(dm);
+        throw err(dm.error || 'El panel está en mantenimiento.', 503, dm);
+      }
+    }
     if (REINTENTABLE.has(r.status) && i < intentos - 1) { ultimo = err('Isla está reiniciándose. Reintentando…', r.status); continue; }
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw err(d.error || (REINTENTABLE.has(r.status) ? 'Isla está reiniciándose. Inténtalo en unos segundos.' : 'Algo salió mal. Inténtalo de nuevo.'), r.status, d);

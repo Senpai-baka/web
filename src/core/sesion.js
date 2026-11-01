@@ -1,4 +1,4 @@
-import { api } from '../lib/api.js';
+import { api, hooks } from '../lib/api.js';
 import * as store from '../state/panel.js';
 import { e, cambiar, gancho } from './estado.js';
 import { ACC } from './datos.js';
@@ -126,6 +126,7 @@ export async function arrancar() {
       }
       return;
     }
+    if (err && err.estado === 503 && err.datos && err.datos.mantenimiento) return;
     cambiar({ vista: 'login' });
     if (err && err.estado === 401) return;
     console.error('[isla] no se pudo restaurar la sesión', err);
@@ -143,3 +144,36 @@ export async function arrancar() {
 
 store.hooks.aviso = (txt, ms) => aviso(txt, ms);
 store.hooks.sesionCaducada = () => sesionCaducada();
+
+// Modo mantenimiento: el bot responde 503 con { mantenimiento: true } a quien no es owner.
+let sondeoMant = 0;
+
+function sondearMantenimiento() {
+  clearTimeout(sondeoMant);
+  sondeoMant = setTimeout(async () => {
+    if (e.vista !== 'mantenimiento') return;
+    try {
+      const d = await api('/api/mantenimiento');
+      if (!d.activo) {
+        cambiar({ mant: null, me: null });
+        return arrancar();
+      }
+      cambiar({ mant: d });
+    } catch (_) {}
+    sondearMantenimiento();
+  }, 15000);
+}
+
+export function verLoginOwner() {
+  clearTimeout(sondeoMant);
+  cambiar({ vista: 'login' });
+}
+
+hooks.mantenimiento = d => {
+  if (e.vista === 'mantenimiento') {
+    cambiar({ mant: { activo: true, mensaje: d.mensaje, hasta: d.hasta } });
+    return;
+  }
+  cambiar({ vista: 'mantenimiento', mant: { activo: true, mensaje: d.mensaje, hasta: d.hasta } });
+  sondearMantenimiento();
+};
