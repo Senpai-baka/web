@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
 import { tiendaSeccion, tiendaIr, tiendaPagina } from '../bridge/acciones.js';
 import { Cab, Seg, Vacio, Countdown, Titulo, Accion } from './ui.jsx';
+import { COLOR_OBJETO } from './Elixires.jsx';
 
 const SECCIONES = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
 
@@ -15,53 +16,109 @@ const ICONO = (
   </>
 );
 
-function Objeto({ i, d, base }) {
-  const lleno = i.stock >= d.tope;
-  const limite = !!(i.limiteDia && i.usosHoy >= i.limiteDia);
-  const pobre = d.cartera < i.precio;
-  const motivo = lleno ? 'Ya tienes el máximo.' : limite ? 'Llegaste al límite de hoy.' : 'Te faltan monedas.';
+const NEUTRO = '#c3bbdc';
+
+function useElegir() {
+  const [sel, setSel] = useState(null);
+  const elegir = id => setSel(x => (x === id ? null : id));
+  return [sel, elegir];
+}
+
+function Celda({ it, sel, onSel }) {
   return (
-    <div className="bloque vidrio">
-      <div className="fila"><strong>{i.emoji} {i.nombre}</strong><b>{fmt(i.precio)}</b></div>
-      <p className="mut peq">{i.desc}</p>
-      <p className="peq">
-        Tienes {i.stock}/{d.tope}{' '}
-        {i.activoS ? <span className="etiq">Activo <Countdown fin={base + i.activoS * 1000} /></span> : null}{' '}
-        {i.usosRestantes ? <span className="etiq">{i.usosRestantes} usos</span> : null}{' '}
-        {i.limiteDia ? <span className="mut peq">Hoy {i.usosHoy}/{i.limiteDia}</span> : null}
-      </p>
-      {i.pasivo && <p className="mut peq">Se usa solo en {i.usoEn}</p>}
-      <div className="btnrow">
-        <Accion ruta="/api/tienda/comprar" cuerpo={{ clave: i.clave }} motivo={(lleno || limite || pobre) && motivo}>Comprar</Accion>
-        {!i.pasivo && <Accion ruta="/api/tienda/usar" cuerpo={{ clave: i.clave }} motivo={i.stock < 1 && 'No tienes este objeto.'}>Usar</Accion>}
+    <button type="button" className={`it ${sel ? 'sel' : ''} ${it.apagado ? 'no' : ''}`} onClick={() => onSel(it.id)} aria-pressed={sel} aria-label={it.nombre}>
+      <span className="slot" style={{ '--r': it.color }} aria-hidden="true">
+        <span className="si">{it.emoji || '📦'}</span>
+        {it.cantidad !== undefined && <i className="n">{it.cantidad}</i>}
+      </span>
+      <span className="it-n">{it.nombre}</span>
+      <span className="it-p">{fmt(it.precio)}</span>
+    </button>
+  );
+}
+
+function Rejilla({ lista, sel, onSel }) {
+  return (
+    <div className="bolsa-g rej">
+      {lista.map(it => <Celda key={it.id} it={it} sel={sel === it.id} onSel={onSel} />)}
+    </div>
+  );
+}
+
+function Ficha({ color, titulo, precio, children }) {
+  return (
+    <div className="bloque vidrio detalle" style={{ '--r': color }}>
+      <div className="fila">
+        <strong style={{ color }}>{titulo}</strong>
+        <b className="it-p">{fmt(precio)}</b>
       </div>
+      {children}
+    </div>
+  );
+}
+
+function BotonAbrir({ abierto, onCambio, texto }) {
+  return (
+    <div className="btns uno">
+      <button type="button" className="mini" aria-expanded={abierto} onClick={() => onCambio(!abierto)}>{abierto ? 'Cerrar' : texto}</button>
     </div>
   );
 }
 
 function Objetos({ d, base }) {
+  const [sel, elegir] = useElegir();
+  const lista = d.items.map(i => ({ id: i.clave, emoji: i.emoji, nombre: i.nombre, precio: i.precio, color: COLOR_OBJETO[i.clave] || NEUTRO, item: i }));
+  const activo = lista.find(x => x.id === sel);
+  const i = activo?.item;
+  const lleno = i && i.stock >= d.tope;
+  const limite = !!(i && i.limiteDia && i.usosHoy >= i.limiteDia);
+  const pobre = i && d.cartera < i.precio;
+  const motivo = lleno ? 'Ya tienes el máximo.' : limite ? 'Llegaste al límite de hoy.' : 'Te faltan monedas.';
   return (
     <>
-      <Titulo>Objetos</Titulo>
-      {d.items.map(i => <Objeto key={i.clave} i={i} d={d} base={base} />)}
+      <Titulo extra={<span className="ex">Toca uno para ver sus datos</span>}>Objetos</Titulo>
+      <Rejilla lista={lista} sel={sel} onSel={elegir} />
+      {i && (
+        <Ficha color={activo.color} titulo={`${i.emoji} ${i.nombre}`} precio={i.precio}>
+          <p className="mut peq">{i.desc}</p>
+          <p className="peq">
+            Tienes {i.stock}/{d.tope}{' '}
+            {i.activoS ? <span className="etiq">Activo <Countdown fin={base + i.activoS * 1000} /></span> : null}{' '}
+            {i.usosRestantes ? <span className="etiq">{i.usosRestantes} usos</span> : null}{' '}
+            {i.limiteDia ? <span className="mut peq">Hoy {i.usosHoy}/{i.limiteDia}</span> : null}
+          </p>
+          {i.pasivo && <p className="mut peq">Se usa solo en {i.usoEn}</p>}
+          <div className="btnrow">
+            <Accion ruta="/api/tienda/comprar" cuerpo={{ clave: i.clave }} motivo={(lleno || limite || pobre) && motivo}>Comprar</Accion>
+            {!i.pasivo && <Accion ruta="/api/tienda/usar" cuerpo={{ clave: i.clave }} motivo={i.stock < 1 && 'No tienes este objeto.'}>Usar</Accion>}
+          </div>
+        </Ficha>
+      )}
     </>
   );
 }
 
 function Bazar({ d, base }) {
+  const [sel, elegir] = useElegir();
+  const lista = d.ofertas.map(o => ({ id: o.id, emoji: o.emoji || '🎁', nombre: o.nombre, precio: o.precio, color: '#8fb4d6', apagado: o.comprada, oferta: o }));
+  const activo = lista.find(x => x.id === sel);
+  const o = activo?.oferta;
   return (
     <>
       <Titulo extra={<span className="mut peq">cambian en <Countdown fin={base + d.cambiaS * 1000} /></span>}>Ofertas de hoy</Titulo>
-      {d.ofertas.map(o => (
-        <div className="fil" key={o.id}>
-          <div className="nom"><strong className="largo">{o.nombre}</strong><span className="mut peq">{fmt(o.precio)} monedas</span></div>
-          <Accion
-            ruta="/api/bazar/comprar"
-            cuerpo={{ id: o.id }}
-            motivo={o.comprada ? 'Ya la compraste hoy.' : d.cartera < o.precio && 'Te faltan monedas.'}
-          >{o.comprada ? 'Comprada' : 'Comprar'}</Accion>
-        </div>
-      ))}
+      <Rejilla lista={lista} sel={sel} onSel={elegir} />
+      {o && (
+        <Ficha color={activo.color} titulo={o.nombre} precio={o.precio}>
+          <p className="mut peq">{o.comprada ? 'Ya la compraste hoy.' : 'Oferta de hoy.'}</p>
+          <div className="btns uno">
+            <Accion
+              ruta="/api/bazar/comprar"
+              cuerpo={{ id: o.id }}
+              motivo={o.comprada ? 'Ya la compraste hoy.' : d.cartera < o.precio && 'Te faltan monedas.'}
+            >{o.comprada ? 'Comprada' : 'Comprar'}</Accion>
+          </div>
+        </Ficha>
+      )}
       <p className="mut peq" style={{ marginTop: 10 }}>Una compra por oferta cada día. El equipo sale al nivel que tengas hoy.</p>
     </>
   );
@@ -112,33 +169,46 @@ function FormVenta({ d }) {
 }
 
 function Mercado({ d }) {
-  const resto = d.ofertas.filter(o => !o.mia);
+  const [sel, elegir] = useElegir();
+  const [abierto, setAbierto] = useState(false);
+  useEffect(() => { setAbierto(false); }, [d.mias.length]);
+  const mapa = (o, color) => ({ id: o.id, emoji: o.emoji || '📦', nombre: o.nombre, precio: o.precio, cantidad: o.cantidad, color, oferta: o });
+  const mias = d.mias.map(o => mapa(o, '#e0b96a'));
+  const resto = d.ofertas.filter(o => !o.mia).map(o => mapa(o, NEUTRO));
+  const aMia = mias.find(x => x.id === sel);
+  const aResto = resto.find(x => x.id === sel);
   return (
     <>
-      <Titulo>Vender</Titulo>
-      {d.vendibles.length
+      <BotonAbrir abierto={abierto} onCambio={setAbierto} texto="Vender un objeto" />
+      {abierto && (d.vendibles.length
         ? <FormVenta key={d.mias.length} d={d} />
-        : <Vacio>No tienes objetos ni materiales para vender.</Vacio>}
+        : <Vacio>No tienes objetos ni materiales para vender.</Vacio>)}
 
-      <Titulo>Mis ofertas</Titulo>
-      {d.mias.length
-        ? d.mias.map(o => (
-          <div className="fil" key={o.id}>
-            <div className="nom"><strong className="largo">{o.nombre} x{o.cantidad}</strong><span className="mut peq">{fmt(o.precio)} monedas</span></div>
-            <Accion ruta="/api/mercado/cancelar" cuerpo={{ id: o.id }}>Cancelar</Accion>
-          </div>
-        ))
+      <Titulo extra={<span className="ex">{d.mias.length}/{d.limite}</span>}>Mis ofertas</Titulo>
+      {mias.length
+        ? <Rejilla lista={mias} sel={sel} onSel={elegir} />
         : <Vacio>No tienes ofertas publicadas.</Vacio>}
+      {aMia && (
+        <Ficha color={aMia.color} titulo={`${aMia.oferta.nombre} x${aMia.oferta.cantidad}`} precio={aMia.oferta.precio}>
+          <p className="mut peq">Tu oferta publicada.</p>
+          <div className="btns uno">
+            <Accion ruta="/api/mercado/cancelar" cuerpo={{ id: aMia.oferta.id }}>Cancelar oferta</Accion>
+          </div>
+        </Ficha>
+      )}
 
       <Titulo>A la venta</Titulo>
       {resto.length
-        ? resto.map(o => (
-          <div className="fil" key={o.id}>
-            <div className="nom"><strong className="largo">{o.nombre} x{o.cantidad}</strong><span className="mut peq">{fmt(o.precio)} monedas</span></div>
-            <Accion ruta="/api/mercado/comprar" cuerpo={{ id: o.id }} motivo={d.cartera < o.precio && 'Te faltan monedas.'}>Comprar</Accion>
-          </div>
-        ))
+        ? <Rejilla lista={resto} sel={sel} onSel={elegir} />
         : <Vacio>No hay ofertas de otros jugadores por ahora.</Vacio>}
+      {aResto && (
+        <Ficha color={aResto.color} titulo={`${aResto.oferta.nombre} x${aResto.oferta.cantidad}`} precio={aResto.oferta.precio}>
+          <p className="mut peq">Oferta de otro jugador.</p>
+          <div className="btns uno">
+            <Accion ruta="/api/mercado/comprar" cuerpo={{ id: aResto.oferta.id }} motivo={d.cartera < aResto.oferta.precio && 'Te faltan monedas.'}>Comprar</Accion>
+          </div>
+        </Ficha>
+      )}
       <Paginador k="mercado" d={d} />
     </>
   );
@@ -180,43 +250,53 @@ function Puja({ s, d }) {
   );
 }
 
-function Subasta({ s, d, base }) {
-  const puja = s.puja > 0 ? 'Puja actual ' + fmt(s.puja) : 'Base ' + fmt(s.base) + ' · sin pujas';
-  let acc;
-  if (s.mia) {
-    acc = <Accion ruta="/api/subastas/cancelar" cuerpo={{ id: s.id }} motivo={s.puja > 0 && 'Ya tiene pujas y no se puede cancelar.'}>Cancelar</Accion>;
-  } else if (s.ganando) {
-    acc = <span className="etiq">Vas ganando</span>;
-  } else {
-    acc = <Puja key={s.minimo} s={s} d={d} />;
-  }
-  return (
-    <div className="bloque vidrio">
-      <div className="fila"><strong className="largo">{s.nombre}</strong></div>
-      <p className="mut peq">{puja} · mínimo {fmt(s.minimo)} · termina en <Countdown fin={base + s.terminaS * 1000} /></p>
-      <div className="btnrow" style={{ alignItems: 'center' }}>{acc}</div>
-    </div>
-  );
-}
-
 function Subastas({ d, base }) {
-  const resto = d.activas.filter(s => !s.mia);
+  const [sel, elegir] = useElegir();
+  const [abierto, setAbierto] = useState(false);
+  useEffect(() => { setAbierto(false); }, [d.mias.length]);
+  const mapa = (s, color) => ({ id: s.id, emoji: s.emoji || '🔨', nombre: s.nombre, precio: s.puja > 0 ? s.puja : s.base, color, subasta: s });
+  const mias = d.mias.map(s => mapa(s, '#e0b96a'));
+  const resto = d.activas.filter(s => !s.mia).map(s => mapa(s, NEUTRO));
+  const aMia = mias.find(x => x.id === sel);
+  const aResto = resto.find(x => x.id === sel);
+
+  const detalle = a => {
+    const s = a.subasta;
+    const puja = s.puja > 0 ? 'Puja actual ' + fmt(s.puja) : 'Base ' + fmt(s.base) + ' · sin pujas';
+    let acc;
+    if (s.mia) {
+      acc = <Accion ruta="/api/subastas/cancelar" cuerpo={{ id: s.id }} motivo={s.puja > 0 && 'Ya tiene pujas y no se puede cancelar.'}>Cancelar</Accion>;
+    } else if (s.ganando) {
+      acc = <span className="etiq">Vas ganando</span>;
+    } else {
+      acc = <Puja key={s.minimo} s={s} d={d} />;
+    }
+    return (
+      <Ficha color={a.color} titulo={s.nombre} precio={a.precio}>
+        <p className="mut peq">{puja} · mínimo {fmt(s.minimo)} · termina en <Countdown fin={base + s.terminaS * 1000} /></p>
+        <div className="btnrow" style={{ alignItems: 'center' }}>{acc}</div>
+      </Ficha>
+    );
+  };
+
   return (
     <>
-      <Titulo>Crear</Titulo>
-      {d.vendibles.length
+      <BotonAbrir abierto={abierto} onCambio={setAbierto} texto="Crear subasta" />
+      {abierto && (d.vendibles.length
         ? <FormSubasta key={d.mias.length} d={d} />
-        : <Vacio>No tienes nada para subastar.</Vacio>}
+        : <Vacio>No tienes nada para subastar.</Vacio>)}
 
-      <Titulo>Mis subastas</Titulo>
-      {d.mias.length
-        ? d.mias.map(s => <Subasta key={s.id} s={s} d={d} base={base} />)
+      <Titulo extra={<span className="ex">{d.mias.length}/{d.limite}</span>}>Mis subastas</Titulo>
+      {mias.length
+        ? <Rejilla lista={mias} sel={sel} onSel={elegir} />
         : <Vacio>No tienes subastas activas.</Vacio>}
+      {aMia && detalle(aMia)}
 
       <Titulo>Activas</Titulo>
       {resto.length
-        ? resto.map(s => <Subasta key={s.id} s={s} d={d} base={base} />)
+        ? <Rejilla lista={resto} sel={sel} onSel={elegir} />
         : <Vacio>No hay subastas de otros jugadores por ahora.</Vacio>}
+      {aResto && detalle(aResto)}
       <Paginador k="subastas" d={d} />
     </>
   );
