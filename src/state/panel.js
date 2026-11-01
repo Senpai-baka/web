@@ -37,15 +37,48 @@ export const hooks = { aviso: () => {}, sesionCaducada: () => {} };
 const versiones = {};
 const subs = new Set();
 let sesion = 0;
-let scrollY = 0;
+
+const CLAVE_POS = 'isla_pos';
+const pos = (() => {
+  try { return JSON.parse(sessionStorage.getItem(CLAVE_POS) || '{}') || {}; } catch (_) { return {}; }
+})();
+const pendientes = {};
+let guardando = 0;
+
+function volcarPos() {
+  clearTimeout(guardando);
+  try { sessionStorage.setItem(CLAVE_POS, JSON.stringify(pos)); } catch (_) {}
+}
+function persistirPos() {
+  clearTimeout(guardando);
+  guardando = setTimeout(volcarPos, 250);
+}
+
+export const guardarPos = (t, y = window.scrollY) => {
+  pos[t] = Math.max(0, Math.round(y));
+  persistirPos();
+};
+export const volcarAhora = volcarPos;
+export const olvidarPos = t => {
+  delete pos[t];
+  delete pendientes[t];
+  persistirPos();
+};
+export const hayPendiente = t => pendientes[t] !== undefined;
+export const soltarPendiente = t => { delete pendientes[t]; };
+
+export function restaurarPos(t) {
+  const y = pendientes[t] !== undefined ? pendientes[t] : (pos[t] || 0);
+  window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+  if (Math.abs(window.scrollY - y) <= 2) delete pendientes[t];
+  else pendientes[t] = y;
+}
 
 export const subscribe = f => { subs.add(f); return () => subs.delete(f); };
 export const versionDe = t => versiones[t] || 0;
 export const sesionActual = () => sesion;
-export const scrollGuardado = () => scrollY;
 
 export function notificar(t) {
-  scrollY = window.scrollY;
   versiones[t] = versionDe(t) + 1;
   sincronizar();
   subs.forEach(f => f());
@@ -86,6 +119,9 @@ export function reiniciar() {
   for (const t in errores) delete errores[t];
   for (const t in turno) turno[t]++;
   Object.assign(sel, SEL0);
+  for (const t in pos) delete pos[t];
+  for (const t in pendientes) delete pendientes[t];
+  persistirPos();
   sesion++;
   subs.forEach(f => f());
 }
