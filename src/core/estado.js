@@ -22,7 +22,8 @@ export const e = {
   abiertas: [],
   avisosOn: false,
   finGacha: 0,
-  listas: 0
+  listas: 0,
+  mant: null
 };
 
 export const gancho = { tick() {} };
