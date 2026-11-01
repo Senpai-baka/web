@@ -1,15 +1,18 @@
-import React, { useMemo, useState } from 'react';
-import { Sec, Vacio, Accion, Cifras, Countdown } from '../ui.jsx';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Vacio, Accion, Cifras, Countdown, Titulo } from '../ui.jsx';
 import { cambiarInventario } from '../../bridge/acciones.js';
+import { useMe } from '../../bridge/store.js';
+import { api } from '../../lib/api.js';
 import { fmt } from '../../lib/format.js';
-import { Elixires, EfectosActivos } from '../Elixires.jsx';
-import { ItemIcon } from './comun.jsx';
+import { EfectosActivos, COLOR_OBJETO } from '../Elixires.jsx';
+import { Muneco, Bonos } from './Equipo.jsx';
 
 const FILTROS = [
   ['todo', 'Todo'], ['cofres', 'Cofres'], ['herramientas', 'Herramientas'], ['consumibles', 'Consumibles'],
   ['elixires', 'Elixires'], ['materiales', 'Materiales'], ['reliquias', 'Reliquias']
 ];
 const COLOR_COFRE = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' };
+const NEUTRO = '#c3bbdc';
 
 function Filtro({ valor, onCambio, cantidades }) {
   const visibles = FILTROS.filter(([k]) => k === 'todo' || k === 'elixires' || cantidades[k] > 0);
@@ -24,18 +27,44 @@ function Filtro({ valor, onCambio, cantidades }) {
   );
 }
 
-function Herramienta({ h }) {
+function Celda({ it, sel, onSel }) {
+  return (
+    <button type="button" className={`it ${sel ? 'sel' : ''} ${it.apagado ? 'no' : ''}`} onClick={() => onSel(it.id)} aria-pressed={sel} aria-label={it.nombre}>
+      <span className="slot" style={{ '--r': it.color }} aria-hidden="true">
+        <span className="si">{it.emoji || '📦'}</span>
+        {it.cantidad !== undefined && <i className="n">{it.cantidad}</i>}
+      </span>
+      <span className="it-n">{it.nombre}</span>
+    </button>
+  );
+}
+
+function Ficha({ it, children }) {
+  return (
+    <div className="bloque vidrio detalle" style={{ '--r': it.color }}>
+      <div className="det-cab">
+        <span className="slot" style={{ '--r': it.color }} aria-hidden="true">
+          <span className="si">{it.emoji || '📦'}</span>
+        </span>
+        <div className="det-info">
+          <div className="fila">
+            <strong style={{ color: it.color }}>{it.nombre}</strong>
+            {it.cantidad !== undefined && <span className="etiq">x{it.cantidad}</span>}
+          </div>
+          <p className="mut peq">{it.sub}</p>
+        </div>
+      </div>
+      {it.desc && <p className="peq det-desc">{it.desc}</p>}
+      {children}
+    </div>
+  );
+}
+
+function VerHerramienta({ h }) {
   const m = h.mejora;
   const pct = Math.min(100, h.usos / Math.max(1, h.usosMax) * 100);
   return (
-    <div className={`herr bloque vidrio ${h.activa ? '' : 'off'}`}>
-      <div className="cab">
-        <ItemIcon emoji={h.emoji} color="#c3bbdc" />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <strong>{h.nombre}</strong> <span className="mut peq">Nv {h.nivel}/{h.nivelMax} · x{h.mult}</span><br />
-          <span className="mut peq">Se usa en {h.usoEn}</span>
-        </div>
-      </div>
+    <>
       {h.usos > 0 ? (
         <>
           <div className="barra nar"><div style={{ width: `${pct}%` }} /></div>
@@ -51,7 +80,7 @@ function Herramienta({ h }) {
       )}
       {m ? (
         <>
-          <p className="costo mut">
+          <p className="costo mut peq">
             Nv {m.siguiente.nivel}: x{m.siguiente.mult} · {m.siguiente.usosMax} usos<br />
             Costo: {fmt(m.monedas)} monedas · {m.mats.map(x => `${x.emoji} ${x.tengo}/${x.necesita}`).join(' ')}
           </p>
@@ -60,72 +89,34 @@ function Herramienta({ h }) {
           </div>
         </>
       ) : <p className="mut peq" style={{ marginTop: 10 }}>Nivel máximo alcanzado.</p>}
-    </div>
+    </>
   );
 }
 
-function Herramientas({ lista }) {
-  if (!lista.length) return <Vacio>No tienes herramientas todavía.</Vacio>;
-  return <div className="lista">{lista.map(h => <Herramienta key={h.clave} h={h} />)}</div>;
-}
-
-function Cofres({ lista, max }) {
-  if (!lista.length) return <Vacio>No tienes cofres. Puedes conseguirlos jugando y explorando.</Vacio>;
+function VerCofre({ c, max }) {
+  const n = Math.min(c.cantidad, max);
   return (
-    <div className="bloque vidrio">
-      {lista.map(c => {
-        const n = Math.min(c.cantidad, max);
-        return (
-          <div key={c.clave} style={{ padding: '8px 0' }}>
-            <div className="fil">
-              <ItemIcon emoji={c.emoji} cantidad={c.cantidad} color={COLOR_COFRE[c.clave] || '#a9b0c4'} />
-              <div className="nom">
-                <strong>{c.nombre}</strong>
-                <span className="mut peq">{fmt(c.monedas[0])}–{fmt(c.monedas[1])} monedas, materiales y más</span>
-              </div>
-            </div>
-            <div className="btnrow">
-              <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n: 1 }} motivo={c.cantidad < 1 ? 'No tienes cofres de este tipo.' : null}>Abrir</Accion>
-              <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n }} motivo={c.cantidad < 2 ? 'Necesitas al menos 2 para abrir varios.' : null}>Abrir varios (x{n})</Accion>
-            </div>
-          </div>
-        );
-      })}
+    <div className="btnrow">
+      <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n: 1 }} motivo={c.cantidad < 1 ? 'No tienes cofres de este tipo.' : null}>Abrir</Accion>
+      <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n }} motivo={c.cantidad < 2 ? 'Necesitas al menos 2 para abrir varios.' : null}>Abrir varios (x{n})</Accion>
     </div>
   );
 }
 
-function Consumibles({ lista, tope, base }) {
-  if (!lista.length) return <Vacio>No tienes consumibles.</Vacio>;
+function VerElixir({ o }) {
   return (
-    <div className="lista">
-      {lista.map(c => (
-        <div className="fil" key={c.clave || c.nombre}>
-          <ItemIcon emoji={c.emoji} cantidad={c.cantidad} color="#8fb4d6" />
-          <div className="nom"><strong>{c.nombre}</strong><span className="mut peq">{c.desc}</span></div>
-          {c.activoS > 0 && (
-            <span className="val"><span className="etiq" style={{ margin: 0 }}>Activo <Countdown fin={base + c.activoS * 1000} /></span></span>
-          )}
-        </div>
-      ))}
-      <p className="mut peq">Máximo {tope} de cada consumible.</p>
+    <div className="btns uno">
+      {o.uso.pasivo
+        ? <button type="button" className="mini" onClick={() => cambiarInventario('equipo')}>Ir a Equipo</button>
+        : <Accion ruta="/api/objetos/usar" cuerpo={{ clave: o.clave }} motivo={o.uso.motivo}>Usar</Accion>}
     </div>
   );
 }
 
-function Materiales({ lista, valor }) {
-  if (!lista.length) return <Vacio>Aún no tienes materiales. Mina, tala o pesca para conseguirlos.</Vacio>;
+function VerMaterial({ valor }) {
   return (
     <>
-      <div className="mats">
-        {lista.map(m => (
-          <div className="mat" key={m.clave}>
-            <ItemIcon emoji={m.emoji} cantidad={fmt(m.cantidad)} />
-            <span className="peq">{m.nombre}</span>
-          </div>
-        ))}
-      </div>
-      <p className="mut peq" style={{ marginTop: 10 }}>Valor aproximado de venta: {fmt(valor)} monedas.</p>
+      <p className="mut peq" style={{ marginTop: 8 }}>Valor aproximado de todos tus materiales: {fmt(valor)} monedas.</p>
       <div className="btns uno">
         <button type="button" className="mini" onClick={() => cambiarInventario('forja')}>Vender en la Forja</button>
       </div>
@@ -133,62 +124,94 @@ function Materiales({ lista, valor }) {
   );
 }
 
-function Reliquias({ lista, bono }) {
-  const tengo = lista.filter(r => r.tiene).length;
+function EquipoRapido() {
+  const me = useMe();
+  const [eq, setEq] = useState(null);
+  useEffect(() => {
+    let vivo = true;
+    api('/api/equipo').then(r => { if (vivo) setEq(r); }).catch(() => {});
+    return () => { vivo = false; };
+  }, []);
+  if (!eq) return null;
+  const items = Array.isArray(eq.items) ? eq.items : [];
+  const puestos = items.filter(i => i.equipado).length;
   return (
     <>
-      <div className="rel">
-        {lista.map(r => <span key={r.clave || r.nombre} className={r.tiene ? '' : 'no'}>{r.emoji} {r.nombre}</span>)}
+      <Titulo extra={<span className="ex">{puestos}/3</span>}>Equipado</Titulo>
+      <Muneco items={items} activo={null} onSel={() => cambiarInventario('equipo')} clase={me?.clase?.clave} />
+      <Titulo>Bonos del equipo</Titulo>
+      <Bonos b={eq.bonos || {}} />
+      <div className="btns uno">
+        <button type="button" className="mini" onClick={() => cambiarInventario('equipo')}>Gestionar equipo</button>
       </div>
-      <p className="mut peq" style={{ marginTop: 8 }}>
-        Colección: {tengo}/{lista.length}. Bono de ingresos por reliquias: +{bono}%. Solo salen de los cofres.
-      </p>
     </>
   );
 }
 
 export default function Objetos({ d, base }) {
   const [filtro, setFiltro] = useState('todo');
+  const [seleccion, setSeleccion] = useState(null);
 
-  const secciones = useMemo(() => {
+  const piezas = useMemo(() => {
     const cofres = d.cofres || [];
     const herramientas = d.herramientas || [];
     const consumibles = d.consumibles || [];
-    const elixires = d.objetos || [];
+    const elixires = (d.objetos || []).filter(o => o.cantidad > 0);
     const materiales = d.materiales || [];
     const reliquias = d.reliquias || [];
     const tengoRel = reliquias.filter(r => r.tiene).length;
-    const elixiresTengo = elixires.filter(o => o.cantidad > 0).length;
+    const maxCofres = d.cofresMax || 1;
     return [
-      {
-        k: 'cofres', titulo: 'Cofres', cuenta: cofres.length, extra: `hasta ${d.cofresMax} a la vez`,
-        ver: () => <Cofres lista={cofres} max={d.cofresMax || 1} />
-      },
-      {
-        k: 'herramientas', titulo: 'Herramientas', cuenta: herramientas.length, extra: '',
-        ver: () => <Herramientas lista={herramientas} />
-      },
-      {
-        k: 'consumibles', titulo: 'Consumibles', cuenta: consumibles.length, extra: `máx. ${d.tope} de cada uno`,
-        ver: () => <Consumibles lista={consumibles} tope={d.tope || 0} base={base} />
-      },
-      {
-        k: 'elixires', titulo: 'Elixires y pociones', cuenta: elixiresTengo, extra: `${elixiresTengo} de ${elixires.length}`,
-        ver: () => <Elixires lista={elixires} tope={d.topeObjetos || 10} />
-      },
-      {
-        k: 'materiales', titulo: 'Materiales', cuenta: materiales.length, extra: `${materiales.length} tipos`,
-        ver: () => <Materiales lista={materiales} valor={d.valorMateriales || 0} />
-      },
-      {
-        k: 'reliquias', titulo: 'Reliquias', cuenta: reliquias.length, extra: `${tengoRel}/${reliquias.length}`,
-        ver: () => <Reliquias lista={reliquias} bono={d.bonoReliquias || 0} />
-      }
+      ...cofres.map(c => ({
+        id: `cofres:${c.clave}`, grupo: 'cofres', emoji: c.emoji, nombre: c.nombre, cantidad: c.cantidad,
+        color: COLOR_COFRE[c.clave] || NEUTRO,
+        sub: `${fmt(c.monedas[0])}–${fmt(c.monedas[1])} monedas, materiales y más`,
+        desc: `Puedes abrir hasta ${maxCofres} a la vez.`,
+        ver: () => <VerCofre c={c} max={maxCofres} />
+      })),
+      ...herramientas.map(h => ({
+        id: `herramientas:${h.clave}`, grupo: 'herramientas', emoji: h.emoji, nombre: h.nombre, cantidad: undefined,
+        color: NEUTRO, apagado: !h.activa,
+        sub: `Nv ${h.nivel}/${h.nivelMax} · x${h.mult} · se usa en ${h.usoEn}`,
+        ver: () => <VerHerramienta h={h} />
+      })),
+      ...consumibles.map(c => ({
+        id: `consumibles:${c.clave || c.nombre}`, grupo: 'consumibles', emoji: c.emoji, nombre: c.nombre, cantidad: c.cantidad,
+        color: '#8fb4d6', sub: `Consumible · máximo ${d.tope || 0} de cada uno`, desc: c.desc,
+        ver: () => c.activoS > 0
+          ? <p className="peq" style={{ marginTop: 10 }}>Activo <Countdown fin={base + c.activoS * 1000} /></p>
+          : null
+      })),
+      ...elixires.map(o => ({
+        id: `elixires:${o.clave}`, grupo: 'elixires', emoji: o.emoji, nombre: o.nombre, cantidad: o.cantidad,
+        color: COLOR_OBJETO[o.clave] || NEUTRO,
+        sub: `${o.efecto}${o.duracionS ? ` · ${o.duracionS / 3600} h` : ''}${o.activoS > 0 ? ' · ✓ Activo' : ''}`,
+        desc: o.desc,
+        ver: () => <VerElixir o={o} />
+      })),
+      ...materiales.map(m => ({
+        id: `materiales:${m.clave}`, grupo: 'materiales', emoji: m.emoji, nombre: m.nombre, cantidad: fmt(m.cantidad),
+        color: NEUTRO, sub: 'Material', desc: 'Sirve para fabricar y mejorar. También puedes venderlo en la Forja.',
+        ver: () => <VerMaterial valor={d.valorMateriales || 0} />
+      })),
+      ...reliquias.map(r => ({
+        id: `reliquias:${r.clave || r.nombre}`, grupo: 'reliquias', emoji: r.emoji, nombre: r.nombre, cantidad: undefined,
+        color: '#e0b96a', apagado: !r.tiene,
+        sub: r.tiene ? 'Reliquia · en tu colección' : 'Reliquia · aún no la tienes',
+        desc: `Colección: ${tengoRel}/${reliquias.length}. Bono de ingresos por reliquias: +${d.bonoReliquias || 0}%. Solo salen de los cofres.`,
+        ver: () => null
+      }))
     ];
   }, [d, base]);
 
-  const cantidades = Object.fromEntries(secciones.map(s => [s.k, s.cuenta]));
-  const visibles = secciones.filter(s => (filtro === 'todo' ? s.cuenta > 0 : s.k === filtro));
+  const cantidades = useMemo(() => {
+    const r = {};
+    piezas.forEach(p => { r[p.grupo] = (r[p.grupo] || 0) + 1; });
+    return r;
+  }, [piezas]);
+
+  const visibles = filtro === 'todo' ? piezas : piezas.filter(p => p.grupo === filtro);
+  const activo = visibles.find(p => p.id === seleccion) || visibles[0] || null;
   const totalCofres = (d.cofres || []).reduce((a, c) => a + (c.cantidad || 0), 0);
   const tengoRel = (d.reliquias || []).filter(r => r.tiene).length;
 
@@ -201,12 +224,25 @@ export default function Objetos({ d, base }) {
         ['Reliquias', `${tengoRel}/${(d.reliquias || []).length}`]
       ]} />
       <EfectosActivos lista={d.efectos} base={base} />
-      <Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades} />
-      {visibles.length ? visibles.map(s => (
-        <Sec key={s.k + (filtro === s.k ? '!' : '')} k={s.k} abierta={filtro === s.k ? true : undefined} titulo={s.titulo} extra={s.extra}>
-          {s.ver()}
-        </Sec>
-      )) : <Vacio>Tu mochila está vacía. Juega y explora para conseguir objetos.</Vacio>}
+      <div className="inv-cols">
+        <div className="inv-izq">
+          <Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades} />
+          {visibles.length ? (
+            <div className="bolsa-g rej">
+              {visibles.map(p => <Celda key={p.id} it={p} sel={activo?.id === p.id} onSel={setSeleccion} />)}
+            </div>
+          ) : <Vacio>{filtro === 'elixires' ? 'Aún no tienes elixires ni pociones. Fabrícalos en la Forja.' : 'Tu mochila está vacía. Juega y explora para conseguir objetos.'}</Vacio>}
+          {activo && (
+            <>
+              <Titulo>Objeto seleccionado</Titulo>
+              <Ficha it={activo}>{activo.ver()}</Ficha>
+            </>
+          )}
+        </div>
+        <div className="inv-der">
+          <EquipoRapido />
+        </div>
+      </div>
     </>
   );
 }
