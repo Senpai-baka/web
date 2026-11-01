@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
-import { ACC, ICONOS, ICONO_EXTRA, IC_STAT, NAV, ARTE, escena } from '../core/datos.js';
+import { ACC, ICONOS, ICONO_EXTRA, IC_STAT, ARTE, escena } from '../core/datos.js';
 import { useEstado } from '../core/estado.js';
 import { useAhora } from '../core/reloj.js';
 import { useMe } from '../bridge/store.js';
@@ -174,19 +174,26 @@ function Tarjeta({ k, a, st, tot, mult, ancha }) {
   );
 }
 
-const TILES = [
-  { k: 'raid', z: '#c9626f', t: 'Raid', d: 'Jefe mundial del grupo: todos atacan juntos y se reparten el botín.', b: 'Ver jefes', i: ICONOS.raid },
-  { k: 'gacha', z: '#b69be0', t: 'Gacha', d: 'Invoca y colecciona personajes de anime.', b: 'Invocar', i: ICONOS.gacha },
-  { k: 'mazmorra', z: '#9fb4c8', t: 'Mazmorra', d: 'Baja piso a piso, enfrenta jefes y consigue equipo.', b: 'Entrar', i: ICONOS.hunt },
-  { k: 'sala', z: '#d6a76a', t: 'Sala', d: 'Mazmorra en equipo, de 2 a 5 jugadores.', b: 'Jugar en equipo', i: ICONO_EXTRA.sala },
-  { k: 'encargos', z: '#8fc4ad', t: 'Encargos', d: 'Entrega materiales al pueblo y cobra monedas, XP y un cofre.', b: 'Ver encargos', i: ICONO_EXTRA.encargos },
-  { k: 'clan', z: '#e0b96a', t: 'Clan', d: 'Funda o únete a un clan, comparte banco y gana guerras.', b: 'Ver clan', i: ICONOS.clan },
-  { k: 'encuentro', z: '#e8a58e', t: 'Encuentros', d: 'Algo se cruza en tu camino: decide bien y cobra premios.', b: 'Explorar', i: ICONOS.gacha },
-  { k: 'alquimia', z: '#8fc4ad', t: 'Alquimia', d: 'Prepara elixires y objetos en tus calderos.', b: 'Ir al laboratorio', i: ICONOS.alquimia },
-  { k: 'mundial', z: '#8fb4d6', t: 'Evento global', d: 'Aporta materiales a la meta común y gana cofres.', b: 'Participar', i: ICONOS.mundial }
+const T = {
+  mazmorra: { k: 'mazmorra', z: '#9fb4c8', t: 'Mazmorra', d: 'Baja piso a piso, enfrenta jefes y consigue equipo.', b: 'Entrar', i: ICONOS.hunt },
+  sala: { k: 'sala', z: '#d6a76a', t: 'Sala', d: 'Mazmorra en equipo, de 2 a 5 jugadores.', b: 'Jugar en equipo', i: ICONO_EXTRA.sala },
+  raid: { k: 'raid', z: '#c9626f', t: 'Raid', d: 'Jefe mundial del grupo: todos atacan juntos y se reparten el botín.', b: 'Ver jefes', i: ICONOS.raid },
+  encuentro: { k: 'encuentro', z: '#e8a58e', t: 'Encuentros', d: 'Algo se cruza en tu camino: decide bien y cobra premios.', b: 'Explorar', i: ICONOS.gacha },
+  gacha: { k: 'gacha', z: '#b69be0', t: 'Gacha', d: 'Invoca y colecciona personajes de anime.', b: 'Invocar', i: ICONOS.gacha },
+  clan: { k: 'clan', z: '#e0b96a', t: 'Clan', d: 'Funda o únete a un clan, comparte banco y gana guerras.', b: 'Ver clan', i: ICONOS.clan },
+  mundial: { k: 'mundial', z: '#8fb4d6', t: 'Evento global', d: 'Aporta materiales a la meta común y gana cofres.', b: 'Participar', i: ICONOS.mundial },
+  encargos: { k: 'encargos', z: '#8fc4ad', t: 'Encargos', d: 'Entrega materiales al pueblo y cobra monedas, XP y un cofre.', b: 'Ver encargos', i: ICONO_EXTRA.encargos },
+  alquimia: { k: 'alquimia', z: '#8fc4ad', t: 'Alquimia', d: 'Prepara elixires y objetos en tus calderos.', b: 'Ir al laboratorio', i: ICONOS.alquimia }
+};
+
+// Cada grupo es un bloque de la pantalla. Si un grupo tiene cantidad impar, el último ocupa todo el ancho en móvil.
+const GRUPOS = [
+  { id: 'aventura', t: 'Aventura', s: 'Mazmorras, jefes y encuentros', items: [T.mazmorra, T.sala, T.raid, T.encuentro] },
+  { id: 'comunidad', t: 'Comunidad', s: 'Cartas, clan y metas compartidas', items: [T.gacha, T.clan, T.mundial] },
+  { id: 'pueblo', t: 'Pueblo', s: 'Encargos y laboratorio', items: [T.encargos, T.alquimia] }
 ];
 
-function Tile({ x, ev }) {
+function Tile({ x, ev, ancha }) {
   let desc = x.d;
   let boton = x.b;
   let espera = false;
@@ -209,22 +216,13 @@ function Tile({ x, ev }) {
     }
   }
   return (
-    <div className={'ticket evento' + (espera ? ' espera' : '')} id={'c-' + x.k} style={{ '--z': x.z }}>
+    <div className={'ticket evento' + (espera ? ' espera' : '') + (ancha ? ' ancha' : '')} id={'c-' + x.k} style={{ '--z': x.z }}>
       <Aro icono={x.i} />
       <div className="tx"><h3>{x.t}</h3><p className="mut peq" id={x.k === 'raid' ? 'p-raid' : x.k === 'gacha' ? 'p-gacha' : undefined}>{desc}</p></div>
       <button className="accion" type="button" id={x.k === 'raid' ? 'b-raid' : x.k === 'gacha' ? 'b-gacha' : undefined} onClick={ir}>{boton}</button>
     </div>
   );
 }
-
-const ATAJOS = [
-  { k: 'inventario', z: '#c3bbdc', t: 'Mochila', s: 'Objetos, equipo y materiales', i: NAV[1][2] },
-  { k: 'tienda', z: '#e8946a', t: 'Tienda', s: 'Compra, mercado y subastas', i: NAV[2][2] },
-  { k: 'hogar', z: '#8fc4ad', t: 'Mundo', s: 'Mascota y granja', i: NAV[3][2] },
-  { k: 'ciudad', z: '#8fb4d6', t: 'Ciudad', s: 'Banco, negocios y casino', i: NAV[4][2] },
-  { k: 'rankings', z: '#e0b96a', t: 'Ranking', s: 'Mira quién va primero', i: NAV[5][2] },
-  { k: 'ficha', z: '#b69be0', t: 'Perfil', s: 'Tu ficha, héroe e historial', i: ICONO_EXTRA.perfil }
-];
 
 export function calcularListas(ahora, tot, fin) {
   const est = {};
@@ -266,17 +264,14 @@ export default function Inicio() {
       <div className="rejilla" id="rejilla">{visibles.map(tarjeta)}</div>
       <div className="grupo"><h2>Recompensas</h2><span className="mut peq">Una vez cada cierto tiempo</span></div>
       <div id="recompensas">{Object.keys(ACC).filter(k => ACC[k].g === 'c' && est[k]).map(tarjeta)}</div>
-      <div className="grupo"><h2>Eventos</h2><span className="mut peq">Jefes, gacha, mazmorra y clan</span></div>
-      <div className="eventos">{TILES.map(x => <Tile key={x.k} x={x} ev={ev} />)}</div>
-      <div className="grupo"><h2>Explorar</h2><span className="mut peq">Todo el panel a un toque</span></div>
-      <div className="atajos">
-        {ATAJOS.map(a => (
-          <button key={a.k} type="button" className="atajo vidrio" style={{ '--z': a.z }} onClick={() => abrir(a.k)}>
-            <span className="at-i" aria-hidden="true"><Svg html={a.i} /></span>
-            <span className="at-t"><b>{a.t}</b><small>{a.s}</small></span>
-          </button>
-        ))}
-      </div>
+      {GRUPOS.map(g => (
+        <section key={g.id} aria-label={g.t}>
+          <div className="grupo"><h2>{g.t}</h2><span className="mut peq">{g.s}</span></div>
+          <div className="eventos">
+            {g.items.map((x, i) => <Tile key={x.k} x={x} ev={ev} ancha={g.items.length % 2 === 1 && i === g.items.length - 1} />)}
+          </div>
+        </section>
+      ))}
     </>
   );
 }
