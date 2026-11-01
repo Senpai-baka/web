@@ -23,12 +23,10 @@ export default function Inventario({ d, base }) {
     ? [['Monedas', monedas], ['Bolsa', `${d.bolsa.usados ?? d.items?.length ?? 0}/${d.bolsa.max}`], ['Nivel', me?.nivel ?? '—']]
     : undefined;
   return (
-    <div className="inventario-ui">
+    <>
       <Cab titulo="Mochila" sub={SUBTITULO[seccion]} stats={stats} />
       <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario} />
-      <div className="inventario-contenido">
-        {seccion === 'objetos' ? <Objetos d={d} base={base} /> : seccion === 'equipo' ? <Equipo d={d} /> : <Forja d={d} />}
-      </div>
-    </div>
+      {seccion === 'objetos' ? <Objetos d={d} base={base} /> : seccion === 'equipo' ? <Equipo d={d} /> : <Forja d={d} />}
+    </>
   );
 }

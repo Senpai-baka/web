@@ -1474,3 +1474,11 @@ html[data-scroll="1"] #t-inicio *::after {
     animation: ani-barrido 7s ease-in-out 2s infinite;
   }
 }
+
+.msp-quieta img {
+  animation: none;
+}
+.msp-bloq img {
+  filter: brightness(0);
+  opacity: .4;
+}
