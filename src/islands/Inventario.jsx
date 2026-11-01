@@ -7,8 +7,8 @@ import { Elixires, ElixiresForja, EfectosActivos } from './Elixires.jsx';
 
 const OPCIONES = [['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']];
 const FILTROS = [
-  ['todo', 'Todo'], ['herramientas', 'Herramientas'], ['cofres', 'Cofres'],
-  ['consumibles', 'Consumibles'], ['elixires', 'Elixires'], ['reliquias', 'Reliquias'], ['materiales', 'Materiales'],
+  ['todo', 'Todo'], ['cofres', 'Cofres'], ['herramientas', 'Herramientas'], ['consumibles', 'Consumibles'],
+  ['elixires', 'Elixires'], ['materiales', 'Materiales'], ['reliquias', 'Reliquias'],
 ];
 const rarezaCofre = { madera: '#a9b0c4', plata: '#8fb4d6', oro: '#e0b96a' };
 
@@ -77,18 +77,19 @@ function Reliquias({ lista, bono }) {
 }
 function ObjetosReact({ d, base }) {
   const [filtro, setFiltro] = useState('todo');
+  // Orden: lo que abres o usas (cofres, herramientas, consumibles, elixires), luego recursos y colección.
   const partes = useMemo(() => [
-    ['herramientas', 'Herramientas', d.herramientas || [], (items) => <Herramientas lista={items}/>],
     ['cofres', 'Cofres', d.cofres || [], (items) => <Cofres lista={items} max={d.cofresMax || 1}/>],
+    ['herramientas', 'Herramientas', d.herramientas || [], (items) => <Herramientas lista={items}/>],
     ['consumibles', 'Consumibles', d.consumibles || [], (items) => <Consumibles lista={items} tope={d.tope || 0} base={base}/>],
     ['elixires', 'Elixires y pociones', d.objetos || [], (items) => <Elixires lista={items} tope={d.topeObjetos || 10}/>],
-    ['reliquias', 'Reliquias', d.reliquias || [], (items) => <Reliquias lista={items} bono={d.bonoReliquias || 0}/>],
     ['materiales', 'Materiales', d.materiales || [], (items) => <Materiales lista={items} valor={d.valorMateriales || 0}/>],
+    ['reliquias', 'Reliquias', d.reliquias || [], (items) => <Reliquias lista={items} bono={d.bonoReliquias || 0}/>],
   ], [d, base]);
   const cantidades = Object.fromEntries(partes.map(([key, , items]) => [key, key === 'elixires' ? items.filter(o => o.cantidad > 0).length : items.length]));
   const visible = partes.filter(([key]) => filtro === 'todo' || filtro === key);
   return <><EfectosActivos lista={d.efectos} base={base}/><Filtro valor={filtro} onCambio={setFiltro} cantidades={cantidades}/>
-    {visible.map(([key, titulo, items, render]) => <Sec key={key} k={key} titulo={titulo} extra={key === 'cofres' ? `hasta ${d.cofresMax} a la vez` : key === 'consumibles' ? `máx. ${d.tope} de cada uno` : key === 'elixires' ? `${cantidades.elixires} de ${items.length}` : key === 'reliquias' ? `${items.filter(x => x.tiene).length}/${items.length}` : ''}>
+    {visible.map(([key, titulo, items, render]) => <Sec key={key + (filtro === key ? '!' : '')} k={key} abierta={filtro === key ? true : undefined} titulo={titulo} extra={key === 'cofres' ? `hasta ${d.cofresMax} a la vez` : key === 'consumibles' ? `máx. ${d.tope} de cada uno` : key === 'elixires' ? `${cantidades.elixires} de ${items.length}` : key === 'reliquias' ? `${items.filter(x => x.tiene).length}/${items.length}` : ''}>
       {render(items)}
     </Sec>)}
   </>;
@@ -147,15 +148,15 @@ function EquipoReact({ d }) {
       </div>}
     </Sec>
     {d.reparacion?.cantidad > 0 && <Sec k="reparar-react" titulo="Reparaciones" extra={`${d.reparacion.cantidad} piezas dañadas`}><p className="mut peq">El equipo se desgasta al cazar y en la mazmorra; si llega a 0 deja de dar bonos.</p><div className="btns"><Accion ruta="/api/equipo/reparar" cuerpo={{ todo: true }} motivo={!d.reparacion.puede ? 'Te faltan monedas.' : null}>Reparar todo · {fmt(d.reparacion.total)}</Accion><Accion ruta="/api/objetos/usar" cuerpo={{ clave: 'kit_reparacion' }} motivo={!(d.kits > 0) ? 'No tienes Kits de reparación. Fabrícalos en Forja.' : !d.kitUtil ? 'Tu equipo puesto no necesita reparación.' : null}>🧰 Kit ({d.kits || 0}) · gratis</Accion></div><p className="mut peq" style={{ marginTop: 8 }}>El kit repara solo lo que llevas puesto.</p></Sec>}
-    {items.length > 0 && <Sec k="lote-react" titulo="Venta en lote"><p className="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p><select className="txt" aria-label="Rareza máxima para vender" value={rarezaLote} onChange={e => setRarezaLote(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select><div className="btns uno"><Accion ruta="/api/equipo/vender-hasta" cuerpo={{ rareza: rarezaLote }} confirmar="¿Vender en lote? No se puede deshacer.">Vender en lote</Accion></div></Sec>}
+    {items.length > 0 && <Sec k="lote-react" titulo="Gestión en lote" extra="Vender o desmontar"><div className="bloque vidrio"><strong>Venta en lote</strong><p className="mut peq">Vende todo el equipo que no llevas puesto hasta la rareza elegida.</p><select className="txt" aria-label="Rareza máxima para vender" value={rarezaLote} onChange={e => setRarezaLote(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select><div className="btns uno"><Accion ruta="/api/equipo/vender-hasta" cuerpo={{ rareza: rarezaLote }} confirmar="¿Vender en lote? No se puede deshacer.">Vender en lote</Accion></div></div>
     {items.length > 0 && (() => {
       const lote = d.lotes?.[rarezaDesm];
       const hay = lote ? lote.cantidad > 0 : true;
-      return <Sec k="desmontar-lote-react" titulo="Desmontar en lote"><p className="mut peq">Desmonta todo el equipo que no llevas puesto hasta la rareza elegida y recibe sus materiales.</p>
+      return <div className="bloque vidrio"><strong>Desmontar en lote</strong><p className="mut peq">Desmonta todo el equipo que no llevas puesto hasta la rareza elegida y recibe sus materiales.</p>
         <select className="txt" aria-label="Rareza máxima para desmontar" value={rarezaDesm} onChange={e => setRarezaDesm(e.target.value)}>{(d.rarezas || []).map(r => <option key={r.clave} value={r.clave}>{r.emoji} {r.nombre}</option>)}</select>
         {lote && <p className="mut peq" style={{ marginTop: 8 }}>{lote.cantidad > 0 ? `${lote.cantidad} ${lote.cantidad === 1 ? 'objeto' : 'objetos'} · recibirás ${lote.desmonte}` : 'No hay equipo para desmontar con ese filtro.'}</p>}
-        <div className="btns uno"><Accion ruta="/api/equipo/desmontar-hasta" cuerpo={{ rareza: rarezaDesm }} motivo={!hay ? 'No hay equipo para desmontar con ese filtro.' : null} confirmar={lote ? `¿Desmontar ${lote.cantidad} ${lote.cantidad === 1 ? 'objeto' : 'objetos'}? Recibirás ${lote.desmonte}. No se puede deshacer.` : '¿Desmontar en lote? No se puede deshacer.'}>Desmontar en lote</Accion></div></Sec>;
-    })()}
+        <div className="btns uno"><Accion ruta="/api/equipo/desmontar-hasta" cuerpo={{ rareza: rarezaDesm }} motivo={!hay ? 'No hay equipo para desmontar con ese filtro.' : null} confirmar={lote ? `¿Desmontar ${lote.cantidad} ${lote.cantidad === 1 ? 'objeto' : 'objetos'}? Recibirás ${lote.desmonte}. No se puede deshacer.` : '¿Desmontar en lote? No se puede deshacer.'}>Desmontar en lote</Accion></div></div>;
+    })()}</Sec>}
     {d.casa && <Sec k="casa-react" titulo="Tu hogar" extra={`${d.casa.emoji} ${d.casa.nombre}`}><div className="bloque vidrio"><div className="fila"><strong>{d.casa.emoji} {d.casa.nombre}</strong><span className="mut peq">Nv {d.casa.nivel}/{d.casa.max}</span></div><p className="mut peq">{d.casa.perks.parcelas} parcelas · +{d.casa.perks.bolsa} de bolsa · +{d.casa.perks.ofertas} ofertas · +{d.casa.perks.ingresos}% ingresos</p>{d.casa.siguiente ? <><p className="mut peq">Siguiente: {d.casa.siguiente.emoji} {d.casa.siguiente.nombre} · {fmt(d.casa.siguiente.costo)} monedas</p><p className="mut peq">+{d.casa.siguiente.perks.parcelas} parcelas · +{d.casa.siguiente.perks.bolsa} bolsa · +{d.casa.siguiente.perks.ofertas} ofertas · +{d.casa.siguiente.perks.ingresos}% ingresos</p><div className="btns uno"><Accion ruta="/api/casa/mejorar" cuerpo={{}} motivo={(d.cartera || 0) < d.casa.siguiente.costo ? 'Te faltan monedas.' : null}>Mejorar hogar</Accion></div></> : <p className="mut peq">Tu hogar está al máximo.</p>}</div></Sec>}
   </>;
 }
@@ -183,11 +184,7 @@ function ForjaReact({ d }) {
     </Sec>
     <Sec k="forja-materiales-react" titulo="Vender materiales" extra={materiales.length ? `${materiales.length} tipos` : ''}>
       {materiales.length ? <>
-        <div className="mats">{materiales.map(m => <div className="mat" key={m.clave}>
-          <ItemIcon emoji={m.emoji} cantidad={fmt(m.cantidad)} color="#8fb4d6" />
-          <span className="peq">{m.nombre}</span>
-        </div>)}</div>
-        <p className="mut peq" style={{ marginTop: 10 }}>Valor aproximado: {fmt(valor)} monedas.</p>
+        <p className="mut peq">Valor aproximado de todo: {fmt(valor)} monedas.</p>
         <div className="lista">{materiales.map(m => <div className="fil" key={m.clave}>
           <div className="nom"><strong>{m.emoji || '📦'} {m.nombre}</strong><span className="mut peq">{fmt(m.precio || 0)} monedas por unidad · tienes {fmt(m.cantidad)}</span></div>
           <Accion ruta="/api/forja/vender" cuerpo={{ material: m.clave, cantidad: 'todo' }} confirmar={`¿Vender ${m.cantidad} ${m.nombre} por ${fmt(m.cantidad * (m.precio || 0))} monedas?`}>Vender todo</Accion>
@@ -198,14 +195,21 @@ function ForjaReact({ d }) {
   </>;
 }
 
+const SUBTITULO = {
+  objetos: 'Cofres, herramientas, consumibles, materiales y reliquias.',
+  equipo: 'Lo que llevas puesto, tu bolsa y su mantenimiento.',
+  forja: 'Fabrica, prepara elixires y vende materiales.'
+};
+
 export default function Inventario({ d, base }) {
   const me = useMe();
   const seccion = inventarioSeccion();
-  const stats = seccion === 'objetos' && d.bolsa && d.items
-    ? [['Monedas', Number(me?.monedas || 0).toLocaleString('es-MX')], ['Espacios', `${d.items.length}/${d.bolsa.max}`], ['Nivel', me?.nivel ?? '—']]
+  const monedas = fmt(Number(me?.monedas || 0));
+  const stats = seccion === 'equipo' && d.bolsa
+    ? [['Monedas', monedas], ['Bolsa', `${d.bolsa.usados ?? d.items?.length ?? 0}/${d.bolsa.max}`], ['Nivel', me?.nivel ?? '—']]
     : undefined;
   return <>
-    <Cab titulo="Mochila" sub="Tus herramientas, equipo y materiales." stats={stats}/>
+    <Cab titulo="Mochila" sub={SUBTITULO[seccion]} stats={stats}/>
     <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario}/>
     {seccion === 'objetos' ? <ObjetosReact d={d} base={base}/> : seccion === 'equipo' ? <EquipoReact d={d}/> : <ForjaReact d={d}/>}
   </>;

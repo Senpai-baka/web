@@ -250,12 +250,11 @@ function Prestigio({ d }) {
 export default function PerfilHeroe({ d, base }) {
   return (
     <>
-      <p className="peq mut" style={{ marginTop: 8 }}>Cartera: <b>{fmt(d.cartera)}</b> monedas · Nivel {d.nivel}</p>
       <Sec k="h-clase" titulo="Clase y habilidades" extra={d.clase ? d.clase.nombre : ''}><Clase d={d} base={base} /></Sec>
-      <Sec k="h-raras" titulo="Habilidades raras" extra={d.raras ? '📚 ' + fmt(d.raras.estudio) : ''}><Raras d={d} /></Sec>
-      <Sec k="h-tal" titulo="Talentos" extra={d.clase ? d.talentos.libres + ' libres' : ''}><Talentos d={d} /></Sec>
       <Sec k="h-atr" titulo="Atributos" extra={d.atributos.libres + ' libres'}><Atributos d={d} /></Sec>
+      <Sec k="h-tal" titulo="Talentos" extra={d.clase ? d.talentos.libres + ' libres' : ''}><Talentos d={d} /></Sec>
       <Sec k="h-exp" titulo="Expediciones" extra={d.expedicion.curso ? 'En curso' : ''}><Expediciones d={d} base={base} /></Sec>
+      <Sec k="h-raras" titulo="Habilidades raras" extra={d.raras ? '📚 ' + fmt(d.raras.estudio) : ''}><Raras d={d} /></Sec>
       <Sec k="h-pre" titulo="Prestigio" extra={d.prestigio.n + '/' + d.prestigio.max}><Prestigio d={d} /></Sec>
     </>
   );

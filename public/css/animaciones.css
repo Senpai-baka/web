@@ -1327,3 +1327,11 @@
     animation: none;
   }
 }
+
+/* Inicio: el último mosaico de un grupo impar ocupa todo el ancho en móvil */
+@media (max-width:599px) {
+  #t-inicio .eventos>.ticket.evento.ancha {
+    grid-column: 1 / -1;
+    min-height: 0;
+  }
+}
