@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Sec, Vacio, Accion, Cifras, Titulo } from '../ui.jsx';
+import { Sec, Vacio, Accion, Titulo } from '../ui.jsx';
 import { aviso } from '../../bridge/acciones.js';
+import { useMe } from '../../bridge/store.js';
+import { Sprite, hojaHeroe } from '../Sprite.jsx';
 import { fmt } from '../../lib/format.js';
 
 const TIPOS = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
@@ -13,14 +15,25 @@ const infoRareza = r => RAREZAS[r] || RAREZAS.comun;
 const colorDe = it => infoRareza(it.rareza)[1];
 const mismo = (a, b) => String(a) === String(b);
 
-function Muneco({ items, activo, onSel }) {
+function Heroe({ clase }) {
+  const hoja = hojaHeroe(clase);
   return (
-    <div className="muneco vidrio">
+    <svg className="pj-svg" viewBox="14 56 132 132" aria-hidden="true">
+      <Sprite hoja={hoja} cuadro={0} />
+    </svg>
+  );
+}
+
+const AREAS = { arma: 'arma', armadura: 'armadura', amuleto: 'amuleto' };
+
+function Muneco({ items, activo, onSel, clase }) {
+  return (
+    <div className="muneco pj vidrio">
       {Object.entries(TIPOS).map(([tipo, [nombre, emoji]]) => {
         const it = items.find(i => i.equipado && i.tipo === tipo);
         const sel = !!it && mismo(it.id, activo?.id);
         return (
-          <div className="hueco" key={tipo}>
+          <div className="hueco" key={tipo} style={{ gridArea: AREAS[tipo] }}>
             {it ? (
               <button type="button" className={`slot celda ${sel ? 'sel' : ''}`} style={{ '--r': colorDe(it) }} onClick={() => onSel(it.id)} aria-label={it.etiqueta} aria-pressed={sel}>
                 <span className="si">{it.emoji || emoji}</span>
@@ -32,6 +45,18 @@ function Muneco({ items, activo, onSel }) {
           </div>
         );
       })}
+      <div className="pj-hero" style={{ gridArea: 'hero' }}>
+        <Heroe clase={clase} />
+      </div>
+    </div>
+  );
+}
+
+function Bonos({ b }) {
+  const lista = [['⚔️ Daño', `+${b.dano || 0}%`], ['❤️ Vida', `+${b.vida || 0}%`], ['🪙 Ingresos', `+${b.ingresos || 0}%`], ['🍀 Suerte', `+${b.suerte || 0}`]];
+  return (
+    <div className="bonos">
+      {lista.map(([n, v]) => <div key={n}><span>{n}</span><b>{v}</b></div>)}
     </div>
   );
 }
@@ -51,7 +76,7 @@ function Bolsa({ d, items, activo, onSel }) {
           <button key={k} type="button" className="fch" aria-pressed={filtro === k} onClick={() => setFiltro(k)}>{nombre}<i>{n}</i></button>
         ))}
       </div>
-      <div className="bolsa-g">
+      <div className="bolsa-g rej">
         {vistos.map(it => {
           const sel = mismo(it.id, activo?.id);
           return (
@@ -97,13 +122,21 @@ function Detalle({ d, activo, actual }) {
     : !m?.piedraUtil ? 'Esta mejora ya tiene 100% de éxito: guarda la piedra.' : motivoMejora;
   return (
     <div className="bloque vidrio detalle" style={{ '--r': colorDe(activo) }}>
-      <div className="fila">
-        <strong style={{ color: colorDe(activo) }}>{activo.emoji} {activo.etiqueta}</strong>
-        {activo.equipado && <span className="etiq">Equipado</span>}
+      <div className="det-cab">
+        <span className="slot" style={{ '--r': colorDe(activo) }} aria-hidden="true">
+          <span className="si">{activo.emoji || '🎒'}</span>
+          {activo.plus > 0 && <b className="mas">+{activo.plus}</b>}
+        </span>
+        <div className="det-info">
+          <div className="fila">
+            <strong style={{ color: colorDe(activo) }}>{activo.etiqueta}</strong>
+            {activo.equipado && <span className="etiq">Equipado</span>}
+          </div>
+          <p className="mut peq">{infoRareza(activo.rareza)[0]} · Nivel {activo.ilvl} · Mejora +{activo.plus || 0}</p>
+          <p className="mut peq">Durabilidad: {activo.dur}/{activo.durMax}{activo.roto ? ' · roto, sin bonos' : ''}</p>
+        </div>
       </div>
-      <p className="peq">{activo.desc}</p>
-      <p className="mut peq">{infoRareza(activo.rareza)[0]} · Nivel {activo.ilvl} · Mejora +{activo.plus || 0}</p>
-      <p className="mut peq">Durabilidad: {activo.dur}/{activo.durMax}{activo.roto ? ' · roto, sin bonos' : ''}</p>
+      <p className="peq det-desc">{activo.desc}</p>
       {m ? (
         <p className="mut peq">
           Siguiente mejora: {fmt(m.monedas)} monedas · {m.hierro} hierro{m.oro ? ` · ${m.oro} oro` : ''} · {m.prob}% de éxito
@@ -206,6 +239,7 @@ function Hogar({ d }) {
 }
 
 export default function Equipo({ d }) {
+  const me = useMe();
   const items = Array.isArray(d.items) ? d.items : [];
   const [seleccion, setSeleccion] = useState(null);
   const activo = items.find(i => mismo(i.id, seleccion)) || items.find(i => i.equipado) || items[0] || null;
@@ -214,21 +248,29 @@ export default function Equipo({ d }) {
   const b = d.bonos || {};
   return (
     <>
-      <Cifras lista={[['Daño', `+${b.dano || 0}%`], ['Vida', `+${b.vida || 0}%`], ['Ingresos', `+${b.ingresos || 0}%`], ['Suerte', `+${b.suerte || 0}`]]} />
-      <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
-        <Muneco items={items} activo={activo} onSel={setSeleccion} />
-      </Sec>
-      <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
-        {items.length
-          ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
-          : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
-      </Sec>
-      {activo && (
-        <>
-          <Titulo>Pieza seleccionada</Titulo>
-          <Detalle d={d} activo={activo} actual={actual} />
-        </>
-      )}
+      <div className="inv-cols">
+        <div className="inv-izq">
+          <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
+            {items.length
+              ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
+              : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
+          </Sec>
+          {activo && (
+            <>
+              <Titulo>Pieza seleccionada</Titulo>
+              <Detalle d={d} activo={activo} actual={actual} />
+            </>
+          )}
+        </div>
+        <div className="inv-der">
+          <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
+            <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
+          </Sec>
+          <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
+            <Bonos b={b} />
+          </Sec>
+        </div>
+      </div>
       {d.reparacion?.cantidad > 0 && <Reparaciones d={d} />}
       {items.length > 0 && <Lotes d={d} />}
       {d.casa && <Hogar d={d} />}
