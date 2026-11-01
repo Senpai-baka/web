@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useEstado } from '../core/estado.js';
-import { verLoginOwner } from '../core/sesion.js';
 
 const faltan = hasta => {
   const s = Math.max(0, Math.ceil((hasta - Date.now()) / 1000));
@@ -36,7 +35,6 @@ export default function Mantenimiento() {
       {mant.hasta ? <p className="mut peq">Volvemos en aproximadamente {faltan(mant.hasta)}.</p> : null}
       <div className="mant-barra" aria-hidden="true"><span /></div>
       <p className="mut peq">Esta pantalla se actualiza sola cuando todo esté listo.</p>
-      <button className="mant-owner" type="button" onClick={verLoginOwner}>Acceso owner</button>
     </section>
   );
 }
