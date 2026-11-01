@@ -1968,8 +1968,8 @@ input.txt.corto {
   position: fixed;
   bottom: 0;
   z-index: 30;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   border-top: 1px solid var(--linea);
 }
 .nav .in {
@@ -4267,8 +4267,7 @@ button.gc-mini {
   margin: 0;
   padding: 8px 11px;
   border-color: rgba(240,173,145,.3);
-  background: rgba(18,14,27,.72);
-  backdrop-filter: blur(12px);
+  background: rgba(18,14,27,.88);
   font-size: 13px;
   white-space: nowrap;
 }
@@ -4454,11 +4453,6 @@ button.gc-mini {
 #t-inicio .at-t small {
   font-size: 11px;
   line-height: 1.35;
-}
-#t-inicio .atajo,
-#t-inicio .zona,
-#t-inicio .ticket {
-  backdrop-filter: blur(8px);
 }
 @media(min-width:600px) {
   #app:has(#t-inicio:not([hidden])) {
