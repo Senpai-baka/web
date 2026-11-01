@@ -5981,3 +5981,9 @@ body {
   gap: 6px;
   flex: none;
 }
+.it-p {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--oro);
+  font-variant-numeric: tabular-nums;
+}
