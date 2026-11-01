@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { hogarSeccion, hogarIr, publicar } from '../bridge/acciones.js';
-import { Cab, Seg, Countdown, Titulo, Accion, BotonListo, Barra, Estado } from './ui.jsx';
+import { Cab, Seg, Countdown, Titulo, Accion, BotonListo, Barra, Estado, Cifras, Kv } from './ui.jsx';
 import MascotaSprite from './MascotaSprite.jsx';
 
-const SECCIONES = [['mascota', 'Mascota'], ['granja', 'Granja']];
+const SECCIONES = [['mascota', 'Mascota'], ['invocacion', 'Legendarias'], ['granja', 'Granja']];
 
 const ICONO = (
   <>
@@ -185,13 +185,55 @@ function Granja({ d, base }) {
   );
 }
 
+function Legendarias({ d }) {
+  const lista = [...d.criaturas].sort((a, b) => (b.activa - a.activa) || ((b.rango > 0) - (a.rango > 0)));
+  const aviso = '¿Gastar ' + fmt(d.costo.monedas) + ' monedas y ' + d.costo.mats.map(m => m.necesita + ' ' + m.nombre).join(', ') + ' para invocar?';
+  return (
+    <>
+      <Titulo>Invocación legendaria</Titulo>
+      <div className="bloque vidrio">
+        <Cifras lista={[['Invocaciones', d.cargas], ['Éxito', d.prob + '%'], ['Fallos', d.fallos]]} />
+        <p className="mut peq" style={{ margin: '10px 0' }}>
+          Ganas una invocación cada {d.cada} niveles. Cada fallo suma +{d.pityPorFallo}% de éxito, hasta +{d.pityMax}%.
+        </p>
+        <Kv k="Monedas" v={fmt(d.costo.monedas) + ' (tienes ' + fmt(d.cartera) + ')'} />
+        {d.costo.mats.map(m => <Kv key={m.k} k={m.emoji + ' ' + m.nombre} v={m.tiene + '/' + m.necesita} />)}
+      </div>
+      <div className="btns uno">
+        <Accion ruta="/api/invocacion/invocar" motivo={d.bloqueo || undefined} confirmar={aviso}>✨ Invocar</Accion>
+      </div>
+      <Titulo>Tus legendarias</Titulo>
+      {lista.map(c => (
+        <div className="bloque vidrio" key={c.clave}>
+          <div className="pet">
+            <MascotaSprite dir="legendarias" tipo={c.clave} emoji={c.emoji} animo={c.activa ? 'feliz' : c.rango > 0 ? 'normal' : 'quieta'} bloq={c.rango === 0} tam={64} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong>{c.nombre}</strong>{c.activa ? <> <span className="etiq">Activa</span></> : null}
+              <p className="peq">
+                {c.rango > 0
+                  ? '★'.repeat(c.rango) + '☆'.repeat(d.rangoMax - c.rango) + ' · Rango ' + c.rango + '/' + d.rangoMax
+                  : 'Sin invocar · ' + c.prob + '% al tener éxito'}
+              </p>
+              <p className="mut peq">{c.rango > 0 ? c.bonos : 'Al obtenerla: ' + c.bonos}</p>
+              {c.siguiente ? <p className="mut peq">Siguiente rango: {c.siguiente}</p> : null}
+            </div>
+          </div>
+          {c.rango > 0 && !c.activa
+            ? <div className="btns uno"><Accion ruta="/api/invocacion/activar" cuerpo={{ clave: c.clave }}>Activar</Accion></div>
+            : null}
+        </div>
+      ))}
+    </>
+  );
+}
+
 export default function Hogar({ d, base }) {
   const sel = hogarSeccion();
   return (
     <>
-      <Cab titulo="Mundo" sub="Tu mascota y tu granja." icono={ICONO} />
+      <Cab titulo="Mundo" sub="Tu mascota, tus legendarias y tu granja." icono={ICONO} />
       <Seg aria="Sección del hogar" opciones={SECCIONES} valor={sel} onCambio={hogarIr} />
-      {sel === 'mascota' ? <Mascota d={d} base={base} /> : <Granja d={d} base={base} />}
+      {sel === 'mascota' ? <Mascota d={d} base={base} /> : sel === 'invocacion' ? <Legendarias d={d} /> : <Granja d={d} base={base} />}
     </>
   );
 }
