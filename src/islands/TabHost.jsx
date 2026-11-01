@@ -1,5 +1,5 @@
 import React, { Suspense, useLayoutEffect } from 'react';
-import { cache, errores, cargar, usePestana, sesionActual, scrollGuardado } from '../state/panel.js';
+import { cache, errores, cargar, usePestana, sesionActual, hayPendiente, restaurarPos } from '../state/panel.js';
 import { Seguro, Vacio } from './ui.jsx';
 
 const Esqueleto = () => (
@@ -16,7 +16,8 @@ function ajustar(t, hayDatos) {
     const a = g.querySelector('[aria-pressed="true"]');
     if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2;
   });
-  if (!el.hidden && hayDatos) window.scrollTo(0, scrollGuardado());
+  // Si la pestaña estaba esperando su contenido para volver a su posición, se restaura en cuanto hay datos.
+  if (!el.hidden && hayDatos && hayPendiente(t)) restaurarPos(t);
 }
 
 function Ajuste({ t }) {
