@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { ACC, ICONOS, ICONO_EXTRA, IC_STAT, ARTE, escena } from '../core/datos.js';
 import { useEstado } from '../core/estado.js';
@@ -9,7 +9,6 @@ import { jugar, tiempo } from '../core/acciones.js';
 import { estadoEventos } from '../core/eventos.js';
 import Svg from './Svg.jsx';
 import { Ava } from './Foto.jsx';
-import Decor from './Decor.jsx';
 
 const ESCENA = escena('h');
 const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -57,7 +56,7 @@ function Monedas({ valor }) {
   );
 }
 
-const Hero = memo(function Hero({ me }) {
+function Hero({ me }) {
   const lluvia = me.clima && /lluv|torment/i.test(me.clima.nombre);
   return (
     <section className="hero" aria-label="Tu resumen">
@@ -75,9 +74,9 @@ const Hero = memo(function Hero({ me }) {
       </div>
     </section>
   );
-});
+}
 
-const Hud = memo(function Hud({ me }) {
+function Hud({ me }) {
   const s = me.stats;
   if (!s) return <div className="hud vidrio" id="hud" hidden />;
   const chip = (k, n) => <div className="chip-s" title={n}><Svg html={IC_STAT[k]} /><b>{s[k]}</b><span>{n}</span></div>;
@@ -99,42 +98,23 @@ const Hud = memo(function Hud({ me }) {
       )}
     </div>
   );
-});
+}
 
-function EventoX2({ me, meT }) {
+function EventoX2({ me, meT, ahora }) {
   const ev = me.evento;
   const vence = ev && ev.activo && ev.restaS > 0 ? meT + ev.restaS * 1000 : 0;
-  const resta = useDeAhora(ahora => (vence > ahora ? restaMin((vence - ahora) / 1000) : ''));
+  const visible = vence > ahora;
   return (
-    <div className="evento-x2 vidrio" id="evento-x2" hidden={!resta}>
+    <div className="evento-x2 vidrio" id="evento-x2" hidden={!visible}>
       <div>
-        <strong>🎉 Evento <span id="ev-mult">x{ev ? ev.mult : 2}</span> acaba en <span id="ev-resta">{resta}</span></strong>
+        <strong>🎉 Evento <span id="ev-mult">x{ev ? ev.mult : 2}</span> acaba en <span id="ev-resta">{visible ? restaMin((vence - ahora) / 1000) : ''}</span></strong>
         <p className="mut peq">Tus monedas valen el doble al cazar, recolectar y cobrar recompensas.</p>
       </div>
     </div>
   );
 }
 
-function RestaClima({ fin }) {
-  const texto = useDeAhora(ahora => dur((fin - ahora) / 1000));
-  return <b id="cc-resta">{texto}</b>;
-}
-
-function contarListas(ahora) {
-  let n = 0;
-  for (const k in ACC) {
-    if (e.tot[k] === undefined) continue;
-    if (Math.ceil((e.fin[k] - ahora) / 1000) <= 0) n++;
-  }
-  return n + estadoEventos(ahora).listas;
-}
-
-function Listas() {
-  const n = useDeAhora(contarListas);
-  return <div className="vidrio listas-t"><b>{n}</b><span>Listas ahora</span><i>Actividades disponibles</i></div>;
-}
-
-const Clima = memo(function Clima({ me, meT }) {
+function Clima({ me, meT, ahora, listas }) {
   const c = me.clima;
   return (
     <div className="resumen">
@@ -143,13 +123,13 @@ const Clima = memo(function Clima({ me, meT }) {
         <div>
           <strong id="cc-nom">{c ? c.nombre + (c.raro ? ' · raro' : '') : ''}</strong>
           <p className="mut peq" id="cc-desc">{c ? c.desc : ''}</p>
-          <p className="peq">Cambia en {c ? <RestaClima fin={meT + c.faltaS * 1000} /> : <b id="cc-resta" />}, luego <span id="cc-sig">{c ? c.siguiente.emoji + ' ' + c.siguiente.nombre : ''}</span></p>
+          <p className="peq">Cambia en <b id="cc-resta">{c ? dur((meT + c.faltaS * 1000 - ahora) / 1000) : ''}</b>, luego <span id="cc-sig">{c ? c.siguiente.emoji + ' ' + c.siguiente.nombre : ''}</span></p>
         </div>
       </div>
-      <Listas />
+      <div className="vidrio listas-t"><b>{listas}</b><span>Listas ahora</span><i>Actividades disponibles</i></div>
     </div>
   );
-});
+}
 
 function Aro({ k, icono, prog, tot, rest, lista }) {
   return (
@@ -169,21 +149,17 @@ function Mult({ k, mult }) {
   return <span id={'m-' + k}><span className={'mx ' + (m > 1 ? 'up' : m < 1 ? 'down' : '')}>x{Number(m).toFixed(2)}</span></span>;
 }
 
-const Tarjeta = memo(function Tarjeta({ k, a, tot, mult, ancha }) {
-  const fin = useEstado(s => s.fin[k]);
-  const rest = useDeAhora(ahora => Math.max(0, Math.ceil((fin - ahora) / 1000)));
-  const lista = rest === 0;
-  const aro = <Aro k={k} icono={ICONOS[a.ic]} prog tot={tot} rest={rest} lista={lista} />;
-  const est = <p className="est"><i /><span id={'t-' + k}>{lista ? 'Listo' : tiempo(rest)}</span></p>;
+function Tarjeta({ k, a, st, tot, mult, ancha }) {
+  const aro = <Aro k={k} icono={ICONOS[a.ic]} prog tot={tot} rest={st.rest} lista={st.lista} />;
+  const est = <p className="est"><i /><span id={'t-' + k}>{st.lista ? 'Listo' : tiempo(st.rest)}</span></p>;
   const boton = (
-    <button className="accion" type="button" data-a={k} aria-disabled={String(!lista)} onClick={() => jugar(k)}>
-      {lista ? a.n : 'En espera'}
+    <button className="accion" type="button" data-a={k} aria-disabled={String(!st.lista)} onClick={() => jugar(k)}>
+      {st.lista ? a.n : 'En espera'}
     </button>
   );
   if (a.g === 'c') {
     return (
-      <div className={'ticket' + (lista ? '' : ' espera')} id={'c-' + k} style={{ '--z': a.z }}>
-        <div className="fondo-t"><Decor k={k} /></div>
+      <div className={'ticket' + (st.lista ? '' : ' espera')} id={'c-' + k} style={{ '--z': a.z }}>
         {aro}
         <div className="tx"><h3>{a.t}</h3>{est}<Mult k={k} mult={mult} /><p className="mut peq">{a.d}</p></div>
         {boton}
@@ -191,12 +167,12 @@ const Tarjeta = memo(function Tarjeta({ k, a, tot, mult, ancha }) {
     );
   }
   return (
-    <div className={'zona' + (lista ? '' : ' espera') + (ancha ? ' ancha' : '')} id={'c-' + k} style={{ '--z': a.z }}>
-      <div className="arte"><Decor k={k} /><span className="zn">{a.l}</span>{aro}</div>
+    <div className={'zona' + (st.lista ? '' : ' espera') + (ancha ? ' ancha' : '')} id={'c-' + k} style={{ '--z': a.z }}>
+      <div className="arte"><Svg html={ARTE[k]} /><span className="zn">{a.l}</span>{aro}</div>
       <div className="zc">{est}<Mult k={k} mult={mult} />{boton}</div>
     </div>
   );
-});
+}
 
 const T = {
   mazmorra: { k: 'mazmorra', z: '#9fb4c8', t: 'Mazmorra', d: 'Baja piso a piso, enfrenta jefes y consigue equipo.', b: 'Entrar', i: ICONOS.hunt },
@@ -209,6 +185,7 @@ const T = {
   encargos: { k: 'encargos', z: '#8fc4ad', t: 'Encargos', d: 'Entrega materiales al pueblo y cobra monedas, XP y un cofre.', b: 'Ver encargos', i: ICONO_EXTRA.encargos },
   alquimia: { k: 'alquimia', z: '#8fc4ad', t: 'Alquimia', d: 'Prepara elixires y objetos en tus calderos.', b: 'Ir al laboratorio', i: ICONOS.alquimia }
 };
+
 // Cada grupo es un bloque de la pantalla. Si un grupo tiene cantidad impar, el último ocupa todo el ancho en móvil.
 const GRUPOS = [
   { id: 'aventura', t: 'Aventura', s: 'Mazmorras, jefes y encuentros', items: [T.mazmorra, T.sala, T.raid, T.encuentro] },
@@ -220,21 +197,24 @@ function Tile({ x, ev, ancha }) {
   let desc = x.d;
   let boton = x.b;
   let espera = false;
-  if (x.k === 'raid' && ev.raid) {
-    boton = ev.raid.n === 0 ? 'Ver jefes' : ev.raid.rest === 0 ? 'Atacar' : dur(ev.raid.rest);
-    espera = !ev.raid.lista;
+  let ir = () => abrir(x.k);
+  if (x.k === 'raid') {
+    ir = () => abrir('raid', true);
+    if (ev.raid) {
+      boton = ev.raid.n === 0 ? 'Ver jefes' : ev.raid.rest === 0 ? 'Atacar' : dur(ev.raid.rest);
+      espera = !ev.raid.lista;
+    }
   }
-  if (x.k === 'gacha' && ev.gacha) {
+  if (x.k === 'gacha') {
+    ir = irGacha;
     const g = ev.gacha;
-    const ab = g.ab;
-    desc = g.pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : g.trato ? 'Te propusieron un cambio de cartas.' : x.d;
-    boton = g.pend || ab.length ? 'Reclamar' : g.trato ? 'Ver trato' : g.rest === 0 ? 'Invocar' : dur(g.rest);
-    espera = !g.lista;
+    if (g) {
+      const ab = g.ab;
+      desc = g.pend ? 'Tienes una carta esperando. ¡Reclámala!' : ab.length ? ab[0].por + ' invocó a ' + ab[0].carta.nombre + '. ¡Reclámala!' : g.trato ? 'Te propusieron un cambio de cartas.' : x.d;
+      boton = g.pend || ab.length ? 'Reclamar' : g.trato ? 'Ver trato' : g.rest === 0 ? 'Invocar' : dur(g.rest);
+      espera = !g.lista;
+    }
   }
-  return [desc, boton, espera ? '1' : ''].join('\u0001');
-}
-
-function Evento({ x, ancha, desc, boton, espera, ir }) {
   return (
     <div className={'ticket evento' + (espera ? ' espera' : '') + (ancha ? ' ancha' : '')} id={'c-' + x.k} style={{ '--z': x.z }}>
       <Aro icono={x.i} />
@@ -259,23 +239,27 @@ export function calcularListas(ahora, tot, fin) {
 
 export default function Inicio() {
   const me = useMe();
+  const ahora = useAhora();
   const meT = useEstado(s => s.meT);
   const tot = useEstado(s => s.tot);
+  const fin = useEstado(s => s.fin);
+  useEstado(s => s.eventos);
+  useEstado(s => s.abiertas);
+  const { est, ev, listas } = calcularListas(ahora, tot, fin);
 
   if (!me) return null;
 
-  const visibles = Object.keys(ACC).filter(k => ACC[k].g === 'r' && tot[k] !== undefined);
-  const recompensas = Object.keys(ACC).filter(k => ACC[k].g === 'c' && tot[k] !== undefined);
+  const visibles = Object.keys(ACC).filter(k => ACC[k].g === 'r' && est[k]);
   const ultima = visibles.length % 2 ? visibles[visibles.length - 1] : null;
   const mult = me.clima ? me.clima.mult : {};
-  const tarjeta = k => <Tarjeta key={k} k={k} a={ACC[k]} tot={tot[k]} mult={mult} ancha={k === ultima} />;
+  const tarjeta = k => <Tarjeta key={k} k={k} a={ACC[k]} st={est[k]} tot={tot[k]} mult={mult} ancha={k === ultima} />;
 
   return (
     <>
       <Hero me={me} />
       <Hud me={me} />
-      <EventoX2 me={me} meT={meT} />
-      <Clima me={me} meT={meT} />
+      <EventoX2 me={me} meT={meT} ahora={ahora} />
+      <Clima me={me} meT={meT} ahora={ahora} listas={listas} />
       <div className="grupo"><h2>Recolectar</h2><span className="mut peq">Cada actividad tiene su espera</span></div>
       <div className="rejilla" id="rejilla">{visibles.map(tarjeta)}</div>
       <div className="grupo"><h2>Recompensas</h2><span className="mut peq">Una vez cada cierto tiempo</span></div>
