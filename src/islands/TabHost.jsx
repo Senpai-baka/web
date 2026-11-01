@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React, { Suspense, useLayoutEffect } from 'react';
 import { cache, errores, cargar, usePestana, sesionActual, scrollGuardado } from '../state/panel.js';
 import { Seguro, Vacio } from './ui.jsx';
 
@@ -9,20 +9,27 @@ const Esqueleto = () => (
   </div>
 );
 
+function ajustar(t, hayDatos) {
+  const el = document.getElementById('t-' + t);
+  if (!el) return;
+  el.querySelectorAll('.seg').forEach(g => {
+    const a = g.querySelector('[aria-pressed="true"]');
+    if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2;
+  });
+  if (!el.hidden && hayDatos) window.scrollTo(0, scrollGuardado());
+}
+
+function Ajuste({ t }) {
+  useLayoutEffect(() => { ajustar(t, true); }, []);
+  return null;
+}
+
 export default function TabHost({ t, Isla }) {
   usePestana(t);
   const c = cache[t];
   const error = errores[t];
 
-  useLayoutEffect(() => {
-    const el = document.getElementById('t-' + t);
-    if (!el) return;
-    el.querySelectorAll('.seg').forEach(g => {
-      const a = g.querySelector('[aria-pressed="true"]');
-      if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2;
-    });
-    if (!el.hidden && c) window.scrollTo(0, scrollGuardado());
-  });
+  useLayoutEffect(() => { ajustar(t, !!c); });
 
   if (!c) {
     return error
@@ -34,5 +41,10 @@ export default function TabHost({ t, Isla }) {
       )
       : <Esqueleto />;
   }
-  return <Seguro key={sesionActual()} reset={c.d}><Isla d={c.d} base={c.t} /></Seguro>;
+  return (
+    <Suspense fallback={<Esqueleto />}>
+      <Seguro key={sesionActual()} reset={c.d}><Isla d={c.d} base={c.t} /></Seguro>
+      <Ajuste t={t} />
+    </Suspense>
+  );
 }
