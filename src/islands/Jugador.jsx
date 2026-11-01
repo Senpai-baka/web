@@ -55,6 +55,7 @@ export default function Jugador({ d }) {
           {d.mascota
             ? <><Kv k="Mascota" v={`${d.mascota.emoji} ${d.mascota.nombre}`} /><Kv k="Tipo" v={d.mascota.tipo} /><Kv k="Nivel" v={`${d.mascota.nivel}/${d.mascota.max}`} /></>
             : <p className="mut peq">No tiene mascota.</p>}
+          {d.mascotaCasa ? <Kv k="En casa" v={`${d.mascotaCasa.emoji} ${d.mascotaCasa.nombre} · Nv ${d.mascotaCasa.nivel}/${d.mascotaCasa.max}`} /> : null}
         </div>
       </Sec>
       <Sec k="jugador-clan" titulo="Clan" extra={d.clan ? d.clan.nombre : 'Sin clan'}>

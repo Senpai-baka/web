@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { hogarSeccion, hogarIr, publicar } from '../bridge/acciones.js';
 import { Cab, Seg, Countdown, Titulo, Accion, BotonListo, Barra, Estado } from './ui.jsx';
+import MascotaSprite from './MascotaSprite.jsx';
 
 const SECCIONES = [['mascota', 'Mascota'], ['granja', 'Granja']];
 
@@ -12,12 +13,16 @@ const ICONO = (
   </>
 );
 
-function Adoptar({ d }) {
+function Adoptar({ d, casa }) {
   const [nombre, setNombre] = useState('');
   return (
     <>
-      <Titulo>Adopta una mascota</Titulo>
-      <p className="mut peq">Cuesta {fmt(d.precio)} monedas. Dan bonos si las cuidas: aliméntalas, acarícialas y juega con ellas.</p>
+      <Titulo>{casa ? 'Elige la mascota de casa' : 'Adopta una mascota'}</Titulo>
+      <p className="mut peq">
+        {casa
+          ? 'Cuesta ' + fmt(d.precio) + ' monedas. Se queda en casa y no da bonos.'
+          : 'Cuesta ' + fmt(d.precio) + ' monedas. Dan bonos si las cuidas: aliméntalas, acarícialas y juega con ellas.'}
+      </p>
       <input
         className="txt" maxLength={16} placeholder="Nombre (opcional)" autoComplete="off" aria-label="Nombre de la mascota"
         value={nombre} onChange={e => setNombre(e.target.value)}
@@ -25,11 +30,11 @@ function Adoptar({ d }) {
       {d.tipos.map(t => (
         <div className="bloque vidrio" key={t.clave}>
           <div className="pet">
-            <span className="em">{t.emoji}</span>
+            <MascotaSprite tipo={t.clave} emoji={t.emoji} tam={56} />
             <div style={{ flex: 1 }}><strong>{t.nombre}</strong><p className="mut peq">{t.desc}</p></div>
           </div>
           <div className="btns uno">
-            <Accion ruta="/api/mascota/adoptar" cuerpo={{ tipo: t.clave }} campos={{ nombre }}>Adoptar</Accion>
+            <Accion ruta={casa ? '/api/mascota/adoptar_casa' : '/api/mascota/adoptar'} cuerpo={{ tipo: t.clave }} campos={{ nombre }}>Adoptar</Accion>
           </div>
         </div>
       ))}
@@ -37,8 +42,59 @@ function Adoptar({ d }) {
   );
 }
 
+function Casa({ d }) {
+  const [abierto, setAbierto] = useState(false);
+  const c = d.casa;
+  const renombrar = e => {
+    const boton = e.currentTarget;
+    const n = window.prompt('Nuevo nombre (2 a 16 letras o números):', c.nombre);
+    if (n && n.trim()) publicar(boton, '/api/mascota/renombrar_casa', { nombre: n.trim() });
+  };
+  if (!c) {
+    if (!d.puedeAdoptarCasa) return null;
+    return (
+      <>
+        <Titulo>Mascota en casa</Titulo>
+        <p className="mut peq">Una segunda mascota que se queda en casa y no da bonos. Puedes cambiarla por la de aventuras cuando quieras.</p>
+        {abierto
+          ? <Adoptar d={d} casa />
+          : <div className="btns uno"><button type="button" className="mini" onClick={() => setAbierto(true)}>Adoptar mascota de casa</button></div>}
+      </>
+    );
+  }
+  return (
+    <>
+      <Titulo>Mascota en casa</Titulo>
+      <div className="bloque vidrio">
+        <div className="pet">
+          <MascotaSprite tipo={c.tipo.clave} animo={c.animo.clave} emoji={c.tipo.emoji} tam={64} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <strong>{c.nombre}</strong>
+            {c.nombre === c.tipo.nombre ? '' : <> <span className="mut peq">({c.tipo.nombre})</span></>}
+            <p className="peq">
+              {c.animo.emoji} {c.animo.nombre}
+              <span className="etiq nar">En casa · Sin bono</span>
+            </p>
+          </div>
+        </div>
+        <div className="stat">
+          <div className="fila"><span>Nivel {c.nivel}/{c.max}</span><span>{c.xpSig ? c.xp + '/' + c.xpSig + ' XP' : 'Máximo'}</span></div>
+          <Barra valor={c.xpSig ? c.xp : 1} max={c.xpSig || 1} />
+        </div>
+        <p className="mut peq" style={{ marginTop: 12 }}>Descansa sin hambre ni cansancio mientras está en casa.</p>
+      </div>
+      <div className="btns">
+        <Accion ruta="/api/mascota/intercambiar" motivo={d.enExpedicion && 'No puedes cambiar de mascota durante una expedición.'}>
+          {d.tiene ? 'Intercambiar' : 'Salir de aventuras'}
+        </Accion>
+        <button type="button" className="mini" onClick={renombrar}>Renombrar</button>
+      </div>
+    </>
+  );
+}
+
 function Mascota({ d, base }) {
-  if (!d.tiene) return <Adoptar d={d} />;
+  if (!d.tiene) return <><Adoptar d={d} /><Casa d={d} /></>;
   const c = d.costos;
   const renombrar = e => {
     const boton = e.currentTarget;
@@ -50,7 +106,7 @@ function Mascota({ d, base }) {
       <Titulo>Tu mascota</Titulo>
       <div className="bloque vidrio">
         <div className="pet">
-          <span className="em">{d.tipo.emoji}</span>
+          <MascotaSprite tipo={d.tipo.clave} animo={d.animo.clave} emoji={d.tipo.emoji} tam={88} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <strong>{d.nombre}</strong>
             {d.nombre === d.tipo.nombre ? '' : <> <span className="mut peq">({d.tipo.nombre})</span></>}
@@ -78,6 +134,7 @@ function Mascota({ d, base }) {
         <BotonListo ruta="/api/mascota/curar" txt={'Curar ' + fmt(c.cura)} bloq={d.necesitaCura ? '' : 'Está sana'} />
       </div>
       <div className="btns uno"><button type="button" className="mini" onClick={renombrar}>Renombrar</button></div>
+      <Casa d={d} />
     </>
   );
 }
