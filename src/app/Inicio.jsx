@@ -1,8 +1,8 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
-import { ACC, ICONOS, ICONO_EXTRA, IC_STAT, escena } from '../core/datos.js';
-import { e, useEstado } from '../core/estado.js';
-import { useDeAhora } from '../core/reloj.js';
+import { ACC, ICONOS, ICONO_EXTRA, IC_STAT, ARTE, escena } from '../core/datos.js';
+import { useEstado } from '../core/estado.js';
+import { useAhora } from '../core/reloj.js';
 import { useMe } from '../bridge/store.js';
 import { abrir, irGacha } from '../core/navegar.js';
 import { jugar, tiempo } from '../core/acciones.js';
@@ -209,14 +209,14 @@ const T = {
   encargos: { k: 'encargos', z: '#8fc4ad', t: 'Encargos', d: 'Entrega materiales al pueblo y cobra monedas, XP y un cofre.', b: 'Ver encargos', i: ICONO_EXTRA.encargos },
   alquimia: { k: 'alquimia', z: '#8fc4ad', t: 'Alquimia', d: 'Prepara elixires y objetos en tus calderos.', b: 'Ir al laboratorio', i: ICONOS.alquimia }
 };
+// Cada grupo es un bloque de la pantalla. Si un grupo tiene cantidad impar, el último ocupa todo el ancho en móvil.
 const GRUPOS = [
   { id: 'aventura', t: 'Aventura', s: 'Mazmorras, jefes y encuentros', items: [T.mazmorra, T.sala, T.raid, T.encuentro] },
   { id: 'comunidad', t: 'Comunidad', s: 'Cartas, clan y metas compartidas', items: [T.gacha, T.clan, T.mundial] },
   { id: 'pueblo', t: 'Pueblo', s: 'Encargos y laboratorio', items: [T.encargos, T.alquimia] }
 ];
 
-function vistaTile(x, ahora) {
-  const ev = estadoEventos(ahora);
+function Tile({ x, ev, ancha }) {
   let desc = x.d;
   let boton = x.b;
   let espera = false;
@@ -236,28 +236,26 @@ function vistaTile(x, ahora) {
 
 function Evento({ x, ancha, desc, boton, espera, ir }) {
   return (
-    <div className={'ticket evento con-arte' + (espera ? ' espera' : '') + (ancha ? ' ancha' : '')} id={'c-' + x.k} style={{ '--z': x.z }}>
-      <div className="arte"><Decor k={x.k} /><span className="zn">{x.t}</span><Aro icono={x.i} /></div>
-      <div className="evc">
-        <p className="mut peq" id={x.k === 'raid' ? 'p-raid' : x.k === 'gacha' ? 'p-gacha' : undefined}>{desc}</p>
-        <button className="accion" type="button" id={x.k === 'raid' ? 'b-raid' : x.k === 'gacha' ? 'b-gacha' : undefined} onClick={ir}>{boton}</button>
-      </div>
+    <div className={'ticket evento' + (espera ? ' espera' : '') + (ancha ? ' ancha' : '')} id={'c-' + x.k} style={{ '--z': x.z }}>
+      <Aro icono={x.i} />
+      <div className="tx"><h3>{x.t}</h3><p className="mut peq" id={x.k === 'raid' ? 'p-raid' : x.k === 'gacha' ? 'p-gacha' : undefined}>{desc}</p></div>
+      <button className="accion" type="button" id={x.k === 'raid' ? 'b-raid' : x.k === 'gacha' ? 'b-gacha' : undefined} onClick={ir}>{boton}</button>
     </div>
   );
 }
 
-const irRaid = () => abrir('raid', true);
-
-const TileVivo = memo(function TileVivo({ x, ancha }) {
-  const [desc, boton, espera] = useDeAhora(ahora => vistaTile(x, ahora)).split('\u0001');
-  return <Evento x={x} ancha={ancha} desc={desc} boton={boton} espera={!!espera} ir={x.k === 'raid' ? irRaid : irGacha} />;
-});
-
-const TileFijo = memo(function TileFijo({ x, ancha }) {
-  return <Evento x={x} ancha={ancha} desc={x.d} boton={x.b} espera={false} ir={() => abrir(x.k)} />;
-});
-
-const Tile = ({ x, ancha }) => (x.k === 'raid' || x.k === 'gacha' ? <TileVivo x={x} ancha={ancha} /> : <TileFijo x={x} ancha={ancha} />);
+export function calcularListas(ahora, tot, fin) {
+  const est = {};
+  let listas = 0;
+  for (const k in ACC) {
+    if (tot[k] === undefined) continue;
+    const rest = Math.max(0, Math.ceil((fin[k] - ahora) / 1000));
+    est[k] = { rest, lista: rest === 0 };
+    if (rest === 0) listas++;
+  }
+  const ev = estadoEventos(ahora);
+  return { est, ev, listas: listas + ev.listas };
+}
 
 export default function Inicio() {
   const me = useMe();
@@ -281,12 +279,12 @@ export default function Inicio() {
       <div className="grupo"><h2>Recolectar</h2><span className="mut peq">Cada actividad tiene su espera</span></div>
       <div className="rejilla" id="rejilla">{visibles.map(tarjeta)}</div>
       <div className="grupo"><h2>Recompensas</h2><span className="mut peq">Una vez cada cierto tiempo</span></div>
-      <div id="recompensas">{recompensas.map(tarjeta)}</div>
+      <div id="recompensas">{Object.keys(ACC).filter(k => ACC[k].g === 'c' && est[k]).map(tarjeta)}</div>
       {GRUPOS.map(g => (
         <section key={g.id} aria-label={g.t}>
           <div className="grupo"><h2>{g.t}</h2><span className="mut peq">{g.s}</span></div>
           <div className="eventos">
-            {g.items.map((x, i) => <Tile key={x.k} x={x} ancha={g.items.length % 2 === 1 && i === g.items.length - 1} />)}
+            {g.items.map((x, i) => <Tile key={x.k} x={x} ev={ev} ancha={g.items.length % 2 === 1 && i === g.items.length - 1} />)}
           </div>
         </section>
       ))}
