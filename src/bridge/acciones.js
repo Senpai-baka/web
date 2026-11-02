@@ -33,6 +33,8 @@ export const ciudadSeccion = () => vista('ciudad').ciudadSel;
 export const ciudadIr = s => en(['banco', 'negocios', 'casino', 'altar', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
 export const buscarJugadores = q => fijar('ciudad', { jugQ: q || '' });
 export const consultaJugadores = () => vista('ciudad').jugQ;
+export const buscarPago = q => fijar('ciudad', { pagoQ: q || '' });
+export const consultaPago = () => vista('ciudad').pagoQ;
 
 export const tiendaSeccion = () => vista('tienda').tiendaSel;
 export const tiendaIr = s => en(['tienda', 'bazar', 'mercado', 'subastas'], s) && fijar('tienda', { tiendaSel: s });

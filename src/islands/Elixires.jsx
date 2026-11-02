@@ -1,29 +1,14 @@
 import React from 'react';
-import { Vacio, Accion, Countdown, useAhora } from './ui.jsx';
+import { Vacio, Accion, Countdown, useAhora, Slot } from './ui.jsx';
+import { colorObjeto } from './rareza.js';
 import { cambiarInventario } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
-
-export const COLOR_OBJETO = {
-  elixir_fuerza: '#e8946a', elixir_suerte: '#8fc4ad', tonico_fortuna: '#e0b96a',
-  elixir_furia: '#dd8591', piel_piedra: '#8fb4d6', esencia_cazador: '#b69be0',
-  pocion_energia: '#e0b96a', pocion_mayor: '#dd8591', kit_reparacion: '#8fb4d6', piedra_bendicion: '#b69be0',
-};
-const colorDe = clave => COLOR_OBJETO[clave] || '#c3bbdc';
 
 const GRUPOS = [
   ['potenciadores', 'Potenciadores', 'Efectos temporales que se acumulan entre sí.'],
   ['pociones', 'Pociones', 'Efecto inmediato.'],
   ['equipo', 'Para tu equipo', 'Mantén y mejora tus piezas.'],
 ];
-
-function Slot({ emoji, cantidad, color, falta }) {
-  return (
-    <span className={`slot${falta ? ' falta' : ''}`} style={{ '--r': color }} aria-hidden="true">
-      <span className="si">{emoji}</span>
-      {cantidad !== undefined && <i className="n">{cantidad}</i>}
-    </span>
-  );
-}
 
 const Chip = ({ color, children }) => <span className="chip-e" style={{ '--r': color }}>{children}</span>;
 
@@ -43,7 +28,7 @@ export function EfectosActivos({ lista, base }) {
   return (
     <div className="efectos" role="list" aria-label="Efectos activos">
       {lista.map(e => {
-        const color = colorDe(e.clave);
+        const color = colorObjeto(e.clave);
         const fin = base + e.restanteS * 1000;
         return (
           <div className="efecto vidrio" role="listitem" key={e.clave} style={{ '--r': color }}>
@@ -76,7 +61,7 @@ export function Elixires({ lista, tope }) {
   return (
     <div className="lista">
       {mios.map(o => {
-        const color = colorDe(o.clave);
+        const color = colorObjeto(o.clave);
         return (
           <div className="fil elx" key={o.clave}>
             <Slot emoji={o.emoji} cantidad={o.cantidad} color={color} />
@@ -98,7 +83,7 @@ export function Elixires({ lista, tope }) {
 }
 
 function Receta({ o, max }) {
-  const color = colorDe(o.clave);
+  const color = colorObjeto(o.clave);
   const faltanMats = o.receta.some(x => x.tengo < x.necesita);
   const motivo = o.puede ? null : o.lleno ? 'Ya tienes el máximo de este objeto.' : faltanMats ? 'Te faltan materiales.' : 'No te alcanzan las monedas.';
   return (

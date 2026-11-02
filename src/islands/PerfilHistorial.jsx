@@ -1,8 +1,8 @@
 import React from 'react';
 import { fmt, hace } from '../lib/format.js';
 import { Vacio } from './ui.jsx';
+import { colorRareza } from './rareza.js';
 
-const RAREZA = { comun: '#a9b0c4', poco: '#8fc4ad', rara: '#8fb4d6', epica: '#b69be0', legendaria: '#e0b96a' };
 
 const Svg = ({ children }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
@@ -34,7 +34,7 @@ export default function PerfilHistorial({ d }) {
             <div className="fil" key={n}>
               <span className="pt">{ICONOS[ICONO[i.accion]] || ICONOS.mine}</span>
               <div className="nom">
-                <strong><i className="pto" style={{ '--c': RAREZA[i.rareza] || RAREZA.comun }} />{i.titulo}</strong>
+                <strong><i className="pto" style={{ '--c': colorRareza(i.rareza) }} />{i.titulo}</strong>
                 <span className="mut peq">{VERBO[i.accion] || 'Actuaste en'} {i.zona} · {hace(i.hace)} · {i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
                 {extra && <span className="peq" style={{ color: 'var(--lav)' }}>{extra}</span>}
               </div>
