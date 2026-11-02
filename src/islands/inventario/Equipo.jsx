@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sec, Vacio, Accion, Titulo, Slot } from '../ui.jsx';
+import { Sec, Vacio, Accion, Titulo, Slot, Countdown } from '../ui.jsx';
 import { ORDEN_RAREZA, infoRareza, colorRareza } from '../rareza.js';
 import { aviso } from '../../bridge/acciones.js';
 import { useMe } from '../../bridge/store.js';
@@ -44,6 +44,43 @@ function Muneco({ items, activo, onSel, clase }) {
         <Heroe clase={clase} />
       </div>
     </div>
+  );
+}
+
+const ICONO_STAT = { fuerza: '⚔️', vigor: '❤️', suerte: '🍀' };
+const NOMBRE_STAT = { fuerza: 'Fuerza', vigor: 'Vigor', suerte: 'Suerte' };
+
+function Estadisticas({ d, base }) {
+  const s = d.stats;
+  if (!s) return null;
+  const maximo = Math.max(10, ...['fuerza', 'vigor', 'suerte'].map(k => Number(s[k] || 0))) * 1.25;
+  const b = d.boosts || {};
+  const efectos = b.objetos || [];
+  const activos = b.escudoS > 0 || b.xpS > 0 || efectos.length > 0;
+  return (
+    <Sec k="equipo-stats-react" titulo="Estadísticas" extra={d.clase ? `${d.clase.emoji || '⚔️'} ${d.clase.nombre}` : 'Sin clase'}>
+      <div className="bloque vidrio">
+        {['fuerza', 'vigor', 'suerte'].map(k => (
+          <div className="stat-r" key={k}>
+            <span className="si-ic">{ICONO_STAT[k]}</span>
+            <div>
+              <div className="fila"><span>{NOMBRE_STAT[k]}</span><b>{fmt(Number(s[k] || 0))}</b></div>
+              <div className="barra"><div style={{ width: `${Math.min(100, Number(s[k] || 0) / maximo * 100)}%` }} /></div>
+            </div>
+          </div>
+        ))}
+        {d.energia && d.clase && <div className="kv"><span>Energía</span><b>{d.energia.n}/{d.energia.max}</b></div>}
+        {d.bonoIngresos > 0 && <div className="kv"><span>Bono de ingresos</span><b>+{d.bonoIngresos}%</b></div>}
+        {s.libres > 0 && <p className="mut peq">Tienes {s.libres} {s.libres === 1 ? 'punto libre' : 'puntos libres'}. Repártelos en Héroe.</p>}
+      </div>
+      {activos && (
+        <div className="bloque vidrio">
+          {b.escudoS > 0 && <div className="kv"><span>Escudo anti-robo</span><b><Countdown fin={base + b.escudoS * 1000} /></b></div>}
+          {b.xpS > 0 && <div className="kv"><span>Boost de XP x2</span><b><Countdown fin={base + b.xpS * 1000} /></b></div>}
+          {efectos.map(o => <div className="kv" key={o.clave}><span>{o.emoji} {o.nombre} · {o.efecto}</span><b><Countdown fin={base + o.restanteS * 1000} /></b></div>)}
+        </div>
+      )}
+    </Sec>
   );
 }
 
@@ -303,7 +340,7 @@ function Hogar({ d }) {
   );
 }
 
-export default function Equipo({ d }) {
+export default function Equipo({ d, base }) {
   const me = useMe();
   const items = Array.isArray(d.items) ? d.items : [];
   const [seleccion, setSeleccion] = useState(null);
@@ -331,6 +368,7 @@ export default function Equipo({ d }) {
           <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
             <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
           </Sec>
+          <Estadisticas d={d} base={base || Date.now()} />
           <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
             <Bonos b={b} />
           </Sec>

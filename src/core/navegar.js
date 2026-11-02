@@ -7,7 +7,11 @@ export const dibujar = t => {
 };
 
 export async function abrir(t, forzar) {
-  if (t === 'historial' || t === 'heroe') {
+  if (t === 'heroe') {
+    store.sel.invSel = 'heroe';
+    t = 'inventario';
+  }
+  if (t === 'historial') {
     store.sel.perfilSel = t;
     t = 'ficha';
   }

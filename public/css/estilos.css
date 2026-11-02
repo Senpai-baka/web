@@ -6438,3 +6438,7 @@ body {
   border-color: var(--sakura);
   background: rgba(215,181,255,.1);
 }
+
+.inventario-ui .seg + .seg {
+  margin-top: 10px;
+}
