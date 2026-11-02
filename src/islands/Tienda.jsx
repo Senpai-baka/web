@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
 import { tiendaSeccion, tiendaIr, tiendaPagina } from '../bridge/acciones.js';
-import { Cab, Seg, Vacio, Countdown, Titulo, Accion } from './ui.jsx';
-import { COLOR_OBJETO } from './Elixires.jsx';
+import { Cab, Seg, Vacio, Countdown, Titulo, Accion, Celda, Rejilla, Ficha } from './ui.jsx';
+import { NEUTRO, ORO, AZUL, colorObjeto } from './rareza.js';
 
 const SECCIONES = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
 
@@ -16,45 +16,10 @@ const ICONO = (
   </>
 );
 
-const NEUTRO = '#c3bbdc';
-
 function useElegir() {
   const [sel, setSel] = useState(null);
   const elegir = id => setSel(x => (x === id ? null : id));
   return [sel, elegir];
-}
-
-function Celda({ it, sel, onSel }) {
-  return (
-    <button type="button" className={`it ${sel ? 'sel' : ''} ${it.apagado ? 'no' : ''}`} onClick={() => onSel(it.id)} aria-pressed={sel} aria-label={it.nombre}>
-      <span className="slot" style={{ '--r': it.color }} aria-hidden="true">
-        <span className="si">{it.emoji || '📦'}</span>
-        {it.cantidad !== undefined && <i className="n">{it.cantidad}</i>}
-      </span>
-      <span className="it-n">{it.nombre}</span>
-      <span className="it-p">{fmt(it.precio)}</span>
-    </button>
-  );
-}
-
-function Rejilla({ lista, sel, onSel }) {
-  return (
-    <div className="bolsa-g rej">
-      {lista.map(it => <Celda key={it.id} it={it} sel={sel === it.id} onSel={onSel} />)}
-    </div>
-  );
-}
-
-function Ficha({ color, titulo, precio, children }) {
-  return (
-    <div className="bloque vidrio detalle" style={{ '--r': color }}>
-      <div className="fila">
-        <strong style={{ color }}>{titulo}</strong>
-        <b className="it-p">{fmt(precio)}</b>
-      </div>
-      {children}
-    </div>
-  );
 }
 
 function BotonAbrir({ abierto, onCambio, texto }) {
@@ -67,7 +32,7 @@ function BotonAbrir({ abierto, onCambio, texto }) {
 
 function Objetos({ d, base }) {
   const [sel, elegir] = useElegir();
-  const lista = d.items.map(i => ({ id: i.clave, emoji: i.emoji, nombre: i.nombre, precio: i.precio, color: COLOR_OBJETO[i.clave] || NEUTRO, item: i }));
+  const lista = d.items.map(i => ({ id: i.clave, emoji: i.emoji, nombre: i.nombre, precio: i.precio, color: colorObjeto(i.clave), item: i }));
   const activo = lista.find(x => x.id === sel);
   const i = activo?.item;
   const lleno = i && i.stock >= d.tope;
@@ -100,7 +65,7 @@ function Objetos({ d, base }) {
 
 function Bazar({ d, base }) {
   const [sel, elegir] = useElegir();
-  const lista = d.ofertas.map(o => ({ id: o.id, emoji: o.emoji || '🎁', nombre: o.nombre, precio: o.precio, color: '#8fb4d6', apagado: o.comprada, oferta: o }));
+  const lista = d.ofertas.map(o => ({ id: o.id, emoji: o.emoji || '🎁', nombre: o.nombre, precio: o.precio, color: AZUL, apagado: o.comprada, oferta: o }));
   const activo = lista.find(x => x.id === sel);
   const o = activo?.oferta;
   return (
@@ -173,7 +138,7 @@ function Mercado({ d }) {
   const [abierto, setAbierto] = useState(false);
   useEffect(() => { setAbierto(false); }, [d.mias.length]);
   const mapa = (o, color) => ({ id: o.id, emoji: o.emoji || '📦', nombre: o.nombre, precio: o.precio, cantidad: o.cantidad, color, oferta: o });
-  const mias = d.mias.map(o => mapa(o, '#e0b96a'));
+  const mias = d.mias.map(o => mapa(o, ORO));
   const resto = d.ofertas.filter(o => !o.mia).map(o => mapa(o, NEUTRO));
   const aMia = mias.find(x => x.id === sel);
   const aResto = resto.find(x => x.id === sel);
@@ -255,7 +220,7 @@ function Subastas({ d, base }) {
   const [abierto, setAbierto] = useState(false);
   useEffect(() => { setAbierto(false); }, [d.mias.length]);
   const mapa = (s, color) => ({ id: s.id, emoji: s.emoji || '🔨', nombre: s.nombre, precio: s.puja > 0 ? s.puja : s.base, color, subasta: s });
-  const mias = d.mias.map(s => mapa(s, '#e0b96a'));
+  const mias = d.mias.map(s => mapa(s, ORO));
   const resto = d.activas.filter(s => !s.mia).map(s => mapa(s, NEUTRO));
   const aMia = mias.find(x => x.id === sel);
   const aResto = resto.find(x => x.id === sel);

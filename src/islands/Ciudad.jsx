@@ -10,11 +10,11 @@ import Jugadores from './ciudad/Jugadores.jsx';
 const SECCIONES = [['banco', 'Banco'], ['negocios', 'Negocios'], ['casino', 'Casino'], ['altar', 'Altar'], ['jugadores', 'Jugadores']];
 
 const SUBTITULO = {
-  banco: 'Guarda tus monedas a salvo y haz que crezcan.',
+  banco: 'Guarda tus monedas, haz que crezcan y paga a otros.',
   negocios: 'Compra, mejora y cobra lo que producen.',
   casino: 'Prueba tu suerte con lo que puedas perder.',
   altar: 'Reliquias con bonos permanentes de ingresos.',
-  jugadores: 'Busca, paga o roba a otros jugadores.'
+  jugadores: 'Busca jugadores, mira su perfil o intenta robarles.'
 };
 
 const ICONO = (

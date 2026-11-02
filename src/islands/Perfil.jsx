@@ -142,6 +142,7 @@ function Mascota({ d }) {
         ) : (
           <p className="mut peq">Aún no tienes mascota. Puedes adoptar una con /pet en WhatsApp.</p>
         )}
+        {d.mascotaCasa ? <Kv label="En casa">{d.mascotaCasa.emoji} {d.mascotaCasa.nombre} · Nv {d.mascotaCasa.nivel}/{d.mascotaCasa.max}</Kv> : null}
       </div>
     </Sec>
   );

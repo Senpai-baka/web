@@ -118,6 +118,46 @@ export function Fila({ r, extra, valor, avatar }) {
   );
 }
 
+export function Slot({ emoji, cantidad, color, falta, plus }) {
+  return (
+    <span className={`slot${falta ? ' falta' : ''}`} style={{ '--r': color }} aria-hidden="true">
+      <span className="si">{emoji || '📦'}</span>
+      {cantidad !== undefined && <i className="n">{cantidad}</i>}
+      {plus > 0 && <b className="mas">+{plus}</b>}
+    </span>
+  );
+}
+
+export function Celda({ it, sel, onSel }) {
+  return (
+    <button type="button" className={`it ${sel ? 'sel' : ''} ${it.apagado ? 'no' : ''}`} onClick={() => onSel(it.id)} aria-pressed={sel} aria-label={it.nombre}>
+      <Slot emoji={it.emoji} cantidad={it.cantidad} color={it.color} />
+      <span className="it-n">{it.nombre}</span>
+      <span className="it-p">{it.etiqueta !== undefined ? it.etiqueta : fmt(it.precio)}</span>
+    </button>
+  );
+}
+
+export function Rejilla({ lista, sel, onSel }) {
+  return (
+    <div className="bolsa-g rej">
+      {lista.map(it => <Celda key={it.id} it={it} sel={sel === it.id} onSel={onSel} />)}
+    </div>
+  );
+}
+
+export function Ficha({ color, titulo, precio, children }) {
+  return (
+    <div className="bloque vidrio detalle" style={{ '--r': color }}>
+      <div className="fila">
+        <strong style={{ color }}>{titulo}</strong>
+        {precio !== undefined && <b className="it-p">{fmt(precio)}</b>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export const Kv = ({ k, v }) => <div className="kv"><span>{k}</span><b>{v}</b></div>;
 
 export const filas = (lista, vacio, fila) => lista.length ? lista.map(fila) : <Vacio>{vacio}</Vacio>;
