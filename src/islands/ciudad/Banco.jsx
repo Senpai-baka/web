@@ -47,11 +47,12 @@ function Pagar({ d }) {
   const [ref, setRef] = useState('');
   const [cant, setCant] = useState('');
   const consulta = consultaPago();
+  const resultados = d.resultados || [];
   const buscar = () => {
     setRef('');
     buscarPago(q);
   };
-  const elegido = ref ? d.resultados.find(j => j.ref === ref) : null;
+  const elegido = ref ? resultados.find(j => j.ref === ref) : null;
   const n = Number(cant);
   const valida = Number.isFinite(n) && n >= d.pago.min;
   const neto = valida ? n - Math.max(1, Math.ceil(n * d.pago.tasa / 100)) : 0;
@@ -74,9 +75,9 @@ function Pagar({ d }) {
             <span className="mut peq">{valida ? `${elegido.alias} recibe ${fmt(neto)}. ` : ''}Pago mínimo: {fmt(d.pago.min)}.</span>
             <Accion cls="pri" ruta="/api/jugadores/pagar" cuerpo={{ ref: elegido.ref }} campos={{ cantidad: cant }} motivo={motivo}>Pagar</Accion>
           </>
-        ) : d.resultados.length > 0 ? (
+        ) : resultados.length > 0 ? (
           <div className="ci-ops">
-            {d.resultados.map(j => (
+            {resultados.map(j => (
               <button type="button" className="ci-op" key={j.ref} onClick={() => setRef(j.ref)}>
                 <Avatar r={{ nombre: j.alias }} />
                 <strong>{j.alias}</strong>
