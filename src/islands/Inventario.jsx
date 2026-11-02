@@ -6,6 +6,7 @@ import { fmt } from '../lib/format.js';
 import Objetos from './inventario/Objetos.jsx';
 import Equipo from './inventario/Equipo.jsx';
 import Forja from './inventario/Forja.jsx';
+import PerfilHeroe from './PerfilHeroe.jsx';
 
 const ICONO = (
   <>
@@ -15,11 +16,12 @@ const ICONO = (
   </>
 );
 
-const OPCIONES = [['objetos', 'Objetos'], ['equipo', 'Equipo'], ['forja', 'Forja']];
+const OPCIONES = [['equipo', 'Equipo'], ['heroe', 'Héroe'], ['objetos', 'Mochila'], ['forja', 'Forja']];
 
 const SUBTITULO = {
-  objetos: 'Cofres, herramientas, consumibles, materiales y reliquias.',
+  objetos: 'Cofres, herramientas, consumibles, materiales y reliquias en tu mochila.',
   equipo: 'Lo que llevas puesto, tu bolsa y su mantenimiento.',
+  heroe: 'Clase, atributos, talentos y expediciones.',
   forja: 'Fabrica, prepara elixires y vende materiales.'
 };
 
@@ -32,10 +34,10 @@ export default function Inventario({ d, base }) {
     : undefined;
   return (
     <div className="inventario-ui">
-      <Cab titulo="Mochila" sub={SUBTITULO[seccion]} icono={ICONO} stats={stats} />
-      <Seg aria="Sección del inventario" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario} />
+      <Cab titulo="RPG" sub={SUBTITULO[seccion]} icono={ICONO} stats={stats} />
+      <Seg aria="Sección del RPG" opciones={OPCIONES} valor={seccion} onCambio={cambiarInventario} />
       <div className="inventario-contenido">
-        {seccion === 'objetos' ? <Objetos d={d} base={base} /> : seccion === 'equipo' ? <Equipo d={d} /> : <Forja d={d} />}
+        {seccion === 'objetos' ? <Objetos d={d} base={base} /> : seccion === 'equipo' ? <Equipo d={d} base={base} /> : seccion === 'heroe' ? <PerfilHeroe d={d} base={base} /> : <Forja d={d} />}
       </div>
     </div>
   );

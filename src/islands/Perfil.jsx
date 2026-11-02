@@ -3,35 +3,17 @@ import { Sec, Cifras, Accion, Countdown } from './ui.jsx';
 import { fmt } from '../lib/format.js';
 import Progreso from './Progreso.jsx';
 import PerfilTop, { Salir } from './PerfilTop.jsx';
-import PerfilHeroe from './PerfilHeroe.jsx';
 import PerfilHistorial from './PerfilHistorial.jsx';
 import PerfilOwner from './PerfilOwner.jsx';
 import FotoPerfil from './FotoPerfil.jsx';
 import { perfilSeccion } from '../bridge/acciones.js';
 
 const fmtN = v => fmt(Number(v || 0));
-const porcentaje = (v, max) => max > 0 ? Math.max(0, Math.min(100, Number(v || 0) / max * 100)) : 0;
 const plural = (n, uno, varios) => n === 1 ? uno : varios;
 
 function Kv({ label, children }) {
   return <div className="kv"><span>{label}</span><b>{children ?? '—'}</b></div>;
 }
-
-function BarraStat({ nombre, valor, max }) {
-  const icono = nombre === 'Fuerza' ? '⚔️' : nombre === 'Vigor' ? '❤️' : '🍀';
-  const tope = max || Math.max(10, Number(valor || 0) * 1.25);
-  return (
-    <div className="stat-r">
-      <span className="si-ic">{icono}</span>
-      <div>
-        <div className="fila"><span>{nombre}</span><b>{fmtN(valor)}</b></div>
-        <div className="barra"><div style={{ width: `${porcentaje(valor, tope)}%` }} /></div>
-      </div>
-    </div>
-  );
-}
-
-// ---- Bloques de la ficha, de lo más usado a lo menos usado ----
 
 function Pendientes({ d }) {
   const libres = d.stats?.libres || 0;
@@ -39,56 +21,9 @@ function Pendientes({ d }) {
   if (!libres && !talentos) return null;
   return (
     <div className="aviso-i">
-      {libres > 0 && <p>🎯 Tienes {libres} {plural(libres, 'punto de atributo libre', 'puntos de atributo libres')}. Repártelos en Héroe.</p>}
-      {talentos > 0 && <p>🌳 Tienes {talentos} {plural(talentos, 'punto de talento libre', 'puntos de talento libres')}. Úsalos en Héroe.</p>}
+      {libres > 0 && <p>🎯 Tienes {libres} {plural(libres, 'punto de atributo libre', 'puntos de atributo libres')}. Repártelos en RPG → Héroe.</p>}
+      {talentos > 0 && <p>🌳 Tienes {talentos} {plural(talentos, 'punto de talento libre', 'puntos de talento libres')}. Úsalos en RPG → Héroe.</p>}
     </div>
-  );
-}
-
-function Atributos({ d }) {
-  const s = d.stats || {};
-  return (
-    <Sec k="perfil-atributos-react" titulo="Atributos">
-      <div className="bloque vidrio">
-        <BarraStat nombre="Fuerza" valor={s.fuerza} />
-        <BarraStat nombre="Vigor" valor={s.vigor} />
-        <BarraStat nombre="Suerte" valor={s.suerte} />
-      </div>
-    </Sec>
-  );
-}
-
-function Heroe({ d, base }) {
-  const energia = d.energia || { n: 0, max: 0, faltaS: 0 };
-  return (
-    <Sec k="perfil-heroe-react" titulo="Héroe" extra={d.clase ? `${d.clase.emoji || '⚔️'} ${d.clase.nombre}` : 'Sin clase'}>
-      <div className="bloque vidrio">
-        {d.clase ? (
-          <>
-            <Kv label="Clase">{d.clase.emoji} {d.clase.nombre}</Kv>
-            <p className="mut peq">{d.clase.desc}</p>
-            <Kv label="Energía">{energia.n}/{energia.max}</Kv>
-            {energia.n < energia.max && <Kv label="Próxima energía"><Countdown fin={base + (energia.faltaS || 0) * 1000} /></Kv>}
-          </>
-        ) : (
-          <p className="mut peq">Sin clase todavía. Se elige desde el nivel {d.nivelClase ?? 'requerido'} en la sección Héroe.</p>
-        )}
-      </div>
-    </Sec>
-  );
-}
-
-function Activos({ d, base }) {
-  const b = d.boosts || {};
-  if (!(b.escudoS > 0 || b.xpS > 0 || b.objetos?.length > 0)) return null;
-  return (
-    <Sec k="perfil-activos-react" titulo="Activos">
-      <div className="bloque vidrio">
-        {b.escudoS > 0 && <Kv label="Escudo anti-robo"><Countdown fin={base + b.escudoS * 1000} /></Kv>}
-        {b.xpS > 0 && <Kv label="Boost de XP x2"><Countdown fin={base + b.xpS * 1000} /></Kv>}
-        {(b.objetos || []).map(o => <Kv key={o.clave} label={`${o.emoji} ${o.nombre} · ${o.efecto}`}><Countdown fin={base + o.restanteS * 1000} /></Kv>)}
-      </div>
-    </Sec>
   );
 }
 
@@ -169,14 +104,10 @@ function Avisos({ d }) {
   );
 }
 
-// Ficha: primero lo que cambia a diario (puntos, atributos, héroe, activos, dinero), luego tu mundo (clan, mascota, colección) y al final la cuenta.
 function PerfilFicha({ d, base }) {
   return (
     <>
       <Pendientes d={d} />
-      <Atributos d={d} />
-      <Heroe d={d} base={base} />
-      <Activos d={d} base={base} />
       <Finanzas d={d} />
       <Clan d={d} base={base} />
       <Mascota d={d} />
@@ -188,7 +119,7 @@ function PerfilFicha({ d, base }) {
   );
 }
 
-const VISTAS = { ficha: PerfilFicha, heroe: PerfilHeroe, progreso: Progreso, historial: PerfilHistorial, owner: PerfilOwner };
+const VISTAS = { ficha: PerfilFicha, progreso: Progreso, historial: PerfilHistorial, owner: PerfilOwner };
 
 export default function Perfil({ d, base }) {
   const activo = VISTAS[perfilSeccion()] ? perfilSeccion() : 'ficha';

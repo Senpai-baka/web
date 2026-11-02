@@ -8,7 +8,6 @@ const num = v => fmt(Number(v || 0));
 
 const SUBTITULO = {
   ficha: 'Tu ficha, estadísticas y cuenta.',
-  heroe: 'Clase, atributos, talentos y expediciones.',
   progreso: 'Misiones, logros, maestría y títulos.',
   historial: 'Tus últimos hallazgos.',
   owner: 'Estado del bot y de la web.'
@@ -18,7 +17,7 @@ const SUBTITULO = {
 export default function PerfilTop({ activo, empleo }) {
   const me = useMe();
   const pct = me?.xpSig ? Math.min(100, Number(me.xp || 0) / me.xpSig * 100) : 0;
-  const ops = [['ficha', 'Ficha'], ['heroe', 'Héroe'], ['progreso', 'Progreso'], ['historial', 'Recuerdos'], ...(me?.owner ? [['owner', 'Owner']] : [])];
+  const ops = [['ficha', 'Ficha'], ['progreso', 'Progreso'], ['historial', 'Recuerdos'], ...(me?.owner ? [['owner', 'Owner']] : [])];
   return (
     <>
       <Cab titulo="Perfil" sub={SUBTITULO[activo]} stats={[['Monedas', num(me?.monedas)], ['Prestigio', me?.prestigio || 0]]} />
