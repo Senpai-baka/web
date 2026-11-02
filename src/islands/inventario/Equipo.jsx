@@ -1,18 +1,13 @@
-import React, { useState } from 'react';
-import { Sec, Vacio, Accion, Titulo } from '../ui.jsx';
+import React, { useEffect, useState } from 'react';
+import { Sec, Vacio, Accion, Titulo, Slot } from '../ui.jsx';
+import { ORDEN_RAREZA, infoRareza, colorRareza } from '../rareza.js';
 import { aviso } from '../../bridge/acciones.js';
 import { useMe } from '../../bridge/store.js';
 import { Sprite, hojaHeroe } from '../Sprite.jsx';
 import { fmt } from '../../lib/format.js';
 
 const TIPOS = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
-const RAREZAS = {
-  comun: ['Común', '#a9b0c4'], poco: ['Poco común', '#8fc4ad'], rara: ['Rara', '#8fb4d6'],
-  epica: ['Épica', '#b69be0'], legendaria: ['Legendaria', '#e0b96a']
-};
-const ORDEN_RAREZA = Object.keys(RAREZAS);
-const infoRareza = r => RAREZAS[r] || RAREZAS.comun;
-const colorDe = it => infoRareza(it.rareza)[1];
+const colorDe = it => colorRareza(it.rareza);
 const mismo = (a, b) => String(a) === String(b);
 
 function Heroe({ clase }) {
@@ -53,7 +48,11 @@ function Muneco({ items, activo, onSel, clase }) {
 }
 
 function Bonos({ b }) {
-  const lista = [['⚔️ Daño', `+${b.dano || 0}%`], ['❤️ Vida', `+${b.vida || 0}%`], ['🪙 Ingresos', `+${b.ingresos || 0}%`], ['🍀 Suerte', `+${b.suerte || 0}`]];
+  const con = n => `${n > 0 ? '+' : ''}${n || 0}%`;
+  const lista = [
+    ['⚔️ Daño', `+${b.dano || 0}%`], ['❤️ Vida', `+${b.vida || 0}%`], ['🪙 Ingresos', `+${b.ingresos || 0}%`], ['🍀 Suerte', `+${b.suerte || 0}`],
+    ['🛡️ Daño recibido', con(b.recibido)], ['💰 Botín', con(b.botin)], ['🎁 Drops', con(b.drop)]
+  ];
   return (
     <div className="bonos">
       {lista.map(([n, v]) => <div key={n}><span>{n}</span><b>{v}</b></div>)}
@@ -68,7 +67,7 @@ function Bolsa({ d, items, activo, onSel }) {
     ...Object.entries(TIPOS).map(([k, [n]]) => [k, n, items.filter(i => i.tipo === k).length])
   ];
   const vistos = filtro === 'todo' ? items : items.filter(i => i.tipo === filtro);
-  const libres = filtro === 'todo' ? Math.min(4, Math.max(0, (d.bolsa?.max || 0) - items.length)) : 0;
+  const libres = filtro === 'todo' ? Math.min(10, Math.max(0, (d.bolsa?.max || 0) - items.length)) : 0;
   return (
     <>
       <div className="filtros" role="group" aria-label="Filtrar equipo">
@@ -80,13 +79,10 @@ function Bolsa({ d, items, activo, onSel }) {
         {vistos.map(it => {
           const sel = mismo(it.id, activo?.id);
           return (
-            <button key={it.id} type="button" className={`it ${sel ? 'sel' : ''}`} aria-label={it.etiqueta} aria-pressed={sel} onClick={() => onSel(it.id)}>
-              <span className={`slot ${it.rareza === 'legendaria' ? 'leg' : ''}`} style={{ '--r': colorDe(it) }} aria-hidden="true">
-                <span className="si">{it.emoji || '🎒'}</span>
-                {it.plus > 0 && <b className="mas">+{it.plus}</b>}
-                {it.equipado && <i className="eq">E</i>}
-              </span>
-              <span className="it-n">{it.etiqueta}</span>
+            <button key={it.id} type="button" className={`slot celda ${sel ? 'sel' : ''} ${it.rareza === 'legendaria' ? 'leg' : ''}`} style={{ '--r': colorDe(it) }} aria-label={it.etiqueta} aria-pressed={sel} onClick={() => onSel(it.id)}>
+              <span className="si">{it.emoji || '🎒'}</span>
+              {it.plus > 0 && <b className="mas">+{it.plus}</b>}
+              {it.equipado && <i className="eq">E</i>}
             </button>
           );
         })}
@@ -117,6 +113,69 @@ function Comparar({ activo, actual }) {
   );
 }
 
+function Encanto({ activo, d }) {
+  const e = activo.encanto;
+  const [abierto, setAbierto] = useState(false);
+  const [elegido, setElegido] = useState('');
+  const claveActual = e?.actual?.clave;
+  useEffect(() => {
+    setAbierto(false);
+    setElegido('');
+  }, [claveActual]);
+  if (!e) return null;
+  const opciones = (d.encantos || []).filter(x => x.clave !== claveActual);
+  const visible = e.disponible && (!e.actual || abierto);
+  const pieza = opciones.find(x => x.clave === elegido);
+  const motivo = !pieza ? 'Elige un encantamiento.' : !e.puede ? 'Te faltan monedas o materiales.' : null;
+  const costo = e.costo;
+  return (
+    <div className="en-sub">
+      <div className="fila">
+        <strong>Encantamiento</strong>
+        <span className="mut peq">{e.actual ? 'Activo' : 'Sin encanto'}</span>
+      </div>
+      {e.actual && (
+        <div className="en-activo">
+          <div><strong>{e.actual.emoji} {e.actual.nombre}</strong></div>
+          <b>{e.actual.efecto}</b>
+        </div>
+      )}
+      {e.actual && e.disponible && (
+        <button type="button" className="mini" aria-expanded={abierto} onClick={() => setAbierto(x => !x)}>{abierto ? 'Cerrar' : 'Cambiar encanto'}</button>
+      )}
+      {visible && (
+        <>
+          <span className="mut peq">
+            {e.actual ? 'Cambiarlo cuesta lo mismo que encantar y el anterior se pierde.' : 'Las piezas épicas y legendarias aceptan un encanto. Elige uno:'}
+          </span>
+          <div className="en-ops" role="group" aria-label="Encantamientos">
+            {opciones.map(x => (
+              <button key={x.clave} type="button" className="en-op" aria-pressed={elegido === x.clave} onClick={() => setElegido(x.clave)}>
+                {x.emoji} {x.nombre}<span>{x.efecto}</span>
+              </button>
+            ))}
+          </div>
+          {costo && (
+            <div className="reqs" aria-label="Costo">
+              <span className={`req ${(d.cartera || 0) < costo.monedas ? 'falta' : ''}`}>{fmt(costo.monedas)} monedas</span>
+              {costo.mats.map(m => (
+                <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}>{m.emoji} {m.nombre} {m.tienes}/{m.n}</span>
+              ))}
+            </div>
+          )}
+          <Accion
+            cls="pri"
+            ruta="/api/equipo/encantar"
+            cuerpo={{ id: activo.id, encanto: elegido }}
+            motivo={motivo}
+            confirmar={e.actual && pieza ? `¿Cambiar a ${pieza.nombre}? Perderás ${e.actual.nombre}.` : null}
+          >{pieza ? `${e.actual ? 'Cambiar a' : 'Encantar con'} ${pieza.nombre}` : 'Encantar'}</Accion>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Detalle({ d, activo, actual }) {
   const m = activo.mejora;
   const motivoMejora = !m?.puede ? 'Te faltan monedas o materiales.' : null;
@@ -126,10 +185,7 @@ function Detalle({ d, activo, actual }) {
   return (
     <div className="bloque vidrio detalle" style={{ '--r': colorDe(activo) }}>
       <div className="det-cab">
-        <span className="slot" style={{ '--r': colorDe(activo) }} aria-hidden="true">
-          <span className="si">{activo.emoji || '🎒'}</span>
-          {activo.plus > 0 && <b className="mas">+{activo.plus}</b>}
-        </span>
+        <Slot emoji={activo.emoji || '🎒'} color={colorDe(activo)} plus={activo.plus} />
         <div className="det-info">
           <div className="fila">
             <strong style={{ color: colorDe(activo) }}>{activo.etiqueta}</strong>
@@ -139,6 +195,11 @@ function Detalle({ d, activo, actual }) {
           <p className="mut peq">Durabilidad: {activo.dur}/{activo.durMax}{activo.roto ? ' · roto, sin bonos' : ''}</p>
         </div>
       </div>
+      {activo.clase && (
+        <span className={`en-clase ${activo.clase.afin ? 'afin' : 'otra'}`}>
+          {activo.clase.emoji} {activo.clase.nombre} · {activo.clase.afin ? 'afín a tu clase' : 'no es de tu clase'}
+        </span>
+      )}
       <p className="peq det-desc">{activo.desc}</p>
       {m ? (
         <p className="mut peq">
@@ -147,6 +208,7 @@ function Detalle({ d, activo, actual }) {
         </p>
       ) : <p className="mut peq">Mejora al máximo (+{d.maxPlus ?? '—'}).</p>}
       {actual ? <Comparar activo={activo} actual={actual} /> : null}
+      <Encanto key={activo.id} activo={activo} d={d} />
       <div className="btns">
         {activo.equipado
           ? <Accion ruta="/api/equipo/desequipar" cuerpo={{ tipo: activo.tipo }}>Quitar</Accion>
@@ -245,19 +307,35 @@ export default function Equipo({ d }) {
   const me = useMe();
   const items = Array.isArray(d.items) ? d.items : [];
   const [seleccion, setSeleccion] = useState(null);
-  const elegir = id => setSeleccion(s => (mismo(s, id) ? null : id));
-  const activo = items.find(i => mismo(i.id, seleccion)) || null;
+  const activo = items.find(i => mismo(i.id, seleccion)) || items.find(i => i.equipado) || items[0] || null;
   const actual = activo && !activo.equipado ? items.find(i => i.equipado && i.tipo === activo.tipo) : null;
+  const puestos = items.filter(i => i.equipado).length;
   const b = d.bonos || {};
   return (
     <>
-      <Muneco items={items} activo={activo} onSel={elegir} clase={me?.clase?.clave} />
-      <Bonos b={b} />
-      <Titulo extra={<span className="ex">{d.bolsa?.usados ?? items.length}/{d.bolsa?.max ?? '—'}</span>}>Tu equipo</Titulo>
-      {items.length
-        ? <Bolsa d={d} items={items} activo={activo} onSel={elegir} />
-        : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
-      {activo && <Detalle d={d} activo={activo} actual={actual} />}
+      <div className="inv-cols">
+        <div className="inv-izq">
+          <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
+            {items.length
+              ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
+              : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
+          </Sec>
+          {activo && (
+            <>
+              <Titulo>Pieza seleccionada</Titulo>
+              <Detalle d={d} activo={activo} actual={actual} />
+            </>
+          )}
+        </div>
+        <div className="inv-der">
+          <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
+            <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
+          </Sec>
+          <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
+            <Bonos b={b} />
+          </Sec>
+        </div>
+      </div>
       {d.reparacion?.cantidad > 0 && <Reparaciones d={d} />}
       {items.length > 0 && <Lotes d={d} />}
       {d.casa && <Hogar d={d} />}
