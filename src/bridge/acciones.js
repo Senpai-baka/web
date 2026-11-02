@@ -27,7 +27,7 @@ export const gachaPagina = dir => fijar('gacha', { gachaPag: mas(sel.gachaPag, d
 export const abiertasGacha = () => e.abiertas;
 
 export const inventarioSeccion = () => vista('inventario').invSel;
-export const cambiarInventario = s => en(['objetos', 'equipo', 'forja'], s) && fijar('inventario', { invSel: s });
+export const cambiarInventario = s => en(['objetos', 'equipo', 'heroe', 'forja'], s) && fijar('inventario', { invSel: s });
 
 export const ciudadSeccion = () => vista('ciudad').ciudadSel;
 export const ciudadIr = s => en(['banco', 'negocios', 'casino', 'altar', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
