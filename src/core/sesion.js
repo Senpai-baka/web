@@ -145,7 +145,6 @@ export async function arrancar() {
 store.hooks.aviso = (txt, ms) => aviso(txt, ms);
 store.hooks.sesionCaducada = () => sesionCaducada();
 
-// Modo mantenimiento: el bot responde 503 con { mantenimiento: true } a quien no es owner.
 let sondeoMant = 0;
 
 function sondearMantenimiento() {
