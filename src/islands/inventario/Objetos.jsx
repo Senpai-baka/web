@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Sec, Vacio, Accion, Cifras, Countdown, Slot } from '../ui.jsx';
+import { Sec, Vacio, Accion, Cifras, Countdown, Slot, Rejilla, Ficha } from '../ui.jsx';
+import { useElegir } from './comun.jsx';
 import { NEUTRO, AZUL, COLOR_COFRE } from '../rareza.js';
 import { cambiarInventario } from '../../bridge/acciones.js';
 import { fmt } from '../../lib/format.js';
@@ -69,61 +70,65 @@ function Herramientas({ lista }) {
 }
 
 function Cofres({ lista, max }) {
+  const [sel, elegir] = useElegir();
   if (!lista.length) return <Vacio>No tienes cofres. Puedes conseguirlos jugando y explorando.</Vacio>;
+  const celdas = lista.map(c => ({ id: c.clave, emoji: c.emoji, nombre: c.nombre, etiqueta: `x${c.cantidad}`, color: COLOR_COFRE[c.clave] || COLOR_COFRE.madera, cofre: c }));
+  const activo = celdas.find(x => x.id === sel);
+  const c = activo?.cofre;
+  const n = c ? Math.min(c.cantidad, max) : 1;
   return (
-    <div className="bloque vidrio">
-      {lista.map(c => {
-        const n = Math.min(c.cantidad, max);
-        return (
-          <div key={c.clave} style={{ padding: '8px 0' }}>
-            <div className="fil">
-              <Slot emoji={c.emoji} cantidad={c.cantidad} color={COLOR_COFRE[c.clave] || COLOR_COFRE.madera} />
-              <div className="nom">
-                <strong>{c.nombre}</strong>
-                <span className="mut peq">{fmt(c.monedas[0])}–{fmt(c.monedas[1])} monedas, materiales y más</span>
-              </div>
-            </div>
-            <div className="btnrow">
-              <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n: 1 }} motivo={c.cantidad < 1 ? 'No tienes cofres de este tipo.' : null}>Abrir</Accion>
-              <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n }} motivo={c.cantidad < 2 ? 'Necesitas al menos 2 para abrir varios.' : null}>Abrir varios (x{n})</Accion>
-            </div>
+    <>
+      <Rejilla lista={celdas} sel={sel} onSel={elegir} />
+      {c && (
+        <Ficha color={activo.color} titulo={`${c.emoji} ${c.nombre}`}>
+          <p className="mut peq">{fmt(c.monedas[0])}–{fmt(c.monedas[1])} monedas, materiales y más.</p>
+          <p className="peq">Tienes {c.cantidad}</p>
+          <div className="btnrow">
+            <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n: 1 }} motivo={c.cantidad < 1 ? 'No tienes cofres de este tipo.' : null}>Abrir</Accion>
+            <Accion ruta="/api/cofres/abrir" cuerpo={{ tipo: c.clave, n }} motivo={c.cantidad < 2 ? 'Necesitas al menos 2 para abrir varios.' : null}>Abrir varios (x{n})</Accion>
           </div>
-        );
-      })}
-    </div>
+        </Ficha>
+      )}
+    </>
   );
 }
 
 function Consumibles({ lista, tope, base }) {
+  const [sel, elegir] = useElegir();
   if (!lista.length) return <Vacio>No tienes consumibles.</Vacio>;
+  const celdas = lista.map(c => ({ id: c.clave || c.nombre, emoji: c.emoji, nombre: c.nombre, etiqueta: `x${c.cantidad}`, color: AZUL, apagado: c.cantidad < 1, consumible: c }));
+  const activo = celdas.find(x => x.id === sel);
+  const c = activo?.consumible;
   return (
-    <div className="lista">
-      {lista.map(c => (
-        <div className="fil" key={c.clave || c.nombre}>
-          <Slot emoji={c.emoji} cantidad={c.cantidad} color={AZUL} />
-          <div className="nom"><strong>{c.nombre}</strong><span className="mut peq">{c.desc}</span></div>
-          {c.activoS > 0 && (
-            <span className="val"><span className="etiq" style={{ margin: 0 }}>Activo <Countdown fin={base + c.activoS * 1000} /></span></span>
-          )}
-        </div>
-      ))}
-      <p className="mut peq">Máximo {tope} de cada consumible.</p>
-    </div>
+    <>
+      <Rejilla lista={celdas} sel={sel} onSel={elegir} />
+      {c && (
+        <Ficha color={AZUL} titulo={`${c.emoji} ${c.nombre}`}>
+          <p className="mut peq">{c.desc}</p>
+          <p className="peq">
+            Tienes {c.cantidad}/{tope}{' '}
+            {c.activoS > 0 ? <span className="etiq">Activo <Countdown fin={base + c.activoS * 1000} /></span> : null}
+          </p>
+        </Ficha>
+      )}
+    </>
   );
 }
 
 function Materiales({ lista, valor }) {
+  const [sel, elegir] = useElegir();
   if (!lista.length) return <Vacio>Aún no tienes materiales. Mina, tala o pesca para conseguirlos.</Vacio>;
+  const celdas = lista.map(m => ({ id: m.clave, emoji: m.emoji, nombre: m.nombre, cantidad: fmt(m.cantidad), precio: m.precio, color: NEUTRO, mat: m }));
+  const activo = celdas.find(x => x.id === sel);
+  const m = activo?.mat;
   return (
     <>
-      <div className="mats">
-        {lista.map(m => (
-          <div className="mat" key={m.clave}>
-            <Slot emoji={m.emoji} cantidad={fmt(m.cantidad)} />
-            <span className="peq">{m.nombre}</span>
-          </div>
-        ))}
-      </div>
+      <Rejilla lista={celdas} sel={sel} onSel={elegir} />
+      {m && (
+        <Ficha color={NEUTRO} titulo={`${m.emoji || '📦'} ${m.nombre}`} precio={m.precio}>
+          <p className="mut peq">Precio por unidad. Tienes {fmt(m.cantidad)}, valen {fmt(m.cantidad * (m.precio || 0))} monedas.</p>
+        </Ficha>
+      )}
       <p className="mut peq" style={{ marginTop: 10 }}>Valor aproximado de venta: {fmt(valor)} monedas.</p>
       <div className="btns uno">
         <button type="button" className="mini" onClick={() => cambiarInventario('forja')}>Vender en la Forja</button>
