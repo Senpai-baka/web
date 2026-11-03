@@ -1,48 +1,3 @@
-/* ============================================================
- * Isla · estilos.css (ordenado)
- * Misma cascada que el original. Se quitó solo lo que nunca se aplicaba:
- * 241 declaraciones pisadas, 35 reglas vacías y 2 @keyframes repetidos;
- * 6 bloques :root quedaron fusionados en uno.
- * ÍNDICE
- *   1. Base: variables, reset y contenedor  (línea 42)
- *   2. Cabecera y tipografía  (línea 114)
- *   3. Héroe, avatar, clima y evento x2  (línea 204)
- *   4. Zonas de actividad y tickets  (línea 403)
- *   5. Secciones plegables, bloques y etiquetas  (línea 534)
- *   6. Listas, ranking, cartera, botones mini y barras  (línea 650)
- *   7. Raid (arena y jefe)  (línea 921)
- *   8. Parcelas, formularios y login  (línea 991)
- *   9. Perfil y pétalos de ambiente  (línea 1170)
- *  10. Animaciones de actividades (pescar, talar, cazar…)  (línea 1217)
- *  11. Hoja de resultado y toast  (línea 1762)
- *  12. Barra de navegación  (línea 1963)
- *  13. Rediseño RPG v1: vidrio y HUD  (línea 2009)
- *  14. Inventario, slots y atributos  (línea 2087)
- *  15. Talentos, clases, habilidades y KPIs  (línea 2301)
- *  16. Acabado v2: bordes con chaflán y dorado  (línea 2384)
- *  17. Ajustes de espaciado y móvil (v3)  (línea 2546)
- *  18. Raid v2  (línea 2854)
- *  19. Inicio: resumen, recompensas, eventos y atajos  (línea 2937)
- *  20. Cabecera de pantallas y microinteracciones  (línea 3110)
- *  21. Filtros, comparador y esquema  (línea 3240)
- *  22. Combate (mazmorra)  (línea 3371)
- *  23. Gacha y acciones por ruta  (línea 3847)
- *  24. Elixires y objetos  (línea 4054)
- *  25. Inicio renovado (anime elegante)  (línea 4194)
- *  26. Rediseño global Isla RPG  (línea 4518)
- *  27. Animaciones del Inicio  (línea 5064)
- *  28. Fix: botones Atacar / Posición  (línea 5243)
- *  29. Corrección: energía amarilla y botones legibles  (línea 5305)
- *  30. Energía del Inicio (dorado con glow)  (línea 5376)
- *  31. Iconos de atributos (Vigor, Fuerza, Suerte)  (línea 5398)
- *  32. Pulido de color y legibilidad  (línea 5436)
- *  33. Animaciones: movimiento y vida  (línea 5579)
- * ============================================================ */
-
-
-/* ============================================================
- * 1. Base: variables, reset y contenedor
- * ============================================================ */
 :root {
   --font: 'Manrope',system-ui,sans-serif;
   --serif: 'Fraunces',Georgia,serif;
@@ -112,9 +67,6 @@ button {
   padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
-/* ============================================================
- * 2. Cabecera y tipografía
- * ============================================================ */
 .top {
   display: flex;
   align-items: center;
@@ -202,9 +154,6 @@ h3 {
   font-size: 32px;
 }
 
-/* ============================================================
- * 3. Héroe, avatar, clima y evento x2
- * ============================================================ */
 .escena {
   position: relative;
   overflow: hidden;
@@ -401,9 +350,6 @@ h3 {
   line-height: 1.4;
 }
 
-/* ============================================================
- * 4. Zonas de actividad y tickets
- * ============================================================ */
 .grupo {
   display: flex;
   align-items: baseline;
@@ -532,9 +478,6 @@ h3 {
   padding: 0 14px;
 }
 
-/* ============================================================
- * 5. Secciones plegables, bloques y etiquetas
- * ============================================================ */
 .sec,
 summary.sec {
   display: flex;
@@ -648,9 +591,6 @@ summary.sec {
   margin-top: 8px;
 }
 
-/* ============================================================
- * 6. Listas, ranking, cartera, botones mini y barras
- * ============================================================ */
 .herr .cab {
   display: flex;
   align-items: center;
@@ -919,9 +859,6 @@ summary.sec {
   box-shadow: 0 0 8px var(--naranja);
 }
 
-/* ============================================================
- * 7. Raid (arena y jefe)
- * ============================================================ */
 .rd {
   padding: 0;
   overflow: hidden;
@@ -989,9 +926,6 @@ summary.sec {
   }
 }
 
-/* ============================================================
- * 8. Parcelas, formularios y login
- * ============================================================ */
 .plots {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
@@ -1168,9 +1102,6 @@ input.txt.corto {
   color: #fff;
 }
 
-/* ============================================================
- * 9. Perfil y pétalos de ambiente
- * ============================================================ */
 .perfil {
   position: relative;
   margin: 6px -18px 0;
@@ -1215,9 +1146,6 @@ input.txt.corto {
   animation: caer var(--d) linear var(--dl) infinite;
 }
 
-/* ============================================================
- * 10. Animaciones de actividades (pescar, talar, cazar…)
- * ============================================================ */
 .estallido {
   animation: estallar 1.4s ease-out forwards;
 }
@@ -1760,9 +1688,6 @@ input.txt.corto {
   }
 }
 
-/* ============================================================
- * 11. Hoja de resultado y toast
- * ============================================================ */
 .sheet:not([hidden]) {
   animation: vela .2s ease-out;
 }
@@ -1961,9 +1886,6 @@ input.txt.corto {
   text-align: center;
 }
 
-/* ============================================================
- * 12. Barra de navegación
- * ============================================================ */
 .nav {
   position: fixed;
   bottom: 0;
@@ -2007,9 +1929,6 @@ input.txt.corto {
   box-shadow: 0 0 8px var(--menta);
 }
 
-/* ============================================================
- * 13. Rediseño RPG v1: vidrio y HUD
- * ============================================================ */
 .vidrio::after {
   content: "";
   position: absolute;
@@ -2085,9 +2004,6 @@ input.txt.corto {
   margin-left: auto;
 }
 
-/* ============================================================
- * 14. Inventario, slots y atributos
- * ============================================================ */
 .arte {
   position: relative;
   height: 88px;
@@ -2299,9 +2215,6 @@ input.txt.corto {
   }
 }
 
-/* ============================================================
- * 15. Talentos, clases, habilidades y KPIs
- * ============================================================ */
 .tals {
   display: grid;
   gap: 8px;
@@ -2382,9 +2295,6 @@ input.txt.corto {
   color: var(--mut);
 }
 
-/* ============================================================
- * 16. Acabado v2: bordes con chaflán y dorado
- * ============================================================ */
 body {
   background-size: 18px 18px;
 }
@@ -2544,9 +2454,6 @@ body {
   opacity: .55;
 }
 
-/* ============================================================
- * 17. Ajustes de espaciado y móvil (v3)
- * ============================================================ */
 body {
   line-height: 1.6;
 }
@@ -2852,9 +2759,6 @@ label {
   padding-bottom: calc(120px + env(safe-area-inset-bottom));
 }
 
-/* ============================================================
- * 18. Raid v2
- * ============================================================ */
 .rd {
   margin-top: 20px;
 }
@@ -2935,9 +2839,6 @@ label {
   color: var(--mut);
 }
 
-/* ============================================================
- * 19. Inicio: resumen, recompensas, eventos y atajos
- * ============================================================ */
 .resumen {
   display: grid;
   grid-template-columns: minmax(0,1.6fr) minmax(0,1fr);
@@ -3108,9 +3009,6 @@ label {
   }
 }
 
-/* ============================================================
- * 20. Cabecera de pantallas y microinteracciones
- * ============================================================ */
 .cab-t {
   position: relative;
   isolation: isolate;
@@ -3238,9 +3136,6 @@ label {
   }
 }
 
-/* ============================================================
- * 21. Filtros, comparador y esquema
- * ============================================================ */
 .filtros {
   display: flex;
   overflow-x: auto;
@@ -3369,9 +3264,6 @@ label {
   }
 }
 
-/* ============================================================
- * 22. Combate (mazmorra)
- * ============================================================ */
 .cb-run {
   display: flex;
   flex-wrap: wrap;
@@ -3845,9 +3737,6 @@ label {
   }
 }
 
-/* ============================================================
- * 23. Gacha y acciones por ruta
- * ============================================================ */
 .mini[data-post$="/pelear"] {
   background: #c9626f;
   border-color: #c9626f;
@@ -4052,9 +3941,6 @@ button.gc-mini {
   color: var(--lav);
 }
 
-/* ============================================================
- * 24. Elixires y objetos
- * ============================================================ */
 .efectos {
   display: grid;
   gap: var(--e2);
@@ -4192,9 +4078,6 @@ button.gc-mini {
   color: var(--menta);
 }
 
-/* ============================================================
- * 25. Inicio renovado (anime elegante)
- * ============================================================ */
 #t-inicio {
   isolation: isolate;
 }
@@ -4510,9 +4393,6 @@ button.gc-mini {
   }
 }
 
-/* ============================================================
- * 26. Rediseño global Isla RPG
- * ============================================================ */
 html {
   scroll-behavior: smooth;
   color-scheme: dark;
@@ -4837,7 +4717,6 @@ nav button,
 .campo .etiq {
   color: var(--mut);
 }
-/* Inventario, tienda, gacha, objetos y economía */
 .filtros {
   gap: 8px;
 }
@@ -4877,7 +4756,6 @@ nav button,
 .evento-x2 {
   border-radius: 18px;
 }
-/* Perfil, clan, ciudad y paneles de progreso */
 .perfil,
 .cartera,
 .cuerpo,
@@ -4926,7 +4804,6 @@ nav button,
 .chev {
   color: var(--mut);
 }
-/* Mazmorra y combate: preservar colores de daño/curación, reforzar el marco */
 .cb-hud,
 .cb-hc,
 .cb-hd,
@@ -4966,7 +4843,6 @@ nav button,
   background: rgba(9,7,16,.45);
   border-radius: 14px;
 }
-/* Diálogos, ventanas emergentes y estados */
 .sheet:not([hidden]) {
   background: rgba(13,10,21,.97);
   border: 1px solid var(--linea);
@@ -5056,10 +4932,6 @@ nav button,
   }
 }
 
-/* ============================================================
- * 27. Animaciones del Inicio
- * ============================================================ */
-/* Todo queda limitado a #t-inicio: no modifica las demás pantallas. */
 @keyframes isla-inicio-entrada {
   from {
     opacity: 0;
@@ -5235,10 +5107,6 @@ nav button,
   }
 }
 
-/* ============================================================
- * 28. Fix: botones Atacar / Posición
- * ============================================================ */
-/* Limita el ajuste a los controles de mazmorra; no cambia acciones ni lógica. */
 .rd .btns,
 .rd .btnrow {
   display: grid;
@@ -5297,10 +5165,6 @@ nav button,
   }
 }
 
-/* ============================================================
- * 29. Corrección: energía amarilla y botones legibles
- * ============================================================ */
-/* Energia de combate: tono oro/amarillo, sin afectar otras barras. */
 .cb-ener,
 .cb-ener span {
   color: #ffd85e !important;
@@ -5310,8 +5174,6 @@ nav button,
   border-color: #ffd85e !important;
   box-shadow: 0 0 7px rgba(255, 216, 94, .38) !important;
 }
-/* El selector de accion real usa data-post con rutas como /api/raid/atacar.
-   Aplicar alta especificidad para vencer estilos globales anteriores. */
 .rd button.mini[data-post$="/atacar"],
 .rd button[data-post$="/atacar"],
 .rd .btns button[data-post$="/atacar"],
@@ -5368,9 +5230,6 @@ button.mini.cb-acc {
   }
 }
 
-/* ============================================================
- * 30. Energía del Inicio (dorado con glow)
- * ============================================================ */
 #t-inicio .en .pips .pip.on,
 #t-inicio #hud .en .pips .pip.on,
 #hud .en .pips .pip.on {
@@ -5390,28 +5249,21 @@ button.mini.cb-acc {
   color: #ffe6a0 !important;
 }
 
-/* ============================================================
- * 31. Iconos de atributos (Vigor, Fuerza, Suerte)
- * ============================================================ */
-/* Vigor: corazón rojo */
 #hud .chip-s[title="Vigor"] svg,
 .stat-r:nth-child(2) .si-ic svg {
   color: #ff4d62 !important;
   filter: drop-shadow(0 0 4px rgba(255, 55, 80, .48));
 }
-/* Fuerza: plateado */
 #hud .chip-s[title="Fuerza"] svg,
 .stat-r:nth-child(1) .si-ic svg {
   color: #dce5f2 !important;
   filter: drop-shadow(0 0 4px rgba(210, 225, 245, .38));
 }
-/* Suerte: verde */
 #hud .chip-s[title="Suerte"] svg,
 .stat-r:nth-child(3) .si-ic svg {
   color: #55e58b !important;
   filter: drop-shadow(0 0 4px rgba(60, 235, 125, .42));
 }
-/* El contenedor de cada icono también hereda el color correspondiente */
 .stat-r:nth-child(1) .si-ic {
   color: #dce5f2 !important;
   border-color: rgba(210,225,245,.34);
@@ -5428,12 +5280,6 @@ button.mini.cb-acc {
   background: rgba(85,229,139,.08);
 }
 
-/* ============================================================
- * 32. Pulido de color y legibilidad
- * ============================================================ */
-/* Va al final a propósito: no toca lo anterior, solo corrige.
-   Regla: cada icono/texto usa el color de su zona (--z) o de su estado. */
-/* 1) Textos apagados: más contraste, sin perder jerarquía */
 .mut,
 .peq.mut,
 .cabp p,
@@ -5462,7 +5308,6 @@ textarea::placeholder {
   color: var(--mut);
   font-style: normal;
 }
-/* 2) Etiquetas: el rediseño global las dejó grises; vuelven a su color */
 .etiq {
   color: var(--menta);
   letter-spacing: .04em;
@@ -5479,7 +5324,6 @@ textarea::placeholder {
   background: none;
   border-color: transparent;
 }
-/* 3) Estado de cada actividad: lista = menta, en espera = dorado */
 .zona:not(.espera) .est,
 .ticket:not(.espera) .est {
   color: var(--menta);
@@ -5494,7 +5338,6 @@ textarea::placeholder {
   background: var(--oro);
   box-shadow: 0 0 8px color-mix(in srgb,var(--oro) 55%,transparent);
 }
-/* 4) Botones de zonas y eventos con el color de su zona (antes todos lila) */
 .zona .accion,
 .ticket .accion,
 #t-inicio .zona .accion,
@@ -5517,7 +5360,6 @@ textarea::placeholder {
   box-shadow: none;
   animation: none;
 }
-/* 5) Iconos con su color: atajos, nav, monedas, eventos */
 .atajo .at-i,
 #t-inicio .at-i {
   color: var(--z,var(--lav));
@@ -5547,7 +5389,6 @@ textarea::placeholder {
 .evento-x2 strong {
   color: var(--oro);
 }
-/* 6) Opacidades que apagaban texto: ahora se leen */
 .slot.falta {
   opacity: .85;
 }
@@ -5571,9 +5412,6 @@ button[aria-disabled=true] {
   color: #cbc1de;
 }
 
-/* ============================================================
- * 33. Animaciones: movimiento y vida
- * ============================================================ */
 @media (prefers-reduced-motion:no-preference) {
   :root {
     --ani-suave: cubic-bezier(.22,.8,.3,1);
@@ -5733,7 +5571,6 @@ button[aria-disabled=true] {
       transform: none;
     }
   }
-  /* Botón listo: destello que barre cada pocos segundos */
   .zona:not(.espera) .accion,
   .ticket:not(.espera) .accion {
     position: relative;
@@ -5751,12 +5588,10 @@ button[aria-disabled=true] {
     transform: translateX(-120%) skewX(-18deg);
     animation: ani-barrido 3.8s ease-in-out 1s infinite;
   }
-  /* Punto "lista": onda que se expande */
   .zona:not(.espera) .est i,
   .ticket:not(.espera) .est i {
     animation: ani-ping 1.9s ease-out infinite;
   }
-  /* Barras de XP y progreso con reflejo */
   .xpb div,
   .barra>div {
     position: relative;
@@ -5772,7 +5607,6 @@ button[aria-disabled=true] {
     transform: translateX(-100%);
     animation: ani-barra 3.8s ease-in-out 1.2s infinite;
   }
-  /* Cada evento tiene su gesto */
   #c-raid .aro svg:last-child {
     animation: ani-raid 3.6s ease-in-out infinite;
   }
@@ -5786,7 +5620,6 @@ button[aria-disabled=true] {
     animation: ani-bandera 3.4s ease-in-out infinite;
     transform-origin: 20% 90%;
   }
-  /* Inicio: clima, contador de listas y monedas */
   #t-inicio .clima .em {
     animation: ani-flota 4.5s ease-in-out infinite;
   }
@@ -5796,7 +5629,6 @@ button[aria-disabled=true] {
   #t-inicio .bolsa svg {
     animation: ani-moneda 7s ease-in-out 2s infinite;
   }
-  /* Navegación: icono activo rebota y la marca se abre */
   .nav button[aria-current="page"] svg {
     animation: ani-nav-pop .5s var(--ani-rebote) both;
   }
@@ -5807,7 +5639,6 @@ button[aria-disabled=true] {
   .nav .pt {
     animation: ani-punto 2.2s ease-out infinite;
   }
-  /* Toques: slot elegido hace pop, atajos se menean al pasar el cursor */
   .slot.sel {
     animation: ani-pop .32s var(--ani-rebote);
   }
@@ -5816,7 +5647,6 @@ button[aria-disabled=true] {
       animation: ani-meneo .6s ease-in-out;
     }
   }
-  /* Listas que aparecen al hacer scroll (solo navegadores que lo soportan) */
   @supports (animation-timeline:view()) {
     .fil,
     .rec,
