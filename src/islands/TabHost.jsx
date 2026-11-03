@@ -16,7 +16,6 @@ function ajustar(t, hayDatos) {
     const a = g.querySelector('[aria-pressed="true"]');
     if (a) g.scrollLeft = a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2;
   });
-  // Si la pestaña estaba esperando su contenido para volver a su posición, se restaura en cuanto hay datos.
   if (!el.hidden && hayDatos && hayPendiente(t)) restaurarPos(t);
 }
 

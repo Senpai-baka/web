@@ -7,7 +7,6 @@ const idPeticion = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID
 const REINTENTABLE = new Set([502, 503, 504]);
 
 const enVuelo = new Map();
-// Si ya hay una consulta GET idéntica en curso, se comparte su resultado en vez de pedirla otra vez
 export function api(ruta, cuerpo) {
   if (cuerpo) return pedir(ruta, cuerpo);
   if (enVuelo.has(ruta)) return enVuelo.get(ruta);

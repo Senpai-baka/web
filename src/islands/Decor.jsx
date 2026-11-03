@@ -1,13 +1,5 @@
 import React, { memo, useEffect, useRef } from 'react';
 
-/*
- * Decoración viva de las tarjetas del Inicio.
- * Cada tarjeta tiene su propia escena SVG con pequeñas animaciones (CSS en /css/vida.css).
- * - Solo se animan transform y opacity.
- * - Las escenas que no están a la vista se pausan (IntersectionObserver compartido).
- */
-
-// Atajo para animar un elemento: A('tw', duración, desfase, estilo extra)
 const A = (n, t = 3, d = 0, st) => ({ className: 'dv dv-' + n, style: { '--t': t + 's', '--d': d + 's', ...st } });
 const LIN = { animationTimingFunction: 'linear' };
 const BASE = { transformOrigin: '50% 100%' };
@@ -34,8 +26,6 @@ const Engranaje = ({ cx, cy, r, inv, t, color = '#c3bbdc' }) => {
     </g>
   );
 };
-
-/* ───────────── Zonas ───────────── */
 
 const Minar = () => (
   <svg {...banner}>
@@ -181,8 +171,6 @@ const Cazar = () => (
   </svg>
 );
 
-/* ───────────── Recompensas (fondos anchos) ───────────── */
-
 const Crimen = () => (
   <svg {...ancho}>
     <defs>
@@ -261,8 +249,6 @@ const Trabajo = () => (
     <circle cx="190" cy="14" r="1.4" fill="#fff" {...A('rise', 3.6, 0, { '--o': 0.6 })} />
   </svg>
 );
-
-/* ───────────── Eventos (banners) ───────────── */
 
 const Mazmorra = () => (
   <svg {...banner}>
@@ -600,7 +586,6 @@ const ESCENAS = {
   clan: Clan, mundial: Mundial, encargos: Encargos, alquimia: Alquimia
 };
 
-/* Un solo observador para todas las escenas: lo que no se ve, se pausa. */
 let observador = null;
 function obtener() {
   if (observador || typeof IntersectionObserver === 'undefined') return observador;

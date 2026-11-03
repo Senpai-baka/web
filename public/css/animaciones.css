@@ -1,31 +1,3 @@
-/* ============================================================
- * Isla · animaciones.css
- * Todo el movimiento de la app: @keyframes, animation* y variables --ani-*.
- * Se carga DESPUÉS de estilos.css (ver index.html) y conserva el mismo
- * orden que tenía allí, así la cascada no cambia.
- * Las transiciones (transition) siguen junto a cada componente en estilos.css.
- * ÍNDICE
- *   1. Héroe, avatar, clima y evento x2  [estilos.css §3]  (línea 26)
- *   2. Raid (arena y jefe)  [estilos.css §7]  (línea 53)
- *   3. Perfil y pétalos de ambiente  [estilos.css §9]  (línea 70)
- *   4. Animaciones de actividades (pescar, talar, cazar…)  [estilos.css §10]  (línea 77)
- *   5. Hoja de resultado y toast  [estilos.css §11]  (línea 485)
- *   6. Inventario, slots y atributos  [estilos.css §14]  (línea 605)
- *   7. Acabado v2: bordes con chaflán y dorado  [estilos.css §16]  (línea 622)
- *   8. Ajustes de espaciado y móvil (v3)  [estilos.css §17]  (línea 634)
- *   9. Cabecera de pantallas y microinteracciones  [estilos.css §20]  (línea 643)
- *  10. Filtros, comparador y esquema  [estilos.css §21]  (línea 677)
- *  11. Combate (mazmorra)  [estilos.css §22]  (línea 701)
- *  12. Gacha y acciones por ruta  [estilos.css §23]  (línea 904)
- *  13. Rediseño global Isla RPG  [estilos.css §26]  (línea 911)
- *  14. Animaciones del Inicio  [estilos.css §27]  (línea 923)
- *  15. Pulido de color y legibilidad  [estilos.css §32]  (línea 1055)
- *  16. Animaciones: movimiento y vida  [estilos.css §33]  (línea 1067)
- * ============================================================ */
-
-/* ============================================================
- * 1. Héroe, avatar, clima y evento x2  [estilos.css §3]
- * ============================================================ */
 .ola {
   animation: ola 9s linear infinite;
 }
@@ -50,9 +22,6 @@
   }
 }
 
-/* ============================================================
- * 2. Raid (arena y jefe)  [estilos.css §7]
- * ============================================================ */
 .rd-ojo {
   animation: rdbrilla 2.4s ease-in-out infinite;
 }
@@ -67,16 +36,10 @@
   }
 }
 
-/* ============================================================
- * 3. Perfil y pétalos de ambiente  [estilos.css §9]
- * ============================================================ */
 .ambiente {
   animation: caer var(--d) linear var(--dl) infinite;
 }
 
-/* ============================================================
- * 4. Animaciones de actividades (pescar, talar, cazar…)  [estilos.css §10]
- * ============================================================ */
 .estallido {
   animation: estallar 1.4s ease-out forwards;
 }
@@ -482,9 +445,6 @@
   }
 }
 
-/* ============================================================
- * 5. Hoja de resultado y toast  [estilos.css §11]
- * ============================================================ */
 .sheet:not([hidden]) {
   animation: vela .2s ease-out;
 }
@@ -602,9 +562,6 @@
   animation: subir .3s ease-out;
 }
 
-/* ============================================================
- * 6. Inventario, slots y atributos  [estilos.css §14]
- * ============================================================ */
 .slot.leg {
   animation: brillo 2.6s ease-in-out infinite;
 }
@@ -619,9 +576,6 @@
   }
 }
 
-/* ============================================================
- * 7. Acabado v2: bordes con chaflán y dorado  [estilos.css §16]
- * ============================================================ */
 @keyframes pulso {
   0%,100% {
     box-shadow: 0 0 0 0 transparent;
@@ -631,18 +585,12 @@
   }
 }
 
-/* ============================================================
- * 8. Ajustes de espaciado y móvil (v3)  [estilos.css §17]
- * ============================================================ */
 .zona:not(.espera) .accion,
 .ticket:not(.espera) .accion,
 .zona:not(.espera) .aro {
   animation: none;
 }
 
-/* ============================================================
- * 9. Cabecera de pantallas y microinteracciones  [estilos.css §20]
- * ============================================================ */
 @keyframes toco {
   from {
     box-shadow: 0 0 0 0 color-mix(in srgb,var(--z,#e8946a) 50%,transparent);
@@ -674,9 +622,6 @@
   }
 }
 
-/* ============================================================
- * 10. Filtros, comparador y esquema  [estilos.css §21]
- * ============================================================ */
 .esq-cab,
 .esq-b,
 .esq-fila i {
@@ -698,9 +643,6 @@
   }
 }
 
-/* ============================================================
- * 11. Combate (mazmorra)  [estilos.css §22]
- * ============================================================ */
 .cb-idle {
   animation: cbRespira 3.2s ease-in-out infinite;
 }
@@ -903,16 +845,10 @@
   }
 }
 
-/* ============================================================
- * 12. Gacha y acciones por ruta  [estilos.css §23]
- * ============================================================ */
 .sheet:not([hidden]) .h-carta {
   animation: aparece .5s ease-out both;
 }
 
-/* ============================================================
- * 13. Rediseño global Isla RPG  [estilos.css §26]
- * ============================================================ */
 @media(prefers-reduced-motion:reduce) {
   *,
   *::before,
@@ -922,10 +858,6 @@
   }
 }
 
-/* ============================================================
- * 14. Animaciones del Inicio  [estilos.css §27]
- * ============================================================ */
-/* Todo queda limitado a #t-inicio: no modifica las demás pantallas. */
 @keyframes isla-inicio-entrada {
   from {
     opacity: 0;
@@ -1054,9 +986,6 @@
   }
 }
 
-/* ============================================================
- * 15. Pulido de color y legibilidad  [estilos.css §32]
- * ============================================================ */
 .accion[disabled],
 .accion[aria-disabled=true],
 .zona .accion[disabled],
@@ -1066,9 +995,6 @@
   animation: none;
 }
 
-/* ============================================================
- * 16. Animaciones: movimiento y vida  [estilos.css §33]
- * ============================================================ */
 @media (prefers-reduced-motion:no-preference) {
   :root {
     --ani-suave: cubic-bezier(.22,.8,.3,1);
@@ -1232,7 +1158,6 @@
   .ticket:not(.espera) .accion::after {
     animation: ani-barrido 3.8s ease-in-out 1s infinite;
   }
-  /* Punto "lista": onda que se expande */
   .zona:not(.espera) .est i,
   .ticket:not(.espera) .est i {
     animation: ani-ping 1.9s ease-out infinite;
@@ -1241,7 +1166,6 @@
   .barra>div::after {
     animation: ani-barra 3.8s ease-in-out 1.2s infinite;
   }
-  /* Cada evento tiene su gesto */
   #c-raid .aro svg:last-child {
     animation: ani-raid 3.6s ease-in-out infinite;
   }
@@ -1254,7 +1178,6 @@
   #c-clan .aro svg:last-child {
     animation: ani-bandera 3.4s ease-in-out infinite;
   }
-  /* Inicio: clima, contador de listas y monedas */
   #t-inicio .clima .em {
     animation: ani-flota 4.5s ease-in-out infinite;
   }
@@ -1264,7 +1187,6 @@
   #t-inicio .bolsa svg {
     animation: ani-moneda 7s ease-in-out 2s infinite;
   }
-  /* Navegación: icono activo rebota y la marca se abre */
   .nav button[aria-current="page"] svg {
     animation: ani-nav-pop .5s var(--ani-rebote) both;
   }
@@ -1274,7 +1196,6 @@
   .nav .pt {
     animation: ani-punto 2.2s ease-out infinite;
   }
-  /* Toques: slot elegido hace pop, atajos se menean al pasar el cursor */
   .slot.sel {
     animation: ani-pop .32s var(--ani-rebote);
   }
@@ -1283,7 +1204,6 @@
       animation: ani-meneo .6s ease-in-out;
     }
   }
-  /* Listas que aparecen al hacer scroll (solo navegadores que lo soportan) */
   @supports (animation-timeline:view()) {
     .fil,
     .rec,
@@ -1298,9 +1218,6 @@
 }
 
 
-/* ============================================================
- * Sprites de combate (hojas de 3 cuadros: reposo / ataque / golpeado)
- * ============================================================ */
 .cb-sp-estocada {
   animation: cbAtaca .6s ease-out;
 }
@@ -1328,7 +1245,6 @@
   }
 }
 
-/* Inicio: el último mosaico de un grupo impar ocupa todo el ancho en móvil */
 @media (max-width:599px) {
   #t-inicio .eventos>.ticket.evento.ancha {
     grid-column: 1 / -1;

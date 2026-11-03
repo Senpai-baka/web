@@ -38,8 +38,6 @@ export default function App() {
     if (panel) precargarIslas(tab === 'inicio' ? null : tab);
   }, [panel]);
 
-  // Cada pestaña recuerda dónde se quedó: se guarda al salir y se recupera al volver, sin animación.
-  // Al salir se marca como «ya vista» para que sus animaciones de entrada no se repitan (eso era lo que la dejaba en negro).
   useLayoutEffect(() => {
     if (!panel) return undefined;
     store.restaurarPos(tab);
@@ -49,12 +47,10 @@ export default function App() {
     };
   }, [tab, panel]);
 
-  // El Inicio no espera datos de red, pero sí a que exista `me`: si quedó pendiente, se recupera ahí.
   useLayoutEffect(() => {
     if (panel && hayMe && store.hayPendiente(tab)) store.restaurarPos(tab);
   }, [panel, hayMe, tab]);
 
-  // Con calma y en segundo plano se piden los datos de las secciones principales, para que al abrirlas ya estén listas.
   useEffect(() => {
     if (!panel || !hayMe) return undefined;
     if (navigator.connection && navigator.connection.saveData) return undefined;
