@@ -6,6 +6,7 @@ import { useMe } from '../../bridge/store.js';
 import { Sprite, hojaHeroe } from '../Sprite.jsx';
 import { fmt } from '../../lib/format.js';
 
+const SOLO = { legendario: 'legendaria' };
 const TIPOS = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
 const colorDe = it => colorRareza(it.rareza);
 const mismo = (a, b) => String(a) === String(b);
@@ -160,11 +161,19 @@ function Encanto({ activo, d }) {
     setElegido('');
   }, [claveActual]);
   if (!e) return null;
-  const opciones = (d.encantos || []).filter(x => x.clave !== claveActual);
+  const opciones = (d.encantos || []).filter(x => x.clave !== claveActual && (!x.solo || (SOLO[x.solo] || x.solo) === activo.rareza));
   const visible = e.disponible && (!e.actual || abierto);
   const pieza = opciones.find(x => x.clave === elegido);
-  const motivo = !pieza ? 'Elige un encantamiento.' : !e.puede ? 'Te faltan monedas o materiales.' : null;
-  const costo = e.costo;
+  const extra = pieza?.extra || [];
+  const costo = e.costo && {
+    monedas: e.costo.monedas,
+    mats: [
+      ...e.costo.mats.map(m => ({ ...m, n: m.n + (extra.find(x => x.clave === m.clave)?.n || 0) })),
+      ...extra.filter(x => !e.costo.mats.some(m => m.clave === x.clave))
+    ]
+  };
+  const alcanza = !!costo && (d.cartera || 0) >= costo.monedas && costo.mats.every(m => m.tienes >= m.n);
+  const motivo = !pieza ? 'Elige un encantamiento.' : !alcanza ? 'Te faltan monedas o materiales.' : null;
   return (
     <div className="en-sub">
       <div className="fila">
@@ -188,7 +197,7 @@ function Encanto({ activo, d }) {
           <div className="en-ops" role="group" aria-label="Encantamientos">
             {opciones.map(x => (
               <button key={x.clave} type="button" className="en-op" aria-pressed={elegido === x.clave} onClick={() => setElegido(x.clave)}>
-                {x.emoji} {x.nombre}<span>{x.efecto}</span>
+                {x.emoji} {x.nombre}<span>{x.efecto}{x.solo ? ' · legendario' : ''}</span>
               </button>
             ))}
           </div>
@@ -210,6 +219,35 @@ function Encanto({ activo, d }) {
         </>
       )}
     </div>
+  );
+}
+
+function Forjar({ d }) {
+  const [tipo, setTipo] = useState('');
+  const f = d.forja;
+  if (!f) return null;
+  const alcanza = (d.cartera || 0) >= f.costo.monedas && f.costo.mats.every(m => m.tienes >= m.n);
+  const motivo = !d.clase ? 'Necesitas una clase para forjar equipo de clase.' : !tipo ? 'Elige qué quieres forjar.' : !alcanza ? 'Te faltan monedas o materiales.' : null;
+  return (
+    <Sec k="equipo-forjar-react" titulo="Forjar legendario" extra={d.clase ? `${d.clase.emoji || ''} ${d.clase.nombre}` : 'Sin clase'}>
+      <div className="bloque vidrio">
+        <p className="mut peq">Crea una pieza legendaria de tu clase actual. Elige el tipo:</p>
+        <div className="en-ops" role="group" aria-label="Tipo de pieza">
+          {Object.entries(TIPOS).map(([k, [nombre, emoji]]) => (
+            <button key={k} type="button" className="en-op" aria-pressed={tipo === k} onClick={() => setTipo(k)}>{emoji} {nombre}</button>
+          ))}
+        </div>
+        <div className="reqs" aria-label="Costo">
+          <span className={`req ${(d.cartera || 0) < f.costo.monedas ? 'falta' : ''}`}>{fmt(f.costo.monedas)} monedas</span>
+          {f.costo.mats.map(m => (
+            <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}>{m.emoji} {m.nombre} {m.tienes}/{m.n}</span>
+          ))}
+        </div>
+        <div className="btns uno">
+          <Accion cls="pri" ruta="/api/equipo/forjar" cuerpo={{ tipo }} motivo={motivo} confirmar={`¿Forjar ${TIPOS[tipo]?.[0] || 'pieza'} legendaria por ${fmt(f.costo.monedas)} monedas y los materiales?`}>Forjar</Accion>
+        </div>
+      </div>
+    </Sec>
   );
 }
 
@@ -374,6 +412,7 @@ export default function Equipo({ d, base }) {
           </Sec>
         </div>
       </div>
+      <Forjar d={d} />
       {d.reparacion?.cantidad > 0 && <Reparaciones d={d} />}
       {items.length > 0 && <Lotes d={d} />}
       {d.casa && <Hogar d={d} />}
