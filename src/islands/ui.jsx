@@ -162,7 +162,6 @@ export const Kv = ({ k, v }) => <div className="kv"><span>{k}</span><b>{v}</b></
 
 export const filas = (lista, vacio, fila) => lista.length ? lista.map(fila) : <Vacio>{vacio}</Vacio>;
 
-// Secciones que arrancan plegadas (las demás arrancan abiertas). El jugador puede abrir/cerrar y se recuerda.
 const CERRADAS = new Set([
   'heroe', 'mascota', 'clan', 'coleccion', 'reliquias', 'materiales', 'lote',
   'perfil-clan-react', 'perfil-mascota-react', 'perfil-coleccion-react', 'perfil-foto', 'perfil-avisos-react',

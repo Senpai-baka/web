@@ -13,7 +13,6 @@ const SUBTITULO = {
   owner: 'Estado del bot y de la web.'
 };
 
-// Cabecera común de todo el Perfil: siempre en el mismo orden (título, resumen, pestañas).
 export default function PerfilTop({ activo, empleo }) {
   const me = useMe();
   const pct = me?.xpSig ? Math.min(100, Number(me.xp || 0) / me.xpSig * 100) : 0;

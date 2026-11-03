@@ -8,7 +8,7 @@ const MAX_ORIGEN = 15 * 1024 * 1024;
 
 async function leerImagen(archivo) {
   if (window.createImageBitmap) {
-    try { return await createImageBitmap(archivo, { imageOrientation: 'from-image' }); } catch (_) { /* se prueba el otro método */ }
+    try { return await createImageBitmap(archivo, { imageOrientation: 'from-image' }); } catch (_) {  }
   }
   const url = await new Promise((ok, mal) => {
     const r = new FileReader();
@@ -24,7 +24,6 @@ async function leerImagen(archivo) {
   });
 }
 
-// Recorta al centro en cuadrado y reduce a 192 px para que la subida pese muy poco
 async function prepararFoto(archivo) {
   const img = await leerImagen(archivo);
   const w = img.width, h = img.height, lado = Math.min(w, h);
