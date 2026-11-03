@@ -23,7 +23,9 @@ const REGISTRO = {
   mejora: e => `${e.quien} subió el clan al nivel ${e.nivel}`,
   traspaso: e => `${e.quien} pasó el liderazgo a ${e.objetivo}`,
   subadmin: e => `${e.quien} nombró subadmin a ${e.objetivo}`,
-  degradacion: e => `${e.quien} quitó a ${e.objetivo} como subadmin`
+  degradacion: e => `${e.quien} quitó a ${e.objetivo} como subadmin`,
+  perk: e => `${e.quien} mejoró ${e.perk} al nivel ${e.nivel}`,
+  mision: e => `Misión del clan completada${e.monto ? ' (+' + fmt(e.monto) + ')' : ''}`
 };
 
 function Miembro({ m, c, subs }) {
@@ -62,6 +64,33 @@ function Retiro({ c }) {
         <Accion ruta="/api/clan/retirar" campos={{ cantidad: cant }} motivo={motivo} confirmar={`¿Retirar ${fmt(n)} del banco del clan?`}>Retirar</Accion>
       </div>
     </div>
+  );
+}
+
+function Mejoras({ c }) {
+  return (
+    <Sec k="cl-mej" titulo="Mejoras del clan">
+      <div className="lista">
+        {c.mejoras.map(m => {
+          const lleno = m.nivel >= m.max;
+          const motivo = !lleno && (c.nivel < m.requiere ? `Necesitas clan nivel ${m.requiere}.` : c.banco < m.costo && 'El banco del clan no alcanza.');
+          return (
+            <div className="fil" key={m.clave}>
+              <div className="nom">
+                <strong>{m.emoji} {m.nombre} · {m.nivel}/{m.max}</strong>
+                <span className="mut peq">
+                  {m.desc}: +{m.actual}{m.unidad === '%' ? '%' : ' ' + m.unidad}
+                  {lleno ? ' · máximo' : ` · siguiente ${fmt(m.costo)} (clan nv ${m.requiere})`}
+                </span>
+              </div>
+              {c.gestor && !lleno && (
+                <Accion ruta="/api/clan/perk" cuerpo={{ clave: m.clave }} motivo={motivo} confirmar={`¿Mejorar ${m.nombre} por ${fmt(m.costo)}?`}>Mejorar</Accion>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Sec>
   );
 }
 
@@ -132,6 +161,8 @@ function ClanPropio({ d, c }) {
           ))}
         </div>
       )}
+
+      {c.mejoras && <Mejoras c={c} />}
 
       <Sec k="cl-mi" titulo="Miembros" extra={String(c.miembros.length)}>
         {c.miembros.map((m, i) => <Miembro key={m.ref || i} m={m} c={c} subs={subs} />)}
