@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { fmt } from '../lib/format.js';
+import { fmt, hace } from '../lib/format.js';
 import { buscarClan, consultaClan } from '../bridge/acciones.js';
 import { Cab, Countdown, Fila, Kv, Sec, Titulo, Campo, Accion, filas, plural, premios } from './ui.jsx';
 
@@ -11,17 +11,74 @@ const ICONO = (
   </>
 );
 
-function Miembro({ m }) {
+const MARCA = { lider: '👑 ', subadmin: '🛡️ ' };
+
+const REGISTRO = {
+  fundacion: e => `${e.quien} fundó el clan`,
+  entrada: e => `${e.quien} entró al clan`,
+  salida: e => `${e.quien} salió del clan`,
+  expulsion: e => `${e.quien} expulsó a ${e.objetivo}`,
+  deposito: e => `${e.quien} depositó ${fmt(e.monto)}`,
+  retiro: e => `${e.quien} retiró ${fmt(e.monto)}`,
+  mejora: e => `${e.quien} subió el clan al nivel ${e.nivel}`,
+  traspaso: e => `${e.quien} pasó el liderazgo a ${e.objetivo}`,
+  subadmin: e => `${e.quien} nombró subadmin a ${e.objetivo}`,
+  degradacion: e => `${e.quien} quitó a ${e.objetivo} como subadmin`
+};
+
+function Miembro({ m, c, subs }) {
+  const sub = m.rol === 'subadmin';
+  const protegido = m.rol !== 'miembro';
   return (
     <div className="fil">
-      <div className="nom"><strong>{m.lider ? '👑 ' : ''}{m.alias}{m.yo ? ' (tú)' : ''}</strong></div>
+      <div className="nom"><strong>{MARCA[m.rol] || ''}{m.alias}{m.yo ? ' (tú)' : ''}</strong></div>
       {m.ref && (
         <>
-          <Accion ruta="/api/clan/traspasar" cuerpo={{ ref: m.ref }} confirmar={`¿Traspasar el liderazgo a ${m.alias}?`}>Líder</Accion>
-          <Accion ruta="/api/clan/expulsar" cuerpo={{ ref: m.ref }} confirmar={`¿Expulsar a ${m.alias}?`}>Expulsar</Accion>
+          {c.lider && <Accion ruta="/api/clan/traspasar" cuerpo={{ ref: m.ref }} confirmar={`¿Traspasar el liderazgo a ${m.alias}?`}>Líder</Accion>}
+          {c.lider && (sub
+            ? <Accion ruta="/api/clan/degradar" cuerpo={{ ref: m.ref }} confirmar={`¿Quitar a ${m.alias} como subadmin?`}>Quitar subadmin</Accion>
+            : <Accion ruta="/api/clan/ascender" cuerpo={{ ref: m.ref }} motivo={subs >= c.maxSubadmins && `El clan ya tiene ${c.maxSubadmins} subadmins.`}>Subadmin</Accion>)}
+          {(c.lider || !protegido) && <Accion ruta="/api/clan/expulsar" cuerpo={{ ref: m.ref }} confirmar={`¿Expulsar a ${m.alias}?`}>Expulsar</Accion>}
         </>
       )}
     </div>
+  );
+}
+
+function Retiro({ c }) {
+  const [cant, setCant] = useState('');
+  const n = Number(cant);
+  const motivo = !Number.isFinite(n) || n < 1 ? 'Indica una cantidad válida.' : n > c.banco ? 'El banco del clan no alcanza.' : n > c.retiroDisponible ? 'Pasa tu tope de retiro de hoy.' : null;
+  return (
+    <div className="bloque vidrio">
+      <strong>Retirar del banco</strong>
+      <p className="mut peq">
+        {c.lider
+          ? 'Como líder puedes retirar todo el banco.'
+          : `Como subadmin puedes retirar hoy hasta ${fmt(c.retiroDisponible)} (${c.retiroSubPct}% del banco al inicio del día).`}
+      </p>
+      <Campo valor={cant} onCambio={setCant} ph="Cantidad a retirar" />
+      <div className="btns uno">
+        <Accion ruta="/api/clan/retirar" campos={{ cantidad: cant }} motivo={motivo} confirmar={`¿Retirar ${fmt(n)} del banco del clan?`}>Retirar</Accion>
+      </div>
+    </div>
+  );
+}
+
+function Registro({ lista }) {
+  return (
+    <Sec k="cl-reg" titulo="Registro del clan" extra={lista.length ? String(lista.length) : ''}>
+      <div className="lista">
+        {lista.length ? lista.map((e, i) => (
+          <div className="fil" key={i}>
+            <div className="nom">
+              <strong>{(REGISTRO[e.tipo] || (() => 'Actividad del clan'))(e)}</strong>
+              <span className="mut peq">{hace(e.haceS)}</span>
+            </div>
+          </div>
+        )) : <p className="mut peq">Todavía no hay movimientos.</p>}
+      </div>
+    </Sec>
   );
 }
 
@@ -30,11 +87,14 @@ function ClanPropio({ d, c }) {
   const [q, setQ] = useState(consultaClan);
   const buscar = () => buscarClan(q);
   const g = c.guerra;
+  const subs = c.miembros.filter(m => m.rol === 'subadmin').length;
+  const sinPrestigio = c.requierePrestigio;
 
   return (
     <>
       <div className="bloque vidrio">
-        <div className="fila"><strong>🏰 {c.nombre}</strong><span className="mut peq">Nv {c.nivel}/{c.max}</span></div>
+        <div className="fila"><strong>🏰 {c.nombre}</strong><span className="mut peq">Nv {c.nivel}{c.max ? '/' + c.max : ''}</span></div>
+        <Kv k="Tu rol" v={c.lider ? 'Líder' : c.rol === 'subadmin' ? 'Subadmin' : 'Miembro'} />
         <Kv k="Miembros" v={c.miembros.length + '/' + c.cupo} />
         <Kv k="Banco del clan" v={fmt(c.banco)} />
         <Kv k="Bono de ingresos" v={'+' + c.bono + '%'} />
@@ -48,14 +108,17 @@ function ClanPropio({ d, c }) {
         </div>
       </div>
 
-      {c.lider && (
+      {c.gestor && <Retiro c={c} />}
+
+      {c.gestor && (
         <div className="bloque vidrio">
           <p className="mut peq">
             Mejorar al nivel {c.nivel + 1} cuesta {fmt(c.costoMejora)} del banco del clan (sube con el prestigio del líder).
             El bono de ingresos llega hasta el nivel {c.bonoMax}; después solo crece el cupo.
           </p>
+          {sinPrestigio && <p className="peq">Desde el nivel {c.nivelPrestigio} el líder necesita prestigio {c.prestigioMin} para seguir subiendo.</p>}
           <div className="btns uno">
-            <Accion ruta="/api/clan/mejorar" motivo={c.banco < c.costoMejora && 'El banco del clan no alcanza.'}>Mejorar clan</Accion>
+            <Accion ruta="/api/clan/mejorar" motivo={sinPrestigio ? `El líder necesita prestigio ${c.prestigioMin}.` : c.banco < c.costoMejora && 'El banco del clan no alcanza.'}>Mejorar clan</Accion>
           </div>
           <div className="campo" style={{ marginTop: 10 }}>
             <Campo texto corto valor={q} onCambio={setQ} ph="Buscar jugador para invitar" onEnter={buscar} />
@@ -71,8 +134,9 @@ function ClanPropio({ d, c }) {
       )}
 
       <Sec k="cl-mi" titulo="Miembros" extra={String(c.miembros.length)}>
-        {c.miembros.map((m, i) => <Miembro key={m.ref || i} m={m} />)}
+        {c.miembros.map((m, i) => <Miembro key={m.ref || i} m={m} c={c} subs={subs} />)}
       </Sec>
+      <Registro lista={c.registro || []} />
       <div className="btns uno">
         {c.lider
           ? <Accion ruta="/api/clan/disolver" cuerpo={{ confirmar: true }} confirmar="Se borrará el clan y se pierde el banco. ¿Continuar?">Disolver clan</Accion>
