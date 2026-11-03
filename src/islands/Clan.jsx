@@ -93,7 +93,7 @@ function ClanPropio({ d, c }) {
   return (
     <>
       <div className="bloque vidrio">
-        <div className="fila"><strong>🏰 {c.nombre}</strong><span className="mut peq">Nv {c.nivel}/{c.max}</span></div>
+        <div className="fila"><strong>🏰 {c.nombre}</strong><span className="mut peq">Nv {c.nivel}{c.max ? '/' + c.max : ''}</span></div>
         <Kv k="Tu rol" v={c.lider ? 'Líder' : c.rol === 'subadmin' ? 'Subadmin' : 'Miembro'} />
         <Kv k="Miembros" v={c.miembros.length + '/' + c.cupo} />
         <Kv k="Banco del clan" v={fmt(c.banco)} />
