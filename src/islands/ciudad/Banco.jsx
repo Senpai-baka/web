@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { fmt } from '../../lib/format.js';
+import { fmt, leerMonto } from '../../lib/format.js';
 import { Sec, Campo, Accion, Avatar } from '../ui.jsx';
 import { buscarPago, consultaPago } from '../../bridge/acciones.js';
 import { Seccion, Grupo } from './comun.jsx';
@@ -28,7 +28,7 @@ function Mover({ d }) {
   return (
     <Grupo titulo="Mover dinero" extra="El banco no se puede robar">
       <div className="bloque vidrio">
-        <Campo valor={cant} onCambio={setCant} ph="Cantidad" />
+        <Campo monto valor={cant} onCambio={setCant} ph="Cantidad (1k, 50%, mitad, todo)" />
         <div className="btns">
           <Accion cls="pri" ruta="/api/banco/depositar" campos={campos}>Depositar</Accion>
           <Accion ruta="/api/banco/retirar" campos={campos}>Retirar</Accion>
@@ -47,13 +47,14 @@ function Pagar({ d }) {
   const [ref, setRef] = useState('');
   const [cant, setCant] = useState('');
   const consulta = consultaPago();
+  const resultados = d.resultados || [];
   const buscar = () => {
     setRef('');
     buscarPago(q);
   };
-  const elegido = ref ? d.resultados.find(j => j.ref === ref) : null;
-  const n = Number(cant);
-  const valida = Number.isFinite(n) && n >= d.pago.min;
+  const elegido = ref ? resultados.find(j => j.ref === ref) : null;
+  const n = leerMonto(cant, d.cartera) || 0;
+  const valida = n >= d.pago.min;
   const neto = valida ? n - Math.max(1, Math.ceil(n * d.pago.tasa / 100)) : 0;
   const motivo = !valida ? `Indica una cantidad válida (mínimo ${fmt(d.pago.min)}).` : n > d.cartera ? 'No tienes suficientes monedas en la cartera.' : null;
   return (
@@ -70,13 +71,13 @@ function Pagar({ d }) {
               <strong>{elegido.alias}</strong>
               <button type="button" className="mini" onClick={() => setRef('')}>Cambiar</button>
             </div>
-            <Campo valor={cant} onCambio={setCant} ph="Cantidad a pagar" />
+            <Campo monto valor={cant} onCambio={setCant} ph="Cantidad a pagar (1k, 50%, mitad, todo)" />
             <span className="mut peq">{valida ? `${elegido.alias} recibe ${fmt(neto)}. ` : ''}Pago mínimo: {fmt(d.pago.min)}.</span>
             <Accion cls="pri" ruta="/api/jugadores/pagar" cuerpo={{ ref: elegido.ref }} campos={{ cantidad: cant }} motivo={motivo}>Pagar</Accion>
           </>
-        ) : d.resultados.length > 0 ? (
+        ) : resultados.length > 0 ? (
           <div className="ci-ops">
-            {d.resultados.map(j => (
+            {resultados.map(j => (
               <button type="button" className="ci-op" key={j.ref} onClick={() => setRef(j.ref)}>
                 <Avatar r={{ nombre: j.alias }} />
                 <strong>{j.alias}</strong>
