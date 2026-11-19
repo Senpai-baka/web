@@ -110,7 +110,7 @@ export function Fila({ r, extra, valor, avatar }) {
       <span className="pos">{medalla(r.pos - 1)}</span>
       {avatar && <Avatar r={r} />}
       <div className="nom">
-        <strong>{r.nombre}{r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}</strong>
+        <strong>{r.nombre}{r.yo ? ' (tú)' : r.mio ? ' (tu clan)' : ''}{r.pin ? <span title="Top 1 de la semana pasada" aria-label="Top 1 de la semana pasada"> 📌</span> : null}</strong>
         {extra && <span className="mut peq">{extra}</span>}
       </div>
       <span className="val">{valor}</span>
@@ -178,12 +178,12 @@ export function Sec({ k, titulo, extra, children, abierta }) {
 
 export const Titulo = ({ children, extra }) => <div className="sec"><h2>{children}</h2>{extra}</div>;
 
-export function Campo({ valor, onCambio, ph, texto, corto, onEnter }) {
-  const extra = texto ? { maxLength: 24, autoComplete: 'off' } : { inputMode: 'numeric', min: 1 };
+export function Campo({ valor, onCambio, ph, texto, corto, monto, onEnter }) {
+  const extra = monto ? { maxLength: 16, autoComplete: 'off', autoCapitalize: 'off', spellCheck: false } : texto ? { maxLength: 24, autoComplete: 'off' } : { inputMode: 'numeric', min: 1 };
   return (
     <input
       className={corto ? 'txt corto' : 'txt'}
-      type={texto ? 'text' : 'number'}
+      type={texto || monto ? 'text' : 'number'}
       placeholder={ph}
       aria-label={ph}
       value={valor}
