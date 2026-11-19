@@ -7,12 +7,12 @@ const COLORES = ['rojo', 'negro', 'verde', 'par', 'impar'];
 const cap = k => k[0].toUpperCase() + k.slice(1);
 
 function Apuesta({ d, monto, setMonto }) {
-  const atajos = [['Mínimo', d.min], ['x10', Math.min(d.max, d.min * 10)], ['x50', Math.min(d.max, d.min * 50)], ['Máximo', d.max]]
+  const atajos = [['Mínimo', d.min], ['x10', Math.min(d.max, d.min * 10)], ['x50', Math.min(d.max, d.min * 50)], ['Máximo', d.max], ['Mitad', 'mitad'], ['Todo', 'todo']]
     .filter(([, v], i, l) => l.findIndex(([, w]) => w === v) === i);
   return (
     <Grupo titulo="Tu apuesta" extra={'Cartera ' + fmt(d.cartera)}>
       <div className="bloque vidrio ci-mesa">
-        <Campo valor={monto} onCambio={setMonto} ph={'Apuesta (' + fmt(d.min) + ' a ' + fmt(d.max) + ')'} />
+        <Campo monto valor={monto} onCambio={setMonto} ph={'Apuesta (' + fmt(d.min) + ' a ' + fmt(d.max) + ')'} />
         <div className="filtros" role="group" aria-label="Apuesta rápida">
           {atajos.map(([nombre, v]) => (
             <button key={nombre} type="button" className="fch" aria-pressed={String(v) === String(monto)} onClick={() => setMonto(String(v))}>{nombre}</button>

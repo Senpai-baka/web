@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { fmt } from '../../lib/format.js';
+import { fmt, leerMonto } from '../../lib/format.js';
 import { Sec, Campo, Accion, Avatar } from '../ui.jsx';
 import { buscarPago, consultaPago } from '../../bridge/acciones.js';
 import { Seccion, Grupo } from './comun.jsx';
@@ -28,7 +28,7 @@ function Mover({ d }) {
   return (
     <Grupo titulo="Mover dinero" extra="El banco no se puede robar">
       <div className="bloque vidrio">
-        <Campo valor={cant} onCambio={setCant} ph="Cantidad" />
+        <Campo monto valor={cant} onCambio={setCant} ph="Cantidad (1k, 50%, mitad, todo)" />
         <div className="btns">
           <Accion cls="pri" ruta="/api/banco/depositar" campos={campos}>Depositar</Accion>
           <Accion ruta="/api/banco/retirar" campos={campos}>Retirar</Accion>
@@ -71,7 +71,7 @@ function Pagar({ d }) {
               <strong>{elegido.alias}</strong>
               <button type="button" className="mini" onClick={() => setRef('')}>Cambiar</button>
             </div>
-            <Campo valor={cant} onCambio={setCant} ph="Cantidad a pagar" />
+            <Campo monto valor={cant} onCambio={setCant} ph="Cantidad a pagar (1k, 50%, mitad, todo)" />
             <span className="mut peq">{valida ? `${elegido.alias} recibe ${fmt(neto)}. ` : ''}Pago mínimo: {fmt(d.pago.min)}.</span>
             <Accion cls="pri" ruta="/api/jugadores/pagar" cuerpo={{ ref: elegido.ref }} campos={{ cantidad: cant }} motivo={motivo}>Pagar</Accion>
           </>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fmt, dur } from '../lib/format.js';
-import { Cab, Cifras, Countdown, BotonListo, Vacio, medalla } from './ui.jsx';
+import { Cab, Cifras, Countdown, BotonListo, Vacio, Titulo, Fila, medalla } from './ui.jsx';
 import ArteJefe, { coloresJefe } from './ArteJefe.jsx';
 
 const ICONO = (
@@ -58,18 +58,79 @@ function Tarjeta({ r, base }) {
   );
 }
 
-function Cuerpo({ d, base }) {
-  if (d.conectado === false) {
-    return <div className="bloque vidrio"><p className="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>;
+function TopMundial({ lista }) {
+  return (
+    <div className="rd-top">
+      <h4>Top de daño</h4>
+      {lista.map(r => <Fila key={r.pos} r={r} avatar extra={fmt(r.golpes) + (r.golpes === 1 ? ' ataque' : ' ataques')} valor={fmt(r.dano)} />)}
+    </div>
+  );
+}
+
+function Mundial({ j, base }) {
+  if (j.fase !== 'activo') {
+    return (
+      <div className="bloque vidrio">
+        {j.fase === 'derrotado' && <strong>🏆 {j.nombre} ya fue derrotado</strong>}
+        {j.fase === 'descanso' && <strong>🌙 La isla está tranquila por ahora</strong>}
+        <p className="peq">El siguiente, <b>{j.siguiente}</b>, llega en <Countdown fin={base + j.proximoS * 1000} />.</p>
+      </div>
+    );
   }
+  const pct = Math.round(j.hp / j.hpMax * 100);
+  const [c1, c2] = coloresJefe(j.nombre);
+  return (
+    <div className="vidrio rd" style={{ '--c1': c1, '--c2': c2 }}>
+      <div className="rd-arena"><ArteJefe nombre={j.nombre} /><span className="zn">Todos los grupos</span></div>
+      <div className="rd-in">
+        <div className="rd-cab">
+          <h3>{j.nombre}</h3>
+          <span className="rd-t">Se retira en <Countdown fin={base + j.restaS * 1000} /></span>
+        </div>
+        <div className="rd-vida">
+          <div className={`rd-hp ${pct < 30 ? 'bajo' : ''}`}><i style={{ width: pct + '%' }} /></div>
+          <div className="fila">
+            <span className="mut">Vida</span>
+            <span><b>{fmt(j.hp)}</b>/{fmt(j.hpMax)} · {pct}%</span>
+          </div>
+        </div>
+        <Cifras lista={[['Atacantes', fmt(j.atacantes)], ['Tu daño', fmt(j.miDano)], ['Tu puesto', j.miPos ? '#' + j.miPos : '—']]} />
+        <p className="rd-bote">
+          <span>🎁</span>
+          <span>Bote de <b>{fmt(j.bote)}</b> repartido según el daño, con bonos de {fmt(j.bonoMvp)} al que más daño haga y {fmt(j.bonoUltimo)} al golpe final, además de cofres, objetos y equipo exclusivo para los mejores. Si se retira sin caer, todos reciben un premio de consuelo.</span>
+        </p>
+        {j.top.length > 0 && <TopMundial lista={j.top} />}
+        <div className="btns uno">
+          <BotonListo ruta="/api/raid/atacar" cuerpo={{ id: 'mundial' }} txt="⚔️ Atacar" fin={base + j.esperaS * 1000} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Cuerpo({ d, base }) {
+  const grupos = d.conectado === false
+    ? <div className="bloque vidrio"><p className="mut peq">El bot está reconectando. Inténtalo en unos segundos.</p></div>
+    : (
+      <>
+        <p className="mut peq rd-intro">
+          Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada {dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.
+        </p>
+        {d.raids.length
+          ? d.raids.map(r => <Tarjeta key={r.id} r={r} base={base} />)
+          : <Vacio>Ningún grupo tuyo tiene un jefe ahora mismo.</Vacio>}
+      </>
+    );
   return (
     <>
-      <p className="mut peq rd-intro">
-        Todos atacan juntos y se reparten el botín según el daño. Puedes golpear cada {dur(d.cooldownS)}. Los admins invocan al jefe en WhatsApp con /raid start.
-      </p>
-      {d.raids.length
-        ? d.raids.map(r => <Tarjeta key={r.id} r={r} base={base} />)
-        : <Vacio>Ningún grupo tuyo tiene un jefe ahora mismo.</Vacio>}
+      {d.jefe && (
+        <>
+          <Titulo extra={<span className="mut peq">Golpea cada {dur(d.jefe.cooldownS)}</span>}>Jefe mundial</Titulo>
+          <Mundial j={d.jefe} base={base} />
+          <Titulo>Jefes de tus grupos</Titulo>
+        </>
+      )}
+      {grupos}
     </>
   );
 }
@@ -77,7 +138,7 @@ function Cuerpo({ d, base }) {
 export default function Raid({ d, base }) {
   return (
     <>
-      <Cab atras titulo="Raid" sub="Jefes mundiales de tus grupos." icono={ICONO} />
+      <Cab atras titulo="Raid" sub="El jefe mundial y los jefes de tus grupos." icono={ICONO} />
       <Cuerpo d={d} base={base} />
     </>
   );

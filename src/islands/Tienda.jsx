@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
 import { tiendaSeccion, tiendaIr, tiendaPagina } from '../bridge/acciones.js';
-import { Cab, Seg, Vacio, Countdown, Titulo, Accion, Celda, Rejilla, Ficha } from './ui.jsx';
+import { Cab, Seg, Vacio, Countdown, Titulo, Accion, Campo, Celda, Rejilla, Ficha } from './ui.jsx';
 import { NEUTRO, ORO, AZUL, colorObjeto } from './rareza.js';
 
 const SECCIONES = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
@@ -190,7 +190,7 @@ function FormSubasta({ d }) {
       <select className="txt" aria-label="Objeto a subastar" value={objetoValido(d, obj)} onChange={e => setObj(e.target.value)}><Opciones d={d} /></select>
       <div className="campo">
         <Num valor={cant} onCambio={setCant} ph="Cantidad" />
-        <Num valor={precioBase} onCambio={setPrecioBase} ph="Precio base" max={d.maxPrecio} />
+        <Campo monto valor={precioBase} onCambio={setPrecioBase} ph="Precio base (ej. 5k)" />
       </div>
       <select className="txt" aria-label="Duración" value={horas} onChange={e => setHoras(e.target.value)}>
         {d.horas.map(h => <option key={h} value={h}>{h} h</option>)}
@@ -209,7 +209,7 @@ function Puja({ s, d }) {
   const [monto, setMonto] = useState(String(s.minimo));
   return (
     <>
-      <input className="txt corto" type="number" inputMode="numeric" min={s.minimo} aria-label="Tu puja" value={monto} onChange={e => setMonto(e.target.value)} />
+      <Campo monto corto valor={monto} onCambio={setMonto} ph="Tu puja (1k, min)" />
       <Accion ruta="/api/subastas/pujar" cuerpo={{ id: s.id }} campos={{ monto }} motivo={d.cartera < s.minimo && 'Te faltan monedas.'}>Pujar</Accion>
     </>
   );
