@@ -53,8 +53,8 @@ function Pagar({ d }) {
     buscarPago(q);
   };
   const elegido = ref ? resultados.find(j => j.ref === ref) : null;
-  const n = leerMonto(cant, d.cartera) || 0;
-  const valida = n >= d.pago.min;
+  const n = Number(cant);
+  const valida = Number.isFinite(n) && n >= d.pago.min;
   const neto = valida ? n - Math.max(1, Math.ceil(n * d.pago.tasa / 100)) : 0;
   const motivo = !valida ? `Indica una cantidad válida (mínimo ${fmt(d.pago.min)}).` : n > d.cartera ? 'No tienes suficientes monedas en la cartera.' : null;
   return (

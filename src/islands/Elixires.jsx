@@ -1,6 +1,8 @@
 import React from 'react';
 import { Vacio, Accion, Countdown, useAhora, Slot } from './ui.jsx';
 import { colorObjeto } from './rareza.js';
+
+export { COLOR_OBJETO } from './rareza.js';
 import { cambiarInventario } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
 
