@@ -6272,3 +6272,177 @@ body {
 .inventario-ui .seg + .seg {
   margin-top: 10px;
 }
+
+#app {
+  --px: 16px;
+}
+
+@media (max-width: 420px) {
+  #app {
+    --px: 13px;
+  }
+}
+
+@media (min-width: 700px) {
+  #app {
+    --px: 24px;
+  }
+}
+
+html {
+  overflow-x: clip;
+}
+
+.hero,
+.login-esc,
+.perfil {
+  margin-left: calc(var(--px) * -1);
+  margin-right: calc(var(--px) * -1);
+}
+
+.hero-in {
+  left: var(--px);
+  right: var(--px);
+}
+
+#t-inicio .hero-in {
+  left: var(--px);
+  right: var(--px);
+}
+
+.hero::after,
+.perfil::after,
+.login-esc::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 46%;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(13, 10, 21, 0), var(--bg));
+}
+
+.grupo h2,
+.sec h2,
+.sd summary h2 {
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  text-transform: none;
+  color: var(--petal);
+}
+
+.grupo {
+  margin-top: 32px;
+}
+
+.grupo > .mut {
+  font-size: 13px;
+  text-align: left;
+  order: 3;
+}
+
+#t-inicio .grupo > .mut {
+  text-align: left;
+}
+
+.zona .accion,
+.ticket .accion {
+  color: #1d1230;
+  border: 0;
+  background: linear-gradient(180deg, #e2d3ff, #b99ce8);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .45) inset, 0 6px 14px -6px rgba(185, 156, 232, .55);
+}
+
+.zona.espera .accion,
+.ticket.espera .accion,
+.zona .accion[aria-disabled="true"],
+.ticket .accion[aria-disabled="true"] {
+  color: var(--mut);
+  background: rgba(255, 255, 255, .05);
+  box-shadow: 0 0 0 1px rgba(195, 187, 220, .2) inset;
+}
+
+.zona .aro .prog,
+.ticket .aro .prog {
+  stroke: var(--z, var(--sakura));
+}
+
+.pip.on {
+  box-shadow: none;
+  background: var(--oro);
+  border-color: var(--oro);
+}
+
+.hud {
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.chip-s {
+  padding: 6px 11px;
+  background: rgba(255, 255, 255, .04);
+  border-color: rgba(205, 190, 235, .12);
+}
+
+.hud .clase-b {
+  background: rgba(205, 184, 255, .14);
+  border-color: rgba(205, 184, 255, .35);
+}
+
+.vidrio::before,
+.zona::before,
+.ticket::before {
+  background: linear-gradient(165deg, #1b1626, #141019);
+}
+
+.vidrio {
+  background: linear-gradient(135deg, rgba(195, 187, 220, .3), rgba(195, 187, 220, .05) 60%);
+}
+
+.nav {
+  background: rgba(22, 17, 32, .9);
+  border-color: rgba(205, 190, 235, .14);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .4);
+}
+
+.nav button {
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+.nav button[aria-current="page"] {
+  color: var(--petal);
+}
+
+.nav button[aria-current="page"] svg {
+  color: var(--sakura);
+}
+
+.bloque,
+.cifras > div,
+.kv {
+  border-color: rgba(205, 190, 235, .12);
+}
+
+.mut {
+  color: #bfb6d3;
+}
+
+#toast {
+  background: rgba(34, 26, 50, .96);
+  border-color: rgba(205, 190, 235, .22);
+}
+
+.hero,
+.perfil,
+.login-esc,
+#t-inicio .hero {
+  border: 0;
+  border-radius: 0;
+}
+
+.hero .escena,
+.perfil .escena {
+  border-radius: 0;
+}
