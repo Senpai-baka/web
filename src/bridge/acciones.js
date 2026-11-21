@@ -30,9 +30,12 @@ export const inventarioSeccion = () => vista('inventario').invSel;
 export const cambiarInventario = s => en(['objetos', 'equipo', 'heroe', 'forja'], s) && fijar('inventario', { invSel: s });
 
 export const ciudadSeccion = () => vista('ciudad').ciudadSel;
-export const ciudadIr = s => en(['banco', 'negocios', 'casino', 'altar', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
+export const ciudadIr = s => en(['banco', 'negocios', 'casino', 'altar', 'arena', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
 export const buscarJugadores = q => fijar('ciudad', { jugQ: q || '' });
 export const consultaJugadores = () => vista('ciudad').jugQ;
+export const buscarArena = q => fijar('ciudad', { arenaQ: q || '' });
+export const consultaArena = () => vista('ciudad').arenaQ;
+export const actualizarCiudad = () => fijar('ciudad', {});
 export const buscarPago = q => fijar('ciudad', { pagoQ: q || '' });
 export const consultaPago = () => vista('ciudad').pagoQ;
 
