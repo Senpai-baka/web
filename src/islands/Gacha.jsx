@@ -1,13 +1,36 @@
 import React, { useEffect } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { gachaSel, gachaIr, gachaPagina, abiertasGacha, vigilarFinGacha } from '../bridge/acciones.js';
-import { Cab, Seg, Vacio, Countdown, BotonListo, Accion, Fila, Titulo } from './ui.jsx';
+import { Seg, Vacio, Countdown, BotonListo, Accion, Fila, Titulo } from './ui.jsx';
+import Cabeza from './Cabeza.jsx';
 import { Carta, Mini, ChipsRareza, Pager } from './gachaUi.jsx';
 import GachaTratos from './GachaTratos.jsx';
 
 const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']];
 
-const ICONO = <path d="M12 3 L14.5 9.5 L21 12 L14.5 14.5 L12 21 L9.5 14.5 L3 12 L9.5 9.5Z" />;
+const ARTE = (
+  <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="gc-fondo" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#1d1236" />
+        <stop offset="1" stopColor="#3a1f4a" />
+      </linearGradient>
+      <radialGradient id="gc-brillo" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stopColor="#f4efff" stopOpacity=".5" />
+        <stop offset="1" stopColor="#f4efff" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <rect width="400" height="110" fill="url(#gc-fondo)" />
+    <circle className="gc-halo" cx="200" cy="64" r="70" fill="url(#gc-brillo)" />
+    <g transform="translate(200 104)">
+      <g transform="rotate(-24)"><rect x="-26" y="-78" width="52" height="76" rx="6" fill="#91d6bd" fillOpacity=".85" /></g>
+      <g transform="rotate(-8)"><rect x="-26" y="-82" width="52" height="76" rx="6" fill="#d7b5ff" fillOpacity=".95" /></g>
+      <g transform="rotate(10)"><rect x="-26" y="-82" width="52" height="76" rx="6" fill="#f0d39a" fillOpacity=".95" /></g>
+      <g transform="rotate(26)"><rect x="-26" y="-78" width="52" height="76" rx="6" fill="#e5b4a0" fillOpacity=".85" /></g>
+      <path d="M0 -62 L5 -50 L18 -46 L5 -42 L0 -30 L-5 -42 L-18 -46 L-5 -50Z" fill="#fff" fillOpacity=".8" transform="rotate(10)" />
+    </g>
+  </svg>
+);
 
 function VigiaFin({ fin }) {
   useEffect(() => {
@@ -112,10 +135,10 @@ export default function Gacha({ d, base }) {
   const mia = sel === 'coleccion' ? { total: d.total, valor: d.valor } : sel === 'tratos' ? null : d.mia;
   const stats = mia ? [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]] : undefined;
   return (
-    <>
-      <Cab atras titulo="Gacha" sub="Invoca, colecciona y cambia personajes de anime." icono={ICONO} stats={stats} />
+    <div className="lg gc">
+      <Cabeza titulo="Gacha" sub="Invoca, colecciona y cambia personajes de anime." arte={ARTE} cifras={stats} />
       <Seg aria="Sección del gacha" opciones={OPCIONES} valor={sel} onCambio={gachaIr} />
       {sel === 'coleccion' ? <Coleccion d={d} /> : sel === 'tratos' ? <GachaTratos d={d} base={base} /> : <Invocar d={d} base={base} />}
-    </>
+    </div>
   );
 }
