@@ -173,7 +173,7 @@ function Atributos({ d }) {
     <>
       <p className="peq">Puntos libres: <b>{a.libres}</b> <span className="mut">(1 por nivel)</span> · Entrenamientos: {a.entreno.n}/{a.entreno.tope}</p>
       {a.lista.map(x => (
-        <div className="bloque vidrio" key={x.clave}>
+        <div className={'bloque vidrio atr atr-' + x.clave} key={x.clave}>
           <div className="fila"><strong>{x.emoji} {x.nombre}</strong><b>{x.valor}</b></div>
           <p className="mut peq">{x.desc}</p>
           <div className="btnrow">

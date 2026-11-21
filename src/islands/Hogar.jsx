@@ -135,31 +135,32 @@ function Mascota({ d, base }) {
   };
   return (
     <>
-      <Titulo>Tu mascota</Titulo>
-      <div className="bloque vidrio">
-        <div className="pet">
-          <MascotaSprite tipo={d.tipo.clave} animo={d.animo.clave} emoji={d.tipo.emoji} tam={88} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <strong>{d.nombre}</strong>
-            {d.nombre === d.tipo.nombre ? '' : <> <span className="mut peq">({d.tipo.nombre})</span></>}
-            <p className="peq">
-              {d.animo.emoji} {d.animo.nombre}
-              <span className={'etiq ' + (d.activa ? '' : 'nar')}>{d.activa ? 'Bono activo' : 'Sin bono'}</span>
-            </p>
-          </div>
+      <div className="bloque vidrio hg-m">
+        <div className="hg-escena">
+          <MascotaSprite tipo={d.tipo.clave} animo={d.animo.clave} emoji={d.tipo.emoji} tam={96} />
+        </div>
+        <div className="hg-m-id">
+          <h2>{d.nombre}</h2>
+          {d.nombre === d.tipo.nombre ? null : <span className="mut peq">{d.tipo.nombre}</span>}
+          <p className="peq">
+            <span>{d.animo.emoji} {d.animo.nombre}</span>
+            <span className={'etiq ' + (d.activa ? '' : 'nar')}>{d.activa ? 'Bono activo' : 'Sin bono'}</span>
+          </p>
         </div>
         <div className="stat">
-          <div className="fila"><span>Nivel {d.nivel}/{d.max}</span><span>{d.xpSig ? d.xp + '/' + d.xpSig + ' XP' : 'Máximo'}</span></div>
+          <div className="fila"><span>Nivel {d.nivel} de {d.max}</span><span>{d.xpSig ? d.xp + '/' + d.xpSig + ' XP' : 'Máximo'}</span></div>
           <Barra valor={d.xpSig ? d.xp : 1} max={d.xpSig || 1} />
         </div>
-        <Estado nombre="Vida" v={d.vida} cls={d.vida < 30 ? 'nar' : ''} />
-        <Estado nombre="Felicidad" v={d.fel} cls={d.fel < 25 ? 'nar' : ''} />
-        <p className="peq" style={{ marginTop: 12 }}>
+        <div className="hg-medidores">
+          <Estado nombre="Vida" v={d.vida} cls={d.vida < 30 ? 'nar' : ''} />
+          <Estado nombre="Felicidad" v={d.fel} cls={d.fel < 25 ? 'nar' : ''} />
+        </div>
+        <p className={'hg-hambre' + (d.hambre ? ' ya' : '')}>
           {d.hambre ? 'Tiene hambre, aliméntala ya' : <>Le dará hambre en <Countdown fin={base + d.hambreS * 1000} /></>}
         </p>
         <p className="mut peq">{d.tipo.desc}{d.factor !== 1 ? ' · x' + d.factor + ' por su ánimo' : ''}</p>
       </div>
-      <div className="btns">
+      <div className="btns hg-cuidados">
         <BotonListo ruta="/api/mascota/alimentar" txt={'Alimentar ' + fmt(c.comida)} fin={base + d.comidaS * 1000} />
         <BotonListo ruta="/api/mascota/acariciar" txt="Acariciar" fin={base + d.cariciaS * 1000} />
         <BotonListo ruta="/api/mascota/jugar" txt={'Jugar ' + fmt(c.juego)} fin={base + d.juegoS * 1000} />
