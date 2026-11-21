@@ -2,19 +2,49 @@ import React, { useEffect, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
 import { tiendaSeccion, tiendaIr, tiendaPagina } from '../bridge/acciones.js';
-import { Cab, Seg, Vacio, Countdown, Titulo, Accion, Campo, Celda, Rejilla, Ficha } from './ui.jsx';
+import { Vacio, Countdown, Titulo, Accion, Campo, Celda, Rejilla, Ficha } from './ui.jsx';
 import { NEUTRO, ORO, AZUL, colorObjeto } from './rareza.js';
 
 const SECCIONES = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
 
-const ICONO = (
-  <>
-    <path d="M4 9 L6 4 H18 L20 9" />
-    <path d="M4 9 C4 11 8 11 8 9 C8 11 12 11 12 9 C12 11 16 11 16 9 C16 11 20 11 20 9" />
-    <path d="M5 11 V20 H19 V11" />
-    <path d="M10 20 V15 H14 V20" />
-  </>
-);
+const SUBTITULO = {
+  tienda: 'Lo básico de cada día, siempre en existencia.',
+  bazar: 'Ofertas que cambian cada día.',
+  mercado: 'Compra y vende con otros jugadores.',
+  subastas: 'Puja por lo mejor antes de que se acabe el tiempo.'
+};
+
+function Toldo({ cartera, sel, nivel }) {
+  return (
+    <header className="td-top">
+      <div className="td-toldo" aria-hidden="true" />
+      <div className="td-cab">
+        <div>
+          <h1 className="pag">Tienda</h1>
+          <p>{SUBTITULO[sel]}</p>
+        </div>
+        <div className="td-bolsa" title="Tu cartera">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7 C15 9 15 13 12 17 C9 13 9 9 12 7Z" />
+          </svg>
+          <b>{fmt(cartera)}</b>
+          {nivel ? <span>Nivel {nivel}</span> : null}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Rotulos({ sel }) {
+  return (
+    <div className="td-rot" role="group" aria-label="Sección de la tienda">
+      {SECCIONES.map(([k, n]) => (
+        <button key={k} type="button" aria-pressed={k === sel} onClick={() => tiendaIr(k)}>{n}</button>
+      ))}
+    </div>
+  );
+}
 
 function useElegir() {
   const [sel, setSel] = useState(null);
@@ -274,15 +304,12 @@ export default function Tienda({ d, base }) {
   const sel = tiendaSeccion();
   const Vista = VISTAS[sel] || Objetos;
   return (
-    <>
-      <Cab
-        titulo="Tienda"
-        sub="Compra, vende y subasta con otros jugadores."
-        icono={ICONO}
-        stats={[['Cartera', fmt(d.cartera)], ['Nivel', me ? me.nivel : '']]}
-      />
-      <Seg aria="Sección de la tienda" opciones={SECCIONES} valor={sel} onCambio={tiendaIr} />
-      <Vista d={d} base={base} />
-    </>
+    <div className="td">
+      <Toldo cartera={d.cartera} sel={sel in SUBTITULO ? sel : 'tienda'} nivel={me ? me.nivel : 0} />
+      <Rotulos sel={sel} />
+      <div className="td-cuerpo" key={sel}>
+        <Vista d={d} base={base} />
+      </div>
+    </div>
   );
 }

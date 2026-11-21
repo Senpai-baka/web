@@ -126,9 +126,11 @@ export default function Perfil({ d, base }) {
   const Vista = VISTAS[activo];
   const datos = d || {};
   return (
-    <>
+    <div className="fc">
       <PerfilTop activo={activo} empleo={activo === 'ficha' ? datos.empleo?.nombre : undefined} />
-      <Vista d={datos} base={base || Date.now()} />
-    </>
+      <div className="fc-cuerpo" key={activo}>
+        <Vista d={datos} base={base || Date.now()} />
+      </div>
+    </div>
   );
 }
