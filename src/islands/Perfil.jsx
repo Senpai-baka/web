@@ -6,7 +6,8 @@ import PerfilTop, { Salir } from './PerfilTop.jsx';
 import PerfilHistorial from './PerfilHistorial.jsx';
 import PerfilOwner from './PerfilOwner.jsx';
 import FotoPerfil from './FotoPerfil.jsx';
-import { perfilSeccion } from '../bridge/acciones.js';
+import { perfilSeccion, aviso } from '../bridge/acciones.js';
+import { api } from '../lib/api.js';
 
 const fmtN = v => fmt(Number(v || 0));
 const plural = (n, uno, varios) => n === 1 ? uno : varios;
@@ -95,11 +96,77 @@ function Coleccion({ d }) {
   );
 }
 
-function Avisos({ d }) {
+const claveBytes = txt => {
+  const b = atob((txt + '='.repeat((4 - txt.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(b, c => c.charCodeAt(0));
+};
+
+const pushSoportado = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+async function suscripcionActual() {
+  const reg = await navigator.serviceWorker.getRegistration();
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+
+function Avisos() {
+  const [est, setEst] = React.useState('cargando');
+  const [ocupado, setOcupado] = React.useState(false);
+
+  React.useEffect(() => {
+    let vivo = true;
+    (async () => {
+      if (!pushSoportado()) return vivo && setEst('no');
+      if (Notification.permission === 'denied') return vivo && setEst('bloqueado');
+      const sub = await suscripcionActual().catch(() => null);
+      if (vivo) setEst(sub && Notification.permission === 'granted' ? 'on' : 'off');
+    })();
+    return () => { vivo = false; };
+  }, []);
+
+  const activar = async () => {
+    const permiso = await Notification.requestPermission();
+    if (permiso !== 'granted') { setEst('bloqueado'); return aviso('Las notificaciones están bloqueadas en tu navegador.'); }
+    const reg = await navigator.serviceWorker.ready;
+    const { disponible, clave } = await api('/api/push/clave');
+    if (!disponible || !clave) throw new Error('Las notificaciones no están disponibles ahora mismo.');
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: claveBytes(clave) });
+    await api('/api/push/suscribir', { suscripcion: sub.toJSON() });
+    setEst('on');
+    aviso('Notificaciones activadas en este dispositivo.');
+  };
+
+  const desactivar = async () => {
+    const sub = await suscripcionActual();
+    if (sub) {
+      await api('/api/push/baja', { endpoint: sub.endpoint }).catch(() => {});
+      await sub.unsubscribe().catch(() => {});
+    }
+    setEst('off');
+    aviso('Notificaciones desactivadas en este dispositivo.');
+  };
+
+  const click = async () => {
+    if (ocupado) return;
+    setOcupado(true);
+    try { await (est === 'on' ? desactivar() : activar()); }
+    catch (e) { aviso((e && e.message) || 'No se pudo cambiar las notificaciones.'); }
+    finally { setOcupado(false); }
+  };
+
+  const extra = { on: 'Activadas', off: 'Apagadas', bloqueado: 'Bloqueadas', no: 'No disponibles', cargando: '' }[est];
   return (
-    <Sec k="perfil-avisos-react" titulo="Avisos por WhatsApp" extra={d.avisosWa ? 'Activados' : 'Apagados'}>
-      <p className="mut peq">Te escribimos cuando termine una expedición o te superen en una subasta.</p>
-      <div className="btns uno"><Accion ruta="/api/avisos" cuerpo={{ activo: !d.avisosWa }}>{d.avisosWa ? 'Desactivar avisos' : 'Activar avisos'}</Accion></div>
+    <Sec k="perfil-avisos-react" titulo="Notificaciones" extra={extra}>
+      <p className="mut peq">Te avisamos cuando termine una expedición, te superen en una subasta o recibas una propuesta, aunque tengas la web cerrada.</p>
+      {est === 'no' && <p className="mut peq">Tu navegador no admite notificaciones. En iPhone, instala la web en la pantalla de inicio.</p>}
+      {est === 'bloqueado' && <p className="mut peq">Las bloqueaste en el navegador. Permítelas desde los ajustes del sitio y vuelve a intentarlo.</p>}
+      {(est === 'on' || est === 'off' || est === 'bloqueado') && (
+        <div className="btns uno">
+          <button type="button" className="mini" aria-disabled={ocupado ? 'true' : undefined} onClick={click}>
+            {est === 'on' ? 'Desactivar en este dispositivo' : 'Activar en este dispositivo'}
+          </button>
+        </div>
+      )}
     </Sec>
   );
 }
@@ -112,8 +179,8 @@ function PerfilFicha({ d, base }) {
       <Clan d={d} base={base} />
       <Mascota d={d} />
       <Coleccion d={d} />
+      <Avisos />
       <FotoPerfil />
-      <Avisos d={d} />
       <Salir />
     </>
   );
