@@ -3,7 +3,6 @@ import { fmt, hace } from '../lib/format.js';
 import { Vacio } from './ui.jsx';
 import { colorRareza } from './rareza.js';
 
-
 const Svg = ({ children }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
 );
@@ -21,28 +20,29 @@ const ICONO = { minar: 'mine', talar: 'chop', pescar: 'fish', cazar: 'hunt', cri
 const VERBO = { minar: 'Minaste en', talar: 'Talaste en', pescar: 'Pescaste en', cazar: 'Cazaste en', crimen: 'Crimen ·', daily: 'Reclamaste ·', work: 'Trabajaste como' };
 
 export default function PerfilHistorial({ d }) {
-  if (!d.items.length) return <Vacio>Aún no hay hallazgos. Cada vez que mines, talles, pesques o cazes aparecerá aquí.</Vacio>;
+  const items = d.items || [];
+  if (!items.length) return <Vacio>Aún no hay hallazgos. Cada vez que mines, talles, pesques o cazes aparecerá aquí.</Vacio>;
   return (
     <>
-      <p className="mut peq" style={{ marginTop: 14 }}>Tus últimos 20 hallazgos</p>
-      <div className="lista">
-        {d.items.map((i, n) => {
+      <p className="fc-nota">{items.length === 1 ? 'Tu último hallazgo' : `Tus últimos ${items.length} hallazgos`}</p>
+      <ul className="fc-lista">
+        {items.map((i, n) => {
           const g = i.guardian;
           const extra = [i.evento, g ? (g.gana ? 'Derrotaste a ' + g.nombre : g.nombre + ' te hizo retroceder') : ''].filter(Boolean).join(' · ');
           const monedas = i.monedas || 0;
           return (
-            <div className="fil" key={n}>
-              <span className="pt">{ICONOS[ICONO[i.accion]] || ICONOS.mine}</span>
-              <div className="nom">
+            <li className="fc-f" key={n}>
+              <span className="fc-ico">{ICONOS[ICONO[i.accion]] || ICONOS.mine}</span>
+              <div className="fc-f-t">
                 <strong><i className="pto" style={{ '--c': colorRareza(i.rareza) }} />{i.titulo}</strong>
-                <span className="mut peq">{VERBO[i.accion] || 'Actuaste en'} {i.zona} · {hace(i.hace)} · {i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
-                {extra && <span className="peq" style={{ color: 'var(--lav)' }}>{extra}</span>}
+                <span>{VERBO[i.accion] || 'Actuaste en'} {i.zona} · {hace(i.hace)} · {i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
+                {extra && <span className="fc-extra">{extra}</span>}
               </div>
-              <span className="val">{monedas < 0 ? '−' : '+'}{fmt(Math.abs(monedas))}</span>
-            </div>
+              <b className={'fc-monto' + (monedas < 0 ? ' neg' : '')}>{monedas < 0 ? '−' : '+'}{fmt(Math.abs(monedas))}</b>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </>
   );
 }

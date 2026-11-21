@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Sec, Accion } from './ui.jsx';
+import { Sec, Accion, Avatar } from './ui.jsx';
 import { useMe } from '../bridge/store.js';
 import { publicar, aviso } from '../bridge/acciones.js';
 
@@ -62,14 +62,17 @@ export default function FotoPerfil() {
 
   return (
     <Sec k="perfil-foto" titulo="Foto de perfil" extra={me?.foto ? 'Personalizada' : 'Sin foto'}>
-      <div className="bloque vidrio">
-        <p className="mut peq">Elige la imagen que quieras. Se recorta en cuadrado y se muestra junto a tu nombre en los rankings.</p>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-          <button ref={boton} type="button" className="mini" aria-disabled={ocupado ? 'true' : undefined}
-            onClick={() => { if (!ocupado) entrada.current.click(); }}>
-            {ocupado ? 'Subiendo…' : me?.foto ? 'Cambiar foto' : 'Subir foto'}
-          </button>
-          {me?.foto ? <Accion ruta="/api/foto" cuerpo={{ quitar: true }} confirmar="¿Quitar tu foto de perfil?">Quitar foto</Accion> : null}
+      <div className="bloque vidrio fc-foto">
+        <Avatar r={{ yo: true, nombre: me?.alias }} />
+        <div className="fc-foto-c">
+          <p className="mut peq">Elige la imagen que quieras. Se recorta en cuadrado y se muestra junto a tu nombre en los rankings.</p>
+          <div className="fc-acciones">
+            <button ref={boton} type="button" className="mini" aria-disabled={ocupado ? 'true' : undefined}
+              onClick={() => { if (!ocupado) entrada.current.click(); }}>
+              {ocupado ? 'Subiendo…' : me?.foto ? 'Cambiar foto' : 'Subir foto'}
+            </button>
+            {me?.foto ? <Accion ruta="/api/foto" cuerpo={{ quitar: true }} confirmar="¿Quitar tu foto de perfil?">Quitar foto</Accion> : null}
+          </div>
         </div>
         <input ref={entrada} type="file" accept="image/*" hidden onChange={elegir} />
       </div>

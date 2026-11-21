@@ -1,11 +1,12 @@
 import React from 'react';
-import { Sec, Cifras, Accion, Countdown } from './ui.jsx';
+import { Sec, Countdown } from './ui.jsx';
 import { fmt } from '../lib/format.js';
 import Progreso from './Progreso.jsx';
 import PerfilTop, { Salir } from './PerfilTop.jsx';
 import PerfilHistorial from './PerfilHistorial.jsx';
 import PerfilOwner from './PerfilOwner.jsx';
 import FotoPerfil from './FotoPerfil.jsx';
+import { Tira } from './fichaUi.jsx';
 import { perfilSeccion, aviso } from '../bridge/acciones.js';
 import { api } from '../lib/api.js';
 
@@ -21,9 +22,9 @@ function Pendientes({ d }) {
   const talentos = d.talentosLibres || 0;
   if (!libres && !talentos) return null;
   return (
-    <div className="aviso-i">
-      {libres > 0 && <p>🎯 Tienes {libres} {plural(libres, 'punto de atributo libre', 'puntos de atributo libres')}. Repártelos en RPG → Héroe.</p>}
-      {talentos > 0 && <p>🌳 Tienes {talentos} {plural(talentos, 'punto de talento libre', 'puntos de talento libres')}. Úsalos en RPG → Héroe.</p>}
+    <div className="fc-aviso">
+      {libres > 0 && <p>Tienes <b>{libres}</b> {plural(libres, 'punto de atributo libre', 'puntos de atributo libres')}. Repártelos en RPG → Héroe.</p>}
+      {talentos > 0 && <p>Tienes <b>{talentos}</b> {plural(talentos, 'punto de talento libre', 'puntos de talento libres')}. Úsalos en RPG → Héroe.</p>}
     </div>
   );
 }
@@ -32,7 +33,7 @@ function Finanzas({ d }) {
   const p = d.prestigio;
   return (
     <Sec k="perfil-finanzas-react" titulo="Finanzas">
-      <Cifras lista={[['Cartera', fmtN(d.cartera)], ['Banco', fmtN(d.banco)], ['Total', fmtN(d.total)]]} />
+      <Tira lista={[['Cartera', fmtN(d.cartera)], ['Banco', fmtN(d.banco)], ['Total', fmtN(d.total)]]} />
       <div className="bloque vidrio">
         <Kv label="Bono de ingresos">+{d.bonoIngresos || 0}%</Kv>
         <Kv label="Prestigio">{p?.n ?? 0}/{p?.max ?? 0}{p?.bono ? ` · +${p.bono}%` : ''}</Kv>
