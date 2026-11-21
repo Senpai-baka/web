@@ -388,30 +388,24 @@ export default function Equipo({ d, base }) {
   const b = d.bonos || {};
   return (
     <>
-      <div className="inv-cols">
-        <div className="inv-izq">
-          <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
-            {items.length
-              ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
-              : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
-          </Sec>
-          {activo && (
-            <>
-              <Titulo>Pieza seleccionada</Titulo>
-              <Detalle d={d} activo={activo} actual={actual} />
-            </>
-          )}
-        </div>
-        <div className="inv-der">
-          <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
-            <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
-          </Sec>
-          <Estadisticas d={d} base={base || Date.now()} />
-          <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
-            <Bonos b={b} />
-          </Sec>
-        </div>
-      </div>
+      <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
+        <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
+      </Sec>
+      <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
+        {items.length
+          ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
+          : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
+      </Sec>
+      {activo && (
+        <>
+          <Titulo>Pieza seleccionada</Titulo>
+          <Detalle d={d} activo={activo} actual={actual} />
+        </>
+      )}
+      <Estadisticas d={d} base={base || Date.now()} />
+      <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
+        <Bonos b={b} />
+      </Sec>
       <Forjar d={d} />
       {d.reparacion?.cantidad > 0 && <Reparaciones d={d} />}
       {items.length > 0 && <Lotes d={d} />}
