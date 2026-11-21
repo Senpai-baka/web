@@ -11,6 +11,7 @@ export const aviso = (txt, ms) => avisoToast(txt, ms);
 export const irA = t => abrir(t);
 export const verJugador = ref => verJugadorAjeno(ref);
 export const volverJugador = () => volverDeJugador();
+export const jugadorRef = () => sel.jugRef;
 export const perfilIr = s => irPerfil(s);
 export const cerrarSesion = () => salir();
 export const vigilarFinGacha = fin => vigilarGacha(fin);
