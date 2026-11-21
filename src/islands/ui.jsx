@@ -3,7 +3,7 @@ import { useAhora } from '../core/reloj.js';
 import { dur, fmt } from '../lib/format.js';
 import { API } from '../lib/api.js';
 import { useMe } from '../bridge/store.js';
-import { publicar, aviso, irA, verJugador } from '../bridge/acciones.js';
+import { publicar, aviso, verJugador } from '../bridge/acciones.js';
 
 export const MEDALLA = ['🥇', '🥈', '🥉'];
 export const medalla = i => MEDALLA[i] || (i + 1) + '.';
@@ -18,34 +18,6 @@ export function Vacio({ children }) {
       </svg>
       {children}
     </p>
-  );
-}
-
-export function Cab({ titulo, sub, icono, stats, atras }) {
-  const me = useMe();
-  const cifras = stats || (me ? [['Monedas', fmt(me.monedas)], ['Nivel', me.nivel]] : []);
-  return (
-    <>
-      {atras && <button type="button" className="atras" onClick={() => irA('inicio')}>← Inicio</button>}
-    <div className="cabp cab-t">
-      <div className="cab-top">
-        {icono && (
-          <span className="cab-i" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icono}</svg>
-          </span>
-        )}
-        <div>
-          <h1 className="pag">{titulo}</h1>
-          {sub && <p className="mut">{sub}</p>}
-        </div>
-      </div>
-      {cifras.length > 0 && (
-        <div className="cab-st">
-          {cifras.map(([n, v]) => <div key={n}><b>{String(v)}</b><span>{n}</span></div>)}
-        </div>
-      )}
-    </div>
-    </>
   );
 }
 
