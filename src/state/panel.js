@@ -3,7 +3,7 @@ import { api } from '../lib/api.js';
 import { sincronizar } from '../core/reloj.js';
 
 const SEL0 = {
-  perfilSel: 'ficha', invSel: 'equipo', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota',
+  perfilSel: 'ficha', invSel: 'equipo', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota', compPag: 1,
   ciudadSel: 'banco', jugQ: '', pagoQ: '', arenaQ: '', gachaSel: 'invocar', gachaPag: 1, gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
 };
 const enc = encodeURIComponent;
@@ -16,7 +16,7 @@ export const RUTAS = {
   ficha: () => ({ historial: '/api/historial', heroe: '/api/heroe', progreso: '/api/progreso', owner: '/api/owner' }[sel.perfilSel] || '/api/ficha'),
   inventario: () => ({ equipo: '/api/equipo', heroe: '/api/heroe', forja: '/api/forja' }[sel.invSel] || '/api/inventario'),
   tienda: () => (sel.tiendaSel === 'mercado' ? '/api/mercado?pagina=' + sel.merPag : sel.tiendaSel === 'subastas' ? '/api/subastas?pagina=' + sel.subPag : '/api/' + sel.tiendaSel),
-  hogar: () => '/api/' + sel.hogarSel,
+  hogar: () => (sel.hogarSel === 'companero' ? '/api/companero?pagina=' + sel.compPag : '/api/' + sel.hogarSel),
   ciudad: () => (sel.ciudadSel === 'jugadores' ? '/api/jugadores?q=' + enc(sel.jugQ) : sel.ciudadSel === 'banco' ? '/api/banco?q=' + enc(sel.pagoQ) : sel.ciudadSel === 'arena' ? '/api/arena?q=' + enc(sel.arenaQ) : '/api/' + sel.ciudadSel),
   rankings: () => '/api/rankings',
   gacha: () => (sel.gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + sel.gachaPag
