@@ -80,7 +80,7 @@ export async function jugar(k) {
 }
 
 const icono = ruta => ruta.includes('/gacha') ? ICONOS.gacha
-  : ruta.includes('/raid') ? ICONOS.raid
+  : ruta.includes('/raid') || ruta.includes('/arena') ? ICONOS.raid
     : ruta.includes('/clan') ? ICONOS.clan
       : ruta.includes('/alquimia') ? ICONOS.alquimia
         : ruta.includes('/mundial') ? ICONOS.mundial
