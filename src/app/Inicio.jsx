@@ -131,13 +131,20 @@ function contarListas(ahora) {
 
 function Listas() {
   const n = useDeAhora(contarListas);
-  return <div className="vidrio listas-t"><b>{n}</b><span>Listas ahora</span><i>Actividades disponibles</i></div>;
+  return (
+    <div className={'vidrio listas-t' + (n ? ' hay' : '')}>
+      <b>{n}</b>
+      <span>{n === 0 ? 'Nada listo todavía' : n === 1 ? 'Lista ahora' : 'Listas ahora'}</span>
+      <i>{n === 0 ? 'Vuelve cuando termine una espera' : 'Actividades disponibles'}</i>
+    </div>
+  );
 }
 
 const Clima = memo(function Clima({ me, meT }) {
   const c = me.clima;
   return (
     <div className="resumen">
+      <Listas />
       <div className="clima vidrio" id="clima-card">
         <span className="em" id="cc-em" aria-hidden="true">{c ? c.emoji : ''}</span>
         <div>
@@ -146,7 +153,6 @@ const Clima = memo(function Clima({ me, meT }) {
           <p className="peq">Cambia en {c ? <RestaClima fin={meT + c.faltaS * 1000} /> : <b id="cc-resta" />}, luego <span id="cc-sig">{c ? c.siguiente.emoji + ' ' + c.siguiente.nombre : ''}</span></p>
         </div>
       </div>
-      <Listas />
     </div>
   );
 });
@@ -276,8 +282,8 @@ export default function Inicio() {
     <>
       <Hero me={me} />
       <Hud me={me} />
-      <EventoX2 me={me} meT={meT} />
       <Clima me={me} meT={meT} />
+      <EventoX2 me={me} meT={meT} />
       <div className="grupo"><h2>Recolectar</h2><span className="mut peq">Cada actividad tiene su espera</span></div>
       <div className="rejilla" id="rejilla">{visibles.map(tarjeta)}</div>
       <div className="grupo"><h2>Recompensas</h2><span className="mut peq">Una vez cada cierto tiempo</span></div>

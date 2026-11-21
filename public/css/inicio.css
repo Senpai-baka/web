@@ -1,0 +1,197 @@
+#t-inicio .hero {
+  height: 262px;
+}
+#t-inicio .hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  pointer-events: none;
+  background: linear-gradient(180deg,transparent,rgba(13,10,21,.88) 78%);
+}
+#t-inicio .hero-in {
+  z-index: 1;
+  left: 18px;
+  right: 18px;
+  top: 0;
+  bottom: 4px;
+  align-items: flex-end;
+}
+#t-inicio .hero .bolsa {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 1;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 99px;
+  border: 0;
+  background: rgba(13,10,21,.62);
+  box-shadow: inset 0 0 0 1px rgba(240,211,154,.4);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--oro);
+  font: 800 18px/1 var(--serif);
+}
+#t-inicio .hero .bolsa svg {
+  color: var(--oro);
+}
+#t-inicio .hero .bolsa span {
+  font-variant-numeric: tabular-nums;
+}
+
+#t-inicio .quien {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  column-gap: 10px;
+  padding-bottom: 2px;
+}
+#t-inicio .quien h1 {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  margin: 0;
+  font: 800 30px/1.1 var(--serif);
+  letter-spacing: -.01em;
+  color: var(--petal);
+  text-shadow: 0 2px 12px rgba(0,0,0,.6);
+}
+#t-inicio .quien #nivel {
+  grid-column: 1;
+  grid-row: 2;
+  display: inline;
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--petal);
+}
+#t-inicio .quien #xp {
+  grid-column: 2;
+  color: var(--petal);
+  opacity: .78;
+  grid-row: 2;
+  display: inline;
+  margin-top: 4px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--mut);
+}
+#t-inicio .quien .xpb {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  height: 6px;
+  margin: 8px 0 0;
+  background: rgba(255,255,255,.12);
+}
+
+#t-inicio .hud {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--e2);
+  padding: 12px 14px;
+  border-radius: 4px 16px 4px 16px;
+}
+#t-inicio .hud .clase-b {
+  grid-column: 1 / 3;
+  order: 0;
+  justify-self: start;
+}
+#t-inicio .hud .estrella {
+  grid-column: 3;
+  order: 1;
+  justify-self: end;
+}
+#t-inicio .hud .chip-s {
+  order: 2;
+  justify-content: center;
+  min-width: 0;
+}
+#t-inicio .hud .en {
+  grid-column: 1 / -1;
+  order: 3;
+  justify-content: space-between;
+}
+
+#t-inicio .resumen {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: 10px;
+  margin-top: var(--e2);
+}
+#t-inicio .listas-t {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 0;
+  padding: 14px 18px 14px 14px;
+  border-radius: 4px 18px 4px 18px;
+  box-shadow: inset 3px 0 0 rgba(205,190,235,.3);
+}
+#t-inicio .listas-t b {
+  grid-row: 1 / 3;
+  min-width: 48px;
+  text-align: center;
+  font: 800 44px/1 var(--serif);
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+#t-inicio .listas-t span {
+  align-self: end;
+  font: 800 17px/1.2 var(--font);
+  color: var(--petal);
+}
+#t-inicio .listas-t i {
+  display: block;
+  align-self: start;
+  margin-top: 2px;
+  font-size: 13px;
+}
+#t-inicio .listas-t.hay {
+  background: linear-gradient(90deg,rgba(240,211,154,.16),rgba(255,255,255,.03) 75%);
+  box-shadow: inset 3px 0 0 var(--oro);
+}
+#t-inicio .listas-t.hay b {
+  color: var(--oro);
+}
+
+#t-inicio .resumen .clima {
+  margin-top: 0;
+  padding: 12px 14px;
+  border-radius: 4px 16px 4px 16px;
+}
+#t-inicio .evento-x2 {
+  margin-top: 10px;
+  border-radius: 4px 16px 4px 16px;
+  box-shadow: inset 3px 0 0 var(--naranja);
+}
+
+#t-inicio .grupo {
+  display: block;
+  margin: var(--e5) 0 var(--e2);
+}
+#t-inicio .grupo h2 {
+  flex: none;
+  font: 800 22px/1.2 var(--serif);
+  text-transform: none;
+  color: var(--petal);
+}
+#t-inicio .grupo h2::before,
+#t-inicio .grupo h2::after {
+  display: none;
+}
+#t-inicio .grupo .mut {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  #t-inicio .hero .bolsa {
+    transition: none;
+  }
+}

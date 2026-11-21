@@ -1,0 +1,167 @@
+.cd {
+  padding-bottom: var(--e4);
+}
+
+.cd .cd-top {
+  position: relative;
+  margin: 0 -18px;
+}
+.cd .cd-sky {
+  display: block;
+  width: 100%;
+  height: 104px;
+  -webkit-mask: linear-gradient(180deg,#000 70%,transparent);
+  mask: linear-gradient(180deg,#000 70%,transparent);
+}
+.cd .cd-luz {
+  animation: cd-luz .6s ease-out backwards;
+}
+@keyframes cd-luz {
+  from {
+    opacity: 0;
+  }
+}
+.cd .cd-tit {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -8px;
+  padding: 0 18px;
+}
+.cd .cd-tit h1.pag {
+  margin: 0;
+  font: 800 34px/1.05 var(--serif);
+  letter-spacing: -.01em;
+  color: var(--petal);
+}
+.cd .cd-tit p {
+  margin: 6px 0 0;
+  max-width: 28ch;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--mut);
+}
+.cd .cd-mano {
+  flex: none;
+  text-align: right;
+  line-height: 1.15;
+}
+.cd .cd-mano b {
+  display: block;
+  font: 800 18px/1.15 var(--serif);
+  color: var(--oro);
+  font-variant-numeric: tabular-nums;
+}
+.cd .cd-mano span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mut);
+}
+
+.cd .cd-dist {
+  display: flex;
+  gap: 6px;
+  margin: var(--e3) -18px 0;
+  padding: 4px 18px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.cd .cd-dist::-webkit-scrollbar {
+  display: none;
+}
+.cd .cd-dist button {
+  position: relative;
+  flex: 1 0 70px;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 12px 4px 10px;
+  border: 0;
+  border-radius: 12px 12px 3px 3px;
+  background: rgba(255,255,255,.045);
+  box-shadow: inset 0 0 0 1px var(--linea);
+  font: 700 13px/1.1 var(--font);
+  color: var(--mut);
+  cursor: pointer;
+  scroll-snap-align: center;
+}
+.cd .cd-dist button svg {
+  width: 24px;
+  height: 24px;
+}
+.cd .cd-dist button::before {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: -4px;
+  height: 4px;
+  border-radius: 3px 3px 0 0;
+  background: var(--oro);
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1);
+}
+.cd .cd-dist button[aria-pressed="true"] {
+  background: linear-gradient(180deg,rgba(240,211,154,.16),rgba(255,255,255,.04)) !important;
+  box-shadow: inset 0 0 0 1px rgba(240,211,154,.4);
+  color: var(--petal) !important;
+}
+.cd .cd-dist button[aria-pressed="true"] svg {
+  color: var(--oro);
+}
+.cd .cd-dist button[aria-pressed="true"]::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+.cd .cd-dist button:focus-visible {
+  outline: 2px solid var(--sakura);
+  outline-offset: 2px;
+}
+
+.cd .cd-cuerpo {
+  animation: cd-entra .3s ease-out both;
+}
+@keyframes cd-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.cd .sec h2 {
+  font: 800 20px/1.2 var(--serif);
+  text-transform: none;
+  color: var(--petal);
+}
+.cd .sec h2::before {
+  display: none;
+}
+.cd .sec .ex {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mut);
+}
+
+.cd .bloque.vidrio {
+  border-radius: 4px 18px 4px 18px;
+}
+
+@media (max-width:360px) {
+  .cd .cd-tit h1.pag {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .cd .cd-luz,
+  .cd .cd-cuerpo {
+    animation: none;
+  }
+  .cd .cd-dist button::before {
+    transition: none;
+  }
+}
