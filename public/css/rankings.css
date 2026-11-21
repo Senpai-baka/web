@@ -38,6 +38,7 @@
 }
 .rk .rk-tabs button {
   position: relative;
+  border-color: transparent;
   flex: none;
   min-height: 46px;
   padding: 12px 0;
@@ -62,7 +63,9 @@
   transition: transform .25s cubic-bezier(.2,.8,.2,1);
 }
 .rk .rk-tabs button[aria-pressed="true"] {
-  color: var(--petal);
+  color: var(--petal) !important;
+  background: none !important;
+  border-color: transparent !important;
 }
 .rk .rk-tabs button[aria-pressed="true"]::after {
   transform: scaleX(1);
@@ -93,9 +96,9 @@
   cursor: pointer;
 }
 .rk .rk-chips button[aria-pressed="true"] {
-  color: var(--petal);
-  background: var(--marea2);
-  border-color: rgba(215,181,255,.5);
+  color: var(--petal) !important;
+  background: var(--marea2) !important;
+  border-color: rgba(215,181,255,.5) !important;
 }
 
 .rk .rk-yo {

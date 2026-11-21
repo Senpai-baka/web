@@ -1,0 +1,120 @@
+.hg {
+  padding-bottom: var(--e4);
+}
+
+.hg .hg-top {
+  position: relative;
+  margin: 0 -18px;
+}
+.hg .hg-paisaje {
+  display: block;
+  width: 100%;
+  height: 112px;
+  -webkit-mask: linear-gradient(180deg,#000 82%,transparent);
+  mask: linear-gradient(180deg,#000 82%,transparent);
+}
+.hg .hg-colina {
+  animation: hg-sube .9s cubic-bezier(.2,.8,.2,1) backwards;
+}
+@keyframes hg-sube {
+  from {
+    transform: translateY(26px);
+    opacity: 0;
+  }
+}
+.hg .hg-tit {
+  margin-top: -14px;
+  padding: 0 18px;
+}
+.hg .hg-tit h1.pag {
+  margin: 0;
+  font: 800 34px/1.05 var(--serif);
+  letter-spacing: -.01em;
+  color: var(--petal);
+}
+.hg .hg-tit p {
+  margin: 6px 0 0;
+  max-width: 32ch;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--mut);
+}
+
+.hg .hg-tabs {
+  display: flex;
+  gap: 8px;
+  margin: var(--e3) -18px 0;
+  padding: 0 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.hg .hg-tabs::-webkit-scrollbar {
+  display: none;
+}
+.hg .hg-tabs button {
+  flex: 1 0 auto;
+  min-height: 46px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 22px 5px 22px 5px;
+  background: rgba(255,255,255,.05);
+  box-shadow: inset 0 0 0 1px var(--linea);
+  font: 700 14.5px/1 var(--font);
+  color: var(--mut);
+  cursor: pointer;
+}
+.hg .hg-tabs button[aria-pressed="true"] {
+  background: var(--menta) !important;
+  box-shadow: none;
+  color: #12261f !important;
+}
+.hg .hg-tabs button:focus-visible {
+  outline: 2px solid var(--sakura);
+  outline-offset: 2px;
+}
+
+.hg .hg-cuerpo {
+  margin-top: var(--e3);
+  animation: hg-entra .3s ease-out both;
+}
+@keyframes hg-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.hg .sec h2 {
+  font: 800 20px/1.2 var(--serif);
+  text-transform: none;
+  color: var(--petal);
+}
+.hg .sec h2::before {
+  display: none;
+}
+
+.hg .bloque.vidrio {
+  border-radius: 22px 6px 22px 6px;
+}
+.hg .pet {
+  gap: 16px;
+}
+.hg .pet > :first-child {
+  flex: none;
+  padding: 6px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 70%,rgba(145,214,189,.22),transparent 70%);
+}
+
+@media (max-width:360px) {
+  .hg .hg-tit h1.pag {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .hg .hg-colina,
+  .hg .hg-cuerpo {
+    animation: none;
+  }
+}
