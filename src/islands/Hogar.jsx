@@ -3,12 +3,14 @@ import { fmt, dur } from '../lib/format.js';
 import { hogarSeccion, hogarIr, publicar } from '../bridge/acciones.js';
 import { Countdown, Titulo, Accion, BotonListo, Barra, Estado, Cifras, Kv } from './ui.jsx';
 import MascotaSprite from './MascotaSprite.jsx';
+import Companero from './Companero.jsx';
 
-const SECCIONES = [['mascota', 'Mascota'], ['invocacion', 'Legendarias'], ['granja', 'Granja']];
+const SECCIONES = [['mascota', 'Mascota'], ['invocacion', 'Legendarias'], ['companero', 'Compañero'], ['granja', 'Granja']];
 
 const SUBTITULO = {
   mascota: 'Cuídala cada día para que siga dándote bonos.',
   invocacion: 'Invoca criaturas legendarias y sube su rango.',
+  companero: 'Elige un personaje que crezca y pelee a tu lado.',
   granja: 'Siembra, riega y cosecha mientras no estás.'
 };
 
@@ -327,7 +329,7 @@ export default function Hogar({ d, base }) {
         ))}
       </div>
       <div className="hg-cuerpo" key={sel}>
-        {sel === 'mascota' ? <Mascota d={d} base={base} /> : sel === 'invocacion' ? <Legendarias d={d} /> : <Granja d={d} base={base} />}
+        {sel === 'mascota' ? <Mascota d={d} base={base} /> : sel === 'invocacion' ? <Legendarias d={d} /> : sel === 'companero' ? <Companero d={d} /> : <Granja d={d} base={base} />}
       </div>
     </div>
   );
