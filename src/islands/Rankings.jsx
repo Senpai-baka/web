@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { api } from '../lib/api.js';
 import { verJugador } from '../bridge/acciones.js';
@@ -231,6 +231,12 @@ export default function Rankings({ d, base }) {
   const [sel, setSel] = useState('monedas');
   const [tier, setTier] = useState(null);
   const est = useTemporada(sel === 'temporada', d);
+  const fila = useRef(null);
+  useLayoutEffect(() => {
+    const el = fila.current;
+    const a = el && el.querySelector('[aria-pressed="true"]');
+    if (a) el.scrollLeft = a.offsetLeft - (el.clientWidth - a.offsetWidth) / 2;
+  }, [sel]);
   const g = d.guerra;
   const mz = d.mazmorras || [];
   const actual = mz.find(x => x.clave === tier) || mz[0] || null;
@@ -302,7 +308,7 @@ export default function Rankings({ d, base }) {
         {contexto ? <p>{contexto}</p> : null}
       </header>
 
-      <div className="rk-tabs" role="group" aria-label="Tipo de ranking">
+      <div className="rk-tabs" ref={fila} role="group" aria-label="Tipo de ranking">
         {OPCIONES.map(([k, n]) => (
           <button key={k} type="button" aria-pressed={k === sel} onClick={() => setSel(k)}>{n}</button>
         ))}

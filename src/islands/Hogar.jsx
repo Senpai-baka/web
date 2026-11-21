@@ -1,17 +1,49 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { hogarSeccion, hogarIr, publicar } from '../bridge/acciones.js';
-import { Cab, Seg, Countdown, Titulo, Accion, BotonListo, Barra, Estado, Cifras, Kv } from './ui.jsx';
+import { Countdown, Titulo, Accion, BotonListo, Barra, Estado, Cifras, Kv } from './ui.jsx';
 import MascotaSprite from './MascotaSprite.jsx';
 
 const SECCIONES = [['mascota', 'Mascota'], ['invocacion', 'Legendarias'], ['granja', 'Granja']];
 
-const ICONO = (
-  <>
-    <path d="M12 21 C12 14 8 11 4 11 C4 16 7 20 12 21 Z" />
-    <path d="M12 21 C12 14 16 9 20 9 C20 15 17 20 12 21 Z" />
-  </>
-);
+const SUBTITULO = {
+  mascota: 'Cuídala cada día para que siga dándote bonos.',
+  invocacion: 'Invoca criaturas legendarias y sube su rango.',
+  granja: 'Siembra, riega y cosecha mientras no estás.'
+};
+
+const COLINAS = [
+  ['#2a2f4a', 'M0 62 C60 36 110 56 170 44 C240 30 300 58 400 40 V100 H0Z'],
+  ['#233a49', 'M0 74 C70 54 130 76 200 62 C270 48 330 76 400 60 V100 H0Z'],
+  ['#1b3a3f', 'M0 88 C80 72 140 90 220 80 C290 70 350 90 400 78 V100 H0Z']
+];
+
+function Paisaje() {
+  return (
+    <svg className="hg-paisaje" viewBox="0 0 400 100" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="hg-cielo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#171225" />
+          <stop offset="1" stopColor="#3d3a5e" />
+        </linearGradient>
+        <radialGradient id="hg-luna" cx=".5" cy=".5" r=".5">
+          <stop offset="0" stopColor="#f0d39a" stopOpacity=".55" />
+          <stop offset="1" stopColor="#f0d39a" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="400" height="100" fill="url(#hg-cielo)" />
+      <circle cx="320" cy="30" r="34" fill="url(#hg-luna)" />
+      <circle cx="320" cy="30" r="12" fill="#f0d39a" />
+      {COLINAS.map(([c, p], i) => <path key={i} className="hg-colina" style={{ animationDelay: i * 120 + 'ms' }} d={p} fill={c} />)}
+      <g fill="#122a2e">
+        <path d="M60 84 L66 66 L72 84Z" />
+        <path d="M70 86 L77 62 L84 86Z" />
+        <path d="M248 80 L254 62 L260 80Z" />
+        <path d="M336 82 L342 66 L348 82Z" />
+      </g>
+    </svg>
+  );
+}
 
 function Adoptar({ d, casa }) {
   const [nombre, setNombre] = useState('');
@@ -272,12 +304,30 @@ function Legendarias({ d }) {
 }
 
 export default function Hogar({ d, base }) {
-  const sel = hogarSeccion();
+  const sel = SECCIONES.some(o => o[0] === hogarSeccion()) ? hogarSeccion() : 'mascota';
+  const fila = useRef(null);
+  useLayoutEffect(() => {
+    const el = fila.current;
+    const a = el && el.querySelector('[aria-pressed="true"]');
+    if (a) el.scrollLeft = a.offsetLeft - (el.clientWidth - a.offsetWidth) / 2;
+  }, [sel]);
   return (
-    <>
-      <Cab titulo="Mundo" sub="Tu mascota, tus legendarias y tu granja." icono={ICONO} />
-      <Seg aria="Sección del hogar" opciones={SECCIONES} valor={sel} onCambio={hogarIr} />
-      {sel === 'mascota' ? <Mascota d={d} base={base} /> : sel === 'invocacion' ? <Legendarias d={d} /> : <Granja d={d} base={base} />}
-    </>
+    <div className="hg">
+      <header className="hg-top">
+        <Paisaje />
+        <div className="hg-tit">
+          <h1 className="pag">Mundo</h1>
+          <p>{SUBTITULO[sel]}</p>
+        </div>
+      </header>
+      <div className="hg-tabs" ref={fila} role="group" aria-label="Sección del hogar">
+        {SECCIONES.map(([k, n]) => (
+          <button key={k} type="button" aria-pressed={k === sel} onClick={() => hogarIr(k)}>{n}</button>
+        ))}
+      </div>
+      <div className="hg-cuerpo" key={sel}>
+        {sel === 'mascota' ? <Mascota d={d} base={base} /> : sel === 'invocacion' ? <Legendarias d={d} /> : <Granja d={d} base={base} />}
+      </div>
+    </div>
   );
 }
