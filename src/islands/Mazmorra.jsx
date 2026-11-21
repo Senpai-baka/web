@@ -2,14 +2,39 @@ import React, { useEffect, useRef } from 'react';
 import { irA } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
 import { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio } from '../lib/arteCombate.js';
-import { Cab, Countdown, Accion } from './ui.jsx';
+import { Countdown, Accion } from './ui.jsx';
+import Cabeza from './Cabeza.jsx';
 import { Sprite, useCuadro, hojaHeroe, hojaMonstruo } from './Sprite.jsx';
 
-const ICONO = (
-  <>
-    <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" />
-    <path d="M12 1 V5 M12 19 V23 M1 12 H5 M19 12 H23" />
-  </>
+const ARTE = (
+  <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="mz-fondo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#10141c" />
+        <stop offset="1" stopColor="#1f2733" />
+      </linearGradient>
+      <radialGradient id="mz-llama" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stopColor="#f0d39a" stopOpacity=".55" />
+        <stop offset="1" stopColor="#f0d39a" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <rect width="400" height="110" fill="url(#mz-fondo)" />
+    <circle className="mz-llama" cx="320" cy="42" r="46" fill="url(#mz-llama)" />
+    <rect x="318" y="44" width="4" height="14" fill="#6b5a46" />
+    <path className="mz-fuego" d="M320 28 C326 36 328 40 320 46 C312 40 314 36 320 28Z" fill="#f0d39a" />
+    <g fill="#2b3544">
+      <path d="M0 110 V86 H70 V98 H140 V110Z" />
+      <path d="M70 98 V74 H140 V86 H210 V98 H140 V110 H70Z" fill="#232c39" />
+      <path d="M140 86 V62 H210 V74 H280 V86 H210 V98 H140Z" fill="#1c2430" />
+      <path d="M210 74 V50 H280 V62 H350 V74 H280 V86 H210Z" fill="#161d27" />
+    </g>
+    <g fill="#9fb4c8" opacity=".22">
+      <rect x="0" y="86" width="70" height="2" />
+      <rect x="70" y="74" width="70" height="2" />
+      <rect x="140" y="62" width="70" height="2" />
+      <rect x="210" y="50" width="70" height="2" />
+    </g>
+  </svg>
 );
 
 const t = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
@@ -124,9 +149,9 @@ export function Amenaza({ m }) {
 
 function BarraRun({ r, base }) {
   return (
-    <div className="cb-run">
-      {r.mazmorra && <span>{r.mazmorra.emoji} <b>{r.mazmorra.nombre}</b></span>}
-      <span>📍 Piso <b>{r.piso}</b>{r.seguro && <> <em className="etiq">Asegurada</em></>}</span>
+    <div className="cb-run mz-run">
+      {r.mazmorra && <span className="mz-sitio">{r.mazmorra.emoji} <b>{r.mazmorra.nombre}</b></span>}
+      <span className="mz-piso">Piso <b>{r.piso}</b>{r.seguro && <em className="etiq">Asegurada</em>}</span>
       <span>💰 <b>{fmt(r.botin)}</b></span>
       <span>🎒 <b>{r.equipo.length}</b>{r.cofres.length ? ' ' + r.cofres.join(' ') : ''}</span>
       <span>⏳ {r.expirada ? 'Expiró' : <Countdown fin={base + r.restaS * 1000} />}</span>
@@ -154,17 +179,22 @@ function Tier({ d, t, base }) {
   const motivo = t.bloqueada ? motivoNivel : espera ? 'Tus heridas siguen frescas.' : '';
   const entrar = (extra, txt) => <Accion ruta="/api/mazmorra/entrar" cuerpo={{ mazmorra: t.clave, ...extra }} motivo={motivo}>{txt}</Accion>;
   return (
-    <div className="bloque vidrio">
-      <div className="fila">
-        <strong>{t.emoji} {t.nombre}</strong>
-        <span className={'etiq ' + (t.bloqueada ? 'nar' : '')}>{t.bloqueada ? '🔒 ' + rangoNivel(t) : rangoNivel(t)}</span>
+    <div className={'bloque vidrio mz-tier' + (t.bloqueada ? ' bloq' : '')}>
+      <div className="mz-puerta" aria-hidden="true"><span>{t.bloqueada ? '🔒' : t.emoji}</span></div>
+      <div className="mz-tier-d">
+        <div className="fila">
+          <strong>{t.nombre}</strong>
+          <span className={'etiq ' + (t.bloqueada ? 'nar' : '')}>{rangoNivel(t)}</span>
+        </div>
+        <p className="mut peq">{t.desc}</p>
+        {t.bloqueada && !muyBajo && <p className="peq">Ya superaste esta mazmorra. Entra a una de nivel mayor.</p>}
       </div>
-      <p className="mut peq">{t.desc}</p>
-      {t.bloqueada && !muyBajo && <p className="peq">Ya superaste esta mazmorra. Entra a una de nivel mayor.</p>}
-      <p className="peq">
-        👹 Monstruos {t.desfase[0] === t.desfase[1] ? `+${t.desfase[0]}` : `+${t.desfase[0]} a +${t.desfase[1]}`} niveles sobre ti · ⭐ {t.elite}% élite · 🎁 x{t.recompensa}
-      </p>
-      {t.check ? <p className="peq">💾 Guardado: piso {t.check}{t.record > t.check ? ` · Récord: piso ${t.record}` : ''}</p> : null}
+      <ul className="mz-reglas">
+        <li><b>{t.desfase[0] === t.desfase[1] ? `+${t.desfase[0]}` : `+${t.desfase[0]} a +${t.desfase[1]}`}</b><span>niveles sobre ti</span></li>
+        <li><b>{t.elite}%</b><span>élite</span></li>
+        <li><b>x{t.recompensa}</b><span>recompensa</span></li>
+      </ul>
+      {t.check ? <p className="mz-guardado">Guardado en el piso <b>{t.check}</b>{t.record > t.check ? ` · récord piso ${t.record}` : ''}</p> : null}
       {!t.bloqueada && espera && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
       <div className="btns">
         {entrar({}, (t.check ? 'Continuar piso ' + t.check : 'Entrar') + ' · ' + fmt(e.normal))}
@@ -183,14 +213,16 @@ function Entrada({ d, base }) {
   if (d.mazmorras && d.mazmorras.length) {
     return (
       <>
-        <div className="bloque vidrio">
-          <strong>🕳️ Elige tu mazmorra</strong>
-          <p className="mut peq">
-            Cada piso genera enemigos distintos, de tu nivel o más fuertes, y se adaptan a tu fuerza, vida y equipo. Cada mazmorra solo admite su rango de niveles. Los jefes aparecen cada {d.jefeCada} pisos y siempre sueltan equipo.
-            Si caes pierdes el {d.perdida}% de las monedas reunidas; conservas equipo y cofres. Puedes volver a entrar cada {d.esperaTotalMin} minutos.
-          </p>
+        <div className="bloque vidrio mz-intro">
+          <h2>Elige tu mazmorra</h2>
+          <p className="mut peq">Cada piso genera enemigos de tu nivel o más fuertes, adaptados a tu fuerza, vida y equipo.</p>
+          <ul>
+            <li><b>Jefes</b><span>Cada {d.jefeCada} pisos y siempre sueltan equipo.</span></li>
+            <li><b>Si caes</b><span>Pierdes el {d.perdida}% de las monedas reunidas; conservas equipo y cofres.</span></li>
+            <li><b>Seguro</b><span>Evita perder monedas y retroceder al caer.</span></li>
+            <li><b>Reingreso</b><span>Puedes volver a entrar cada {d.esperaTotalMin} minutos.</span></li>
+          </ul>
           {d.esperaS > 0 && <p className="peq">Podrás entrar en <Countdown fin={base + d.esperaS * 1000} /></p>}
-          <p className="mut peq" style={{ marginTop: 8 }}>El seguro evita perder monedas y retroceder al caer.</p>
         </div>
         {d.mazmorras.map(t => <Tier key={t.clave} d={d} t={t} base={base} />)}
       </>
@@ -286,11 +318,7 @@ function Descanso({ d, r, h, clase, base }) {
 }
 
 function Cuerpo({ d, base }) {
-  const resumen = (
-    <p className="peq mut" style={{ marginTop: 8 }}>
-      Cartera: <b>{fmt(d.cartera)}</b> · Récord: piso <b>{d.record}</b> · Pociones: <b>{d.pociones}</b>
-    </p>
-  );
+  const resumen = null;
   if (d.nivel < d.nivelMin) {
     return (
       <>
@@ -326,9 +354,9 @@ function Cuerpo({ d, base }) {
 
 export default function Mazmorra({ d, base }) {
   return (
-    <>
-      <Cab atras titulo="Mazmorra" sub="Baja piso a piso, enfrenta jefes y consigue equipo." icono={ICONO} />
+    <div className="mz">
+      <Cabeza titulo="Mazmorra" sub="Baja piso a piso, enfrenta jefes y consigue equipo." arte={ARTE} cifras={[['Monedas', fmt(d.cartera)], ['Récord', 'Piso ' + d.record], ['Pociones', d.pociones]]} />
       <Cuerpo d={d} base={base} />
-    </>
+    </div>
   );
 }
