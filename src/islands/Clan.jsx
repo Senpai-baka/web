@@ -1,14 +1,39 @@
 import React, { useState } from 'react';
 import { fmt, hace } from '../lib/format.js';
 import { buscarClan, consultaClan } from '../bridge/acciones.js';
-import { Cab, Countdown, Fila, Kv, Sec, Titulo, Campo, Accion, filas, plural, premios } from './ui.jsx';
+import { Countdown, Fila, Sec, Titulo, Campo, Accion, filas, plural, premios } from './ui.jsx';
+import Cabeza from './Cabeza.jsx';
 
-const ICONO = (
-  <>
-    <path d="M4 21 V9 L7 7 V4 H9 V7 H11 V4 H13 V7 H15 V4 H17 V7 L20 9 V21" />
-    <path d="M3 21 H21" />
-    <path d="M10 21 V15 A2 2 0 0 1 14 15 V21" />
-  </>
+const ARTE = (
+  <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="cl-fondo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#1d1730" />
+        <stop offset="1" stopColor="#2f2646" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="110" fill="url(#cl-fondo)" />
+    <g fill="#241c38">
+      <rect x="0" y="70" width="400" height="40" />
+      <path d="M0 70 V58 H18 V70 M44 70 V58 H62 V70 M88 70 V58 H106 V70 M132 70 V58 H150 V70 M176 70 V58 H194 V70 M220 70 V58 H238 V70 M264 70 V58 H282 V70 M308 70 V58 H326 V70 M352 70 V58 H370 V70 M396 70 V58 H400 V70Z" />
+    </g>
+    <g className="cl-pendon">
+      <rect x="60" y="0" width="3" height="14" fill="#8a7aa6" />
+      <path d="M48 12 H88 V74 L68 62 L48 74Z" fill="#d7b5ff" fillOpacity=".78" />
+      <path d="M48 12 H88 V20 H48Z" fill="#f4efff" fillOpacity=".35" />
+    </g>
+    <g className="cl-pendon p2">
+      <rect x="196" y="0" width="3" height="14" fill="#8a7aa6" />
+      <path d="M180 12 H216 V92 L198 78 L180 92Z" fill="#f0d39a" fillOpacity=".86" />
+      <path d="M180 12 H216 V20 H180Z" fill="#fff6dc" fillOpacity=".4" />
+      <circle cx="198" cy="44" r="8" fill="#241c38" fillOpacity=".55" />
+    </g>
+    <g className="cl-pendon p3">
+      <rect x="326" y="0" width="3" height="14" fill="#8a7aa6" />
+      <path d="M312 12 H348 V70 L330 58 L312 70Z" fill="#91d6bd" fillOpacity=".7" />
+      <path d="M312 12 H348 V20 H312Z" fill="#e8fff6" fillOpacity=".3" />
+    </g>
+  </svg>
 );
 
 const MARCA = { lider: '👑 ', subadmin: '🛡️ ' };
@@ -32,7 +57,7 @@ function Miembro({ m, c, subs }) {
   const sub = m.rol === 'subadmin';
   const protegido = m.rol !== 'miembro';
   return (
-    <div className="fil">
+    <div className="fil cl-miembro">
       <div className="nom"><strong>{MARCA[m.rol] || ''}{m.alias}{m.yo ? ' (tú)' : ''}</strong></div>
       {m.ref && (
         <>
@@ -121,13 +146,22 @@ function ClanPropio({ d, c }) {
 
   return (
     <>
-      <div className="bloque vidrio">
-        <div className="fila"><strong>🏰 {c.nombre}</strong><span className="mut peq">Nv {c.nivel}{c.max ? '/' + c.max : ''}</span></div>
-        <Kv k="Tu rol" v={c.lider ? 'Líder' : c.rol === 'subadmin' ? 'Subadmin' : 'Miembro'} />
-        <Kv k="Miembros" v={c.miembros.length + '/' + c.cupo} />
-        <Kv k="Banco del clan" v={fmt(c.banco)} />
-        <Kv k="Bono de ingresos" v={'+' + c.bono + '%'} />
-        <Kv k="Guerra" v={fmt(g.pts) + ' pts' + (g.puesto ? ' · puesto ' + g.puesto : '')} />
+      <div className="cl-clan">
+        <div className="cl-estandarte" aria-hidden="true">
+          <small>Nv</small>
+          <b>{c.nivel}</b>
+        </div>
+        <div className="cl-quien">
+          <h2>{c.nombre}</h2>
+          <span className="etiq">{c.lider ? 'Líder' : c.rol === 'subadmin' ? 'Subadmin' : 'Miembro'}</span>
+          {c.max ? <span className="mut peq">Nivel máximo {c.max}</span> : null}
+        </div>
+      </div>
+      <div className="cl-datos">
+        <div><b>{c.miembros.length}/{c.cupo}</b><span>Miembros</span></div>
+        <div><b>{fmt(c.banco)}</b><span>Banco del clan</span></div>
+        <div><b>+{c.bono}%</b><span>Bono de ingresos</span></div>
+        <div><b>{fmt(g.pts)}</b><span>{g.puesto ? 'Guerra · puesto ' + g.puesto : 'Puntos de guerra'}</span></div>
       </div>
 
       <div className="bloque vidrio">
@@ -206,8 +240,8 @@ function SinClan({ d, base }) {
 export default function Clan({ d, base }) {
   const g = d.guerra;
   return (
-    <>
-      <Cab atras titulo="Clan" sub="Banco común, bonos y guerras de clanes." icono={ICONO} />
+    <div className="cl">
+      <Cabeza titulo="Clan" sub="Banco común, bonos y guerras de clanes." arte={ARTE} />
       <Titulo>Tu clan</Titulo>
       {d.clan ? <ClanPropio d={d} c={d.clan} /> : <SinClan d={d} base={base} />}
 
@@ -232,6 +266,6 @@ export default function Clan({ d, base }) {
           ))}
         </div>
       </Sec>
-    </>
+    </div>
   );
 }
