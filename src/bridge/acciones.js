@@ -44,7 +44,8 @@ export const tiendaIr = s => en(['tienda', 'bazar', 'mercado', 'subastas'], s) &
 export const tiendaPagina = (k, dir) => fijar('tienda', k === 'mercado' ? { merPag: mas(sel.merPag, dir) } : { subPag: mas(sel.subPag, dir) });
 
 export const hogarSeccion = () => vista('hogar').hogarSel;
-export const hogarIr = s => en(['mascota', 'invocacion', 'granja'], s) && fijar('hogar', { hogarSel: s });
+export const hogarIr = s => en(['mascota', 'invocacion', 'companero', 'granja'], s) && fijar('hogar', { hogarSel: s, compPag: 1 });
+export const companeroPagina = dir => fijar('hogar', { compPag: mas(sel.compPag, dir) });
 
 export const perfilSeccion = () => vista('ficha').perfilSel;
 
