@@ -1,13 +1,31 @@
 import React from 'react';
 import { fmt, dur } from '../lib/format.js';
-import { Cab, Cifras, Countdown, BotonListo, Vacio, Titulo, Fila, medalla } from './ui.jsx';
+import { Cifras, Countdown, BotonListo, Vacio, Titulo, Fila, medalla } from './ui.jsx';
+import Cabeza from './Cabeza.jsx';
 import ArteJefe, { coloresJefe } from './ArteJefe.jsx';
 
-const ICONO = (
-  <>
-    <path d="M4 4 L15 15" /><path d="M13 17 L17 13" /><path d="M16 16 L20 20" />
-    <path d="M20 4 L9 15" /><path d="M11 17 L7 13" /><path d="M8 16 L4 20" />
-  </>
+const ARTE = (
+  <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="rd-fondo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#1f1018" />
+        <stop offset="1" stopColor="#2a1620" />
+      </linearGradient>
+      <radialGradient id="rd-ojo" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stopColor="#ff6b7c" stopOpacity=".55" />
+        <stop offset="1" stopColor="#ff6b7c" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <rect width="400" height="110" fill="url(#rd-fondo)" />
+    <circle className="rd-luna" cx="200" cy="52" r="68" fill="url(#rd-ojo)" />
+    <circle cx="200" cy="52" r="30" fill="#0e0810" />
+    <circle cx="200" cy="52" r="30" fill="none" stroke="#ff8a98" strokeOpacity=".7" strokeWidth="2" />
+    <path d="M150 110 L162 70 L176 92 L188 62 L200 96 L212 62 L224 92 L238 70 L250 110Z" fill="#0e0810" />
+    <g fill="#0e0810">
+      <path d="M0 110 V84 L24 70 L46 88 L70 66 L96 90 L120 80 V110Z" />
+      <path d="M400 110 V82 L376 68 L354 86 L330 64 L304 88 L280 78 V110Z" />
+    </g>
+  </svg>
 );
 
 function Top({ lista }) {
@@ -137,9 +155,14 @@ function Cuerpo({ d, base }) {
 
 export default function Raid({ d, base }) {
   return (
-    <>
-      <Cab atras titulo="Raid" sub="El jefe mundial y los jefes de tus grupos." icono={ICONO} />
+    <div className="lg rd-pg">
+      <Cabeza
+        titulo="Raid"
+        sub="El jefe mundial y los jefes de tus grupos."
+        arte={ARTE}
+        cifras={[['Jefe mundial', d.jefe ? (d.jefe.fase === 'activo' ? 'En pie' : 'Descanso') : '—'], ['Grupos con jefe', d.raids ? d.raids.length : 0], ['Golpe cada', dur(d.cooldownS)]]}
+      />
       <Cuerpo d={d} base={base} />
-    </>
+    </div>
   );
 }

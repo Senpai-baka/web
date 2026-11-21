@@ -1,13 +1,36 @@
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
-import { Cab, Cifras, Countdown, Accion, Barra, Campo, Fila, Titulo, Vacio, filas, medalla } from './ui.jsx';
+import { Countdown, Accion, Barra, Campo, Fila, Titulo, Vacio, filas, medalla } from './ui.jsx';
+import Cabeza from './Cabeza.jsx';
 
-const ICONO = (
-  <>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M3 12 H21" />
-    <path d="M12 3 C8 7 8 17 12 21 C16 17 16 7 12 3Z" />
-  </>
+const ARTE = (
+  <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <linearGradient id="mu-fondo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#0f1a2e" />
+        <stop offset="1" stopColor="#1b2c48" />
+      </linearGradient>
+      <radialGradient id="mu-globo" cx=".35" cy=".3" r=".8">
+        <stop offset="0" stopColor="#8fc4e8" />
+        <stop offset="1" stopColor="#2c4f7c" />
+      </radialGradient>
+    </defs>
+    <rect width="400" height="110" fill="url(#mu-fondo)" />
+    <g fill="#f4efff">
+      <circle cx="40" cy="22" r="1.5" /><circle cx="96" cy="48" r="1" /><circle cx="150" cy="16" r="1.4" />
+      <circle cx="262" cy="20" r="1.2" /><circle cx="330" cy="46" r="1.6" /><circle cx="372" cy="18" r="1" />
+    </g>
+    <g className="mu-orbita">
+      <ellipse cx="200" cy="82" rx="150" ry="22" fill="none" stroke="#8fc4e8" strokeOpacity=".4" strokeWidth="1.5" strokeDasharray="4 6" />
+      <circle cx="350" cy="82" r="5" fill="#f0d39a" />
+    </g>
+    <circle cx="200" cy="82" r="46" fill="url(#mu-globo)" />
+    <g fill="#91d6bd" fillOpacity=".75">
+      <path d="M170 66 C176 58 190 60 196 66 C198 74 188 78 182 86 C174 82 166 74 170 66Z" />
+      <path d="M212 76 C222 70 234 74 236 84 C232 92 220 94 214 88 C210 84 210 80 212 76Z" />
+    </g>
+    <path d="M154 90 C180 100 220 100 246 90 L246 110 L154 110Z" fill="#0f1a2e" opacity=".5" />
+  </svg>
 );
 
 const ACTIVIDAD = { minar: 'Minar', talar: 'Talar', pescar: 'Pescar', hunt: 'Cazar', work: 'Trabajar' };
@@ -17,18 +40,21 @@ const premioTxt = p => [`🪙 ${fmt(p.monedas)}`, cofresTxt(p.cofres)].filter(Bo
 
 function Tema({ d, base }) {
   return (
-    <div className="bloque vidrio">
+    <div className="bloque vidrio mu-tema">
       <div className="fila">
         <strong>{d.tema.emoji} {d.tema.nombre}</strong>
         {d.activo
-          ? <span className="mut peq">Termina en <Countdown fin={base + d.terminaS * 1000} /></span>
+          ? <span className="mu-cierra">Termina en <Countdown fin={base + d.terminaS * 1000} /></span>
           : <span className="etiq nar">Terminado</span>}
       </div>
       <p className="mut peq">{d.tema.desc}</p>
-      <Barra valor={d.total} max={d.meta} />
-      <div className="fila peq">
-        <span>{fmt(d.total)} / {fmt(d.meta)}</span>
-        <span className="mut">{d.pct}%{d.completo ? ' · ¡Meta lograda!' : ''}</span>
+      <div className="mu-meta">
+        <b>{d.pct}%</b>
+        <span>{fmt(d.total)} de {fmt(d.meta)}{d.completo ? ' · Meta lograda' : ''}</span>
+      </div>
+      <div className="mu-pista">
+        <Barra valor={d.total} max={d.meta} />
+        {d.hitos.map(h => <i key={h.pct} className={h.alcanzado ? 'on' : ''} style={{ left: h.pct + '%' }} />)}
       </div>
     </div>
   );
@@ -52,17 +78,15 @@ function Hitos({ d }) {
   return (
     <>
       <Titulo>Hitos de la comunidad</Titulo>
-      {d.hitos.map(h => (
-        <div className="bloque vidrio" key={h.pct}>
-          <div className="fila">
-            <strong>{h.pct}% de la meta</strong>
-            <span className={'etiq' + (h.alcanzado ? '' : ' nar')}>
-              {h.reclamado ? '✅ Reclamado' : h.alcanzado ? '🎁 Disponible' : '🔒 Pendiente'}
-            </span>
+      <div className="mu-hitos">
+        {d.hitos.map(h => (
+          <div className={'mu-hito' + (h.reclamado ? ' rec' : h.alcanzado ? ' lis' : '')} key={h.pct}>
+            <b>{h.pct}%</b>
+            <span className="mu-estado">{h.reclamado ? 'Reclamado' : h.alcanzado ? 'Disponible' : 'Pendiente'}</span>
+            <small>{premioTxt(h)}</small>
           </div>
-          <p className="mut peq">{premioTxt(h)}</p>
-        </div>
-      ))}
+        ))}
+      </div>
       <div className="btns uno">
         <Accion ruta="/api/mundial/reclamar" motivo={motivo}>
           Reclamar premios{y.porReclamar > 1 ? ` (${y.porReclamar})` : ''}
@@ -109,7 +133,7 @@ function Podio({ d }) {
   return (
     <>
       <Titulo>Premios del top</Titulo>
-      <div className="bloque vidrio">
+      <div className="bloque vidrio mu-podio">
         {d.podio.map(p => (
           <div className="fila peq" key={p.puesto}>
             <strong>{medalla(p.puesto - 1)}</strong>
@@ -128,24 +152,23 @@ function Podio({ d }) {
 export default function Mundial({ d, base }) {
   const y = d.yo;
   return (
-    <>
-      <Cab
-        atras
+    <div className="lg mu">
+      <Cabeza
         titulo="Evento global"
         sub="Todos aportan a una meta común y se reparten premios."
-        icono={ICONO}
-        stats={[['Mis puntos', fmt(y.puntos)], ['Puesto', y.puesto ? '#' + y.puesto : '—'], ['Progreso', d.pct + '%']]}
+        arte={ARTE}
+        cifras={[['Mis puntos', fmt(y.puntos)], ['Puesto', y.puesto ? '#' + y.puesto : '—'], ['Progreso', d.pct + '%']]}
       />
       <Tema d={d} base={base} />
       {!d.activo && <Descanso d={d} base={base} />}
-      <Cifras lista={[
-        ['Tope diario', fmt(d.topes.manual)],
-        ['Mínimo para premio', fmt(d.minimo)],
-        ...d.actividades.map(a => [ACTIVIDAD[a.clave] || a.clave, '+' + a.puntos])
-      ]} />
+      <dl className="mu-reglas">
+        <div><dt>Tope diario</dt><dd>{fmt(d.topes.manual)}</dd></div>
+        <div><dt>Mínimo para premio</dt><dd>{fmt(d.minimo)}</dd></div>
+        {d.actividades.map(a => <div key={a.clave}><dt>{ACTIVIDAD[a.clave] || a.clave}</dt><dd>+{a.puntos}</dd></div>)}
+      </dl>
       <Hitos d={d} />
       {d.activo && <Aportar d={d} />}
       <Podio d={d} />
-    </>
+    </div>
   );
 }
