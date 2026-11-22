@@ -27,15 +27,22 @@ export const gachaIr = s => fijar('gacha', { gachaSel: s, gachaPag: 1 });
 export const gachaPagina = dir => fijar('gacha', { gachaPag: mas(sel.gachaPag, dir) });
 export const abiertasGacha = () => e.abiertas;
 
+export const tiendaCartas = () => { const v = vista('gacha'); return { q: v.ctQ, rareza: v.ctRareza, orden: v.ctOrden, mias: v.ctMias }; };
+export const filtrarTiendaCartas = cambios => fijar('gacha', { ...cambios, gachaPag: 1 });
+export const topSeccion = () => vista('gacha').topSel;
+export const topIr = s => en(['coleccionistas', 'populares'], s) && fijar('gacha', { topSel: s, gachaPag: 1 });
+
 export const inventarioSeccion = () => vista('inventario').invSel;
 export const cambiarInventario = s => en(['objetos', 'equipo', 'heroe', 'forja'], s) && fijar('inventario', { invSel: s });
 
 export const ciudadSeccion = () => vista('ciudad').ciudadSel;
-export const ciudadIr = s => en(['banco', 'negocios', 'casino', 'altar', 'arena', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
+export const ciudadIr = s => en(['banco', 'negocios', 'mercader', 'casino', 'dados', 'altar', 'arena', 'jugadores'], s) && fijar('ciudad', { ciudadSel: s });
 export const buscarJugadores = q => fijar('ciudad', { jugQ: q || '' });
 export const consultaJugadores = () => vista('ciudad').jugQ;
 export const buscarArena = q => fijar('ciudad', { arenaQ: q || '' });
 export const consultaArena = () => vista('ciudad').arenaQ;
+export const buscarDados = q => fijar('ciudad', { dadosQ: q || '' });
+export const consultaDados = () => vista('ciudad').dadosQ;
 export const actualizarCiudad = () => fijar('ciudad', {});
 export const buscarPago = q => fijar('ciudad', { pagoQ: q || '' });
 export const consultaPago = () => vista('ciudad').pagoQ;
