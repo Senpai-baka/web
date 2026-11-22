@@ -47,3 +47,17 @@
   height: 1.15em;
   vertical-align: middle;
 }
+
+/* Texto del servidor (toast, hoja de resultados, registros) */
+#toast .ico-i,
+.chips .ico-i,
+.cb-log .ico-i {
+  width: 1.35em;
+  height: 1.35em;
+  vertical-align: -0.35em;
+}
+.plot .em .ico-i {
+  width: 1.4em;
+  height: 1.4em;
+  vertical-align: middle;
+}

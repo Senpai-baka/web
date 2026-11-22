@@ -3,6 +3,7 @@ import { irA } from '../bridge/acciones.js';
 import { fmt } from '../lib/format.js';
 import { arteMonstruo, arteHeroe, colorMonstruo, nombreLimpio } from '../lib/arteCombate.js';
 import { Countdown, Accion } from './ui.jsx';
+import { conIconos } from './Icono.jsx';
 import Cabeza from './Cabeza.jsx';
 import { Sprite, useCuadro, hojaHeroe, hojaMonstruo } from './Sprite.jsx';
 
@@ -265,7 +266,7 @@ function Combate({ d, r, c, h, clase, base }) {
       <Amenaza m={c} />
       <div className="cb-log vidrio" aria-live="polite">
         {log.length
-          ? log.map((l, i) => <p key={i} className={i === log.length - 1 ? 'nuevo' : ''}>{t(l)}</p>)
+          ? log.map((l, i) => <p key={i} className={i === log.length - 1 ? 'nuevo' : ''}>{conIconos(t(l))}</p>)
           : <p>Elige tu primera acción.</p>}
       </div>
       <Energia h={h} />

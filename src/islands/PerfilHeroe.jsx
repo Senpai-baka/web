@@ -1,6 +1,7 @@
 import React from 'react';
 import { fmt } from '../lib/format.js';
 import { Sec, Countdown, Accion } from './ui.jsx';
+import { Emo } from './Icono.jsx';
 
 const Pips = ({ n, m }) => (
   <span className="pips">
@@ -96,7 +97,7 @@ function Rara({ x, r, d, nombres }) {
           <div style={{ marginTop: 8 }}>
             {x.mats.map(m => (
               <span key={m.clave} className="chip-e" style={{ '--r': m.tengo >= m.necesita ? '#8fc4ad' : '#dd8591', marginRight: 6 }}>
-                {m.emoji} {m.tengo}/{m.necesita}
+                <Emo o={m} /> {m.tengo}/{m.necesita}
               </span>
             ))}
           </div>
