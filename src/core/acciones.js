@@ -79,7 +79,7 @@ export async function jugar(k) {
   }
 }
 
-const icono = ruta => ruta.includes('/gacha') ? ICONOS.gacha
+const icono = ruta => ruta.includes('/gacha') || ruta.includes('/cartas') ? ICONOS.gacha
   : ruta.includes('/raid') || ruta.includes('/arena') ? ICONOS.raid
     : ruta.includes('/clan') ? ICONOS.clan
       : ruta.includes('/alquimia') ? ICONOS.alquimia
@@ -87,9 +87,9 @@ const icono = ruta => ruta.includes('/gacha') ? ICONOS.gacha
           : ruta.includes('/encuentro') ? ICONOS.gacha
             : ruta.includes('granja') ? ICONOS.leaf
               : ruta.includes('mazmorra') || ruta.includes('/sala') ? ICONOS.hunt
-                : ruta.includes('/casino') ? ICONOS.dado
-                  : ruta.includes('/jugadores') ? ICONOS.mask
-                    : ruta.includes('/banco') || ruta.includes('/negocios') ? ICONOS.moneda
+                : ruta.includes('/casino') || ruta.includes('/dados') ? ICONOS.dado
+                  : ruta.includes('/jugadores') || ruta.includes('/noche') ? ICONOS.mask
+                    : ruta.includes('/banco') || ruta.includes('/negocios') || ruta.includes('/mercader') ? ICONOS.moneda
                       : ICONOS.gift;
 
 export async function publicar(b, ruta, cuerpo) {
@@ -109,9 +109,10 @@ export async function publicar(b, ruta, cuerpo) {
     if (d.resultado) {
       const { chips, nom, col, mal, nivel } = resumen('', d.resultado);
       mostrarHoja({
-        icono: icono(ruta), col, mal, nivel, rareza: ruta.includes('/raid') ? '' : nom, chips,
+        icono: icono(ruta), col, mal, nivel, rareza: /\/(raid|dados|noche)\b/.test(ruta) ? '' : nom, chips,
         titulo: d.resultado.titulo, zona: d.resultado.zona,
-        pie: d.mensaje && /\/(encuentro|alquimia|mundial)\//.test(ruta) ? d.mensaje : '',
+        pie: d.mensaje && /\/(encuentro|alquimia|mundial)\//.test(ruta) ? d.mensaje
+          : ruta.includes('/noche') && d.resultado.espera ? 'Podrás volver en ' + dur(d.resultado.espera) + '.' : '',
         boton: 'Listo', imagen: d.resultado.carta ? d.resultado.carta.imagen : null
       });
     } else if (d.mensaje) aviso(d.mensaje);
