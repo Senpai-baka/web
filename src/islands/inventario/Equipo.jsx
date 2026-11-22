@@ -6,7 +6,7 @@ import { useMe } from '../../bridge/store.js';
 import { Sprite, hojaHeroe } from '../Sprite.jsx';
 import { fmt } from '../../lib/format.js';
 
-const TIPOS = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'], apoyo: ['Apoyo', '🎒'] };
+const TIPOS = { arma: ['Arma', '🗡️'], casco: ['Casco', '⛑️'], coraza: ['Coraza', '🛡️'], pantalones: ['Pantalones', '👖'], guantes: ['Guantes', '🧤'], botas: ['Botas', '🥾'], amuleto: ['Amuleto', '📿'], apoyo: ['Apoyo', '🎒'] };
 const tiposDe = d => {
   const t = { ...TIPOS };
   for (const x of d.forja?.tipos || []) t[x.clave] = [x.nombre, x.emoji];
@@ -29,7 +29,7 @@ function Heroe({ clase }) {
   );
 }
 
-const AREAS = { arma: 'arma', armadura: 'armadura', amuleto: 'amuleto', apoyo: 'apoyo' };
+const AREAS = { arma: 'arma', casco: 'casco', coraza: 'coraza', pantalones: 'pantalones', guantes: 'guantes', botas: 'botas', amuleto: 'amuleto', apoyo: 'apoyo' };
 
 function Muneco({ items, activo, onSel, clase, tipos }) {
   return (
@@ -231,11 +231,11 @@ function Encanto({ activo, d }) {
   );
 }
 
-function textoBase(bs, tipo) {
+function textoBase(bs, tipo, tipos0) {
   if (!bs) return null;
-  if (tipo === 'armadura') {
-    const a = bs.armadura;
-    return `🛡️ Base: ❤️ +${a.vida} vida · repele ${a.repele}% del daño${a.extra ? ` · ${a.extra.texto}: ${a.extra.efecto}` : ''} · durabilidad ${bs.durabilidad}. Crece con tu nivel y las mejoras.`;
+  const p = bs.piezas?.[tipo];
+  if (p) {
+    return `${tipos0[tipo]?.[1] || '🛡️'} Base: ❤️ +${p.vida} vida (+${p.vidaPct}%) · repele ${p.repele}% del daño${p.extra ? ` · ${p.extra.texto}: ${p.extra.efecto}` : ''} · ✦ ${p.espec.texto}: ${p.espec.efecto} · durabilidad ${bs.durabilidad}. Crece con tu nivel y las mejoras.`;
   }
   if (tipo === 'arma') {
     const w = bs.arma;
@@ -257,7 +257,7 @@ function Forjar({ d, tipos }) {
   const r = recetas.find(x => x.rareza === rareza) || recetas[0];
   const rt = (tipo && r.tipos?.[tipo]) || r;
   const nombre = nombreRareza(r.rareza);
-  const base = textoBase(r.base, tipo);
+  const base = textoBase(r.base, tipo, tipos);
   const alcanza = (d.cartera || 0) >= rt.costo.monedas && rt.costo.mats.every(m => m.tienes >= m.n);
   const motivo = !d.clase ? 'Necesitas una clase para forjar equipo de clase.'
     : nivel < r.nivelMin ? `Esta rareza se forja desde el nivel ${r.nivelMin}.`
