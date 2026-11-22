@@ -461,7 +461,7 @@
   animation: aparece .4s .12s ease-out both;
 }
 .sheet:not([hidden]) .chips span {
-  animation: chip .38s ease-out forwards;
+  animation: chip .38s ease-out both;
 }
 .chips span:nth-child(1) {
   animation-delay: .2s!important;
@@ -547,7 +547,7 @@
 }
 @keyframes brilloHoja {
   50% {
-    box-shadow: 0 0 60px rgba(242,184,75,.45);
+    box-shadow: inset 0 0 0 1px rgba(240,211,154,.8),var(--sombra-2),0 0 64px rgba(240,211,154,.34);
   }
 }
 .mini[aria-busy="true"] {
@@ -559,7 +559,17 @@
   }
 }
 #toast:not([hidden]) {
-  animation: subir .3s ease-out;
+  animation: toast-sube .3s ease-out;
+}
+@keyframes toast-sube {
+  from {
+    opacity: 0;
+    transform: translate(-50%,16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%,0);
+  }
 }
 
 .slot.leg {
