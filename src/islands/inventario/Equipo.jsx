@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Sec, Vacio, Accion, Titulo, Slot, Countdown } from '../ui.jsx';
+import { Emo } from '../Icono.jsx';
 import { ORDEN_EQUIPO, claveEquipo, infoEquipo, colorEquipo, rangoEquipo } from '../rareza.js';
 import { aviso } from '../../bridge/acciones.js';
 import { useMe } from '../../bridge/store.js';
@@ -87,7 +88,7 @@ function Estadisticas({ d, base }) {
         <div className="bloque vidrio">
           {b.escudoS > 0 && <div className="kv"><span>Escudo anti-robo</span><b><Countdown fin={base + b.escudoS * 1000} /></b></div>}
           {b.xpS > 0 && <div className="kv"><span>Boost de XP x2</span><b><Countdown fin={base + b.xpS * 1000} /></b></div>}
-          {efectos.map(o => <div className="kv" key={o.clave}><span>{o.emoji} {o.nombre} · {o.efecto}</span><b><Countdown fin={base + o.restanteS * 1000} /></b></div>)}
+          {efectos.map(o => <div className="kv" key={o.clave}><span><Emo o={o} /> {o.nombre} · {o.efecto}</span><b><Countdown fin={base + o.restanteS * 1000} /></b></div>)}
         </div>
       )}
     </Sec>
@@ -214,7 +215,7 @@ function Encanto({ activo, d }) {
             <div className="reqs" aria-label="Costo">
               <span className={`req ${(d.cartera || 0) < costo.monedas ? 'falta' : ''}`}>{fmt(costo.monedas)} monedas</span>
               {costo.mats.map(m => (
-                <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}>{m.emoji} {m.nombre} {m.tienes}/{m.n}</span>
+                <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}><Emo o={m} /> {m.nombre} {m.tienes}/{m.n}</span>
               ))}
             </div>
           )}
@@ -284,7 +285,7 @@ function Forjar({ d, tipos }) {
         <div className="reqs" aria-label="Costo">
           <span className={`req ${(d.cartera || 0) < rt.costo.monedas ? 'falta' : ''}`}>{fmt(rt.costo.monedas)} monedas</span>
           {rt.costo.mats.map(m => (
-            <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}>{m.emoji} {m.nombre} {m.tienes}/{m.n}</span>
+            <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}><Emo o={m} /> {m.nombre} {m.tienes}/{m.n}</span>
           ))}
         </div>
         <div className="btns uno">
