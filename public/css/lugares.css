@@ -1229,6 +1229,54 @@
   font-size: 22px;
 }
 
+.gc .gt-par {
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  align-items: center;
+  gap: 8px;
+}
+.gc .gt-par .gc-carta {
+  flex-direction: column;
+  gap: 8px;
+}
+.gc .gt-par .gc-carta .gc-img {
+  width: 100%;
+}
+.gc .gt-par .gc-in strong {
+  font-size: 16px;
+}
+.gc .gt-par .peq {
+  font-size: 12.5px;
+}
+.gc .gt-sel {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  margin: var(--e3) 0 0;
+  border-radius: 4px 14px 4px 14px;
+  background: rgba(0,0,0,.22);
+  box-shadow: inset 0 0 0 1px var(--linea);
+  overflow: hidden;
+}
+.gc .gt-sel > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 3px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.gc .gt-sel > div + div {
+  border-left: 1px dashed rgba(205,190,235,.2);
+}
+.gc .gt-sel dd {
+  margin: 0;
+  font: 800 16px/1.2 var(--serif);
+  color: var(--petal);
+}
+.gc .gt-sel dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mut);
+}
+
 @media (max-width:360px) {
   .lg-tit h1.pag {
     font-size: 30px;
