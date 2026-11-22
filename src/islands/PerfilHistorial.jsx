@@ -1,6 +1,7 @@
 import React from 'react';
 import { fmt, hace } from '../lib/format.js';
 import { Vacio } from './ui.jsx';
+import { conIconos } from './Icono.jsx';
 import { colorRareza } from './rareza.js';
 
 const Svg = ({ children }) => (
@@ -34,9 +35,9 @@ export default function PerfilHistorial({ d }) {
             <li className="fc-f" key={n}>
               <span className="fc-ico">{ICONOS[ICONO[i.accion]] || ICONOS.mine}</span>
               <div className="fc-f-t">
-                <strong><i className="pto" style={{ '--c': colorRareza(i.rareza) }} />{i.titulo}</strong>
+                <strong><i className="pto" style={{ '--c': colorRareza(i.rareza) }} />{conIconos(i.titulo)}</strong>
                 <span>{VERBO[i.accion] || 'Actuaste en'} {i.zona} · {hace(i.hace)} · {i.origen === 'web' ? 'web' : 'WhatsApp'}</span>
-                {extra && <span className="fc-extra">{extra}</span>}
+                {extra && <span className="fc-extra">{conIconos(extra)}</span>}
               </div>
               <b className={'fc-monto' + (monedas < 0 ? ' neg' : '')}>{monedas < 0 ? '−' : '+'}{fmt(Math.abs(monedas))}</b>
             </li>

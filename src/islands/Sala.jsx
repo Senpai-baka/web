@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { cargar } from '../state/panel.js';
 import { Countdown, Accion, Campo, Barra, Vacio } from './ui.jsx';
+import { conIconos } from './Icono.jsx';
 import Cabeza from './Cabeza.jsx';
 import { Escena, Amenaza } from './Mazmorra.jsx';
 
@@ -55,10 +56,10 @@ function useSondeo(activo, ms) {
 function Final({ f }) {
   return (
     <div className="bloque vidrio">
-      <strong>{f.titulo}</strong>
+      <strong>{conIconos(f.titulo)}</strong>
       <p className="mut peq">{f.zona}</p>
       <p className="peq">💰 {fmt(f.monedas)} · ✨ {fmt(f.xp)} XP</p>
-      {f.extra.map((x, i) => <p key={i} className="peq">{x}</p>)}
+      {f.extra.map((x, i) => <p key={i} className="peq">{conIconos(x)}</p>)}
       <div className="btns uno"><Accion ruta="/api/sala/descartar">Listo</Accion></div>
     </div>
   );
@@ -176,7 +177,7 @@ function Registro({ log }) {
   const ult = (log || []).slice(-4);
   return (
     <div className="cb-log vidrio" aria-live="polite">
-      {ult.length ? ult.map((l, i) => <p key={i} className={i === ult.length - 1 ? 'nuevo' : ''}>{t(l)}</p>) : <p>La expedición comienza.</p>}
+      {ult.length ? ult.map((l, i) => <p key={i} className={i === ult.length - 1 ? 'nuevo' : ''}>{conIconos(t(l))}</p>) : <p>La expedición comienza.</p>}
     </div>
   );
 }

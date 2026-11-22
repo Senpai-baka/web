@@ -178,7 +178,7 @@ function Mascota({ d, base }) {
 function Parcela({ c, base }) {
   return (
     <div className={'plot ' + (c.marchita ? 'mar' : c.lista ? 'ok' : '')}>
-      <span className="em">{c.emoji}</span>
+      <span className="em"><Emo o={c} /></span>
       {c.marchita ? 'Marchita' : c.lista ? 'Lista' : <Countdown fin={base + c.listoS * 1000} />}
     </div>
   );
@@ -188,7 +188,7 @@ function Semilla({ c, d }) {
   const motivo = !d.libres && 'No tienes parcelas libres.';
   return (
     <div className="bloque vidrio" style={{ padding: '12px 14px' }}>
-      <div className="fila"><strong>{c.emoji} {c.nombre}</strong><span className="mut peq">{dur(c.duracionS)}</span></div>
+      <div className="fila"><strong><Emo o={c} /> {c.nombre}</strong><span className="mut peq">{dur(c.duracionS)}</span></div>
       <p className="mut peq">Semilla {fmt(c.semilla)} → {fmt(c.valor)} monedas</p>
       <div className="btnrow">
         <Accion ruta="/api/granja/plantar" cuerpo={{ cultivo: c.clave, cantidad: 1 }} motivo={motivo}>Sembrar 1</Accion>
@@ -203,7 +203,7 @@ function Producto({ p }) {
   const valor = p.cantidad * p.precio + p.marchitos * p.precioMarchito;
   return (
     <div className="bloque vidrio" style={{ padding: '12px 14px' }}>
-      <div className="fila"><strong>{p.emoji} {p.nombre} x{total}</strong><span className="mut peq">{fmt(p.precio)} c/u</span></div>
+      <div className="fila"><strong><Emo o={p} /> {p.nombre} x{total}</strong><span className="mut peq">{fmt(p.precio)} c/u</span></div>
       <p className="mut peq">
         {p.cantidad} fresco{p.cantidad === 1 ? '' : 's'}
         {p.marchitos ? ` · ${p.marchitos} marchito${p.marchitos === 1 ? '' : 's'} (${fmt(p.precioMarchito)} c/u)` : ''}

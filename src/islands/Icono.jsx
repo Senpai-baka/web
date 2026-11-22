@@ -78,3 +78,60 @@ export function Emo({ o, clave, nombre, emoji }) {
   const e = emoji ?? o?.emoji;
   return <Icono clave={c} nombre={n} emoji={e} cls="ico-i" />;
 }
+
+// ---- Texto con emojis -> imágenes ------------------------------------------------
+// Para cadenas que llegan del servidor ("🪵 Madera x3", "Obtuviste 🧪 Poción mayor").
+// Mira el nombre que sigue al emoji; si coincide con un PNG lo sustituye. Si no, deja el emoji.
+const PICTO = /\p{Extended_Pictographic}(?:\ufe0f|\u200d\p{Extended_Pictographic})*/gu;
+const EMOJI_TEXTO = { ...EMOJI };
+delete EMOJI_TEXTO['💎']; // en texto suele ser la moneda de gemas
+
+function nombreTras(txt, desde) {
+  const resto = txt.slice(desde).replace(/^[\s\ufe0f]+/, '');
+  const frag = resto.split(/[·,;:()!?.\n\u2022|]|\p{Extended_Pictographic}/u)[0];
+  const pal = frag.trim().split(/\s+/).filter(Boolean);
+  return pal.slice(0, 4);
+}
+
+function claveTexto(txt, fin, emoji) {
+  const pal = nombreTras(txt, fin);
+  for (let n = pal.length; n >= 1; n--) {
+    const u = iconoUrl({ nombre: pal.slice(0, n).join(' ') });
+    if (u) return u;
+  }
+  const k = EMOJI_TEXTO[emoji] || EMOJI_TEXTO[emoji.replace(/\ufe0f/g, '')];
+  return k && CLAVES.has(k) ? BASE + k + '.png' : null;
+}
+
+export function conIconos(txt) {
+  if (typeof txt !== 'string' || !txt) return txt;
+  PICTO.lastIndex = 0;
+  if (!PICTO.test(txt)) return txt;
+  PICTO.lastIndex = 0;
+  const partes = [];
+  let ult = 0;
+  let m;
+  let i = 0;
+  while ((m = PICTO.exec(txt))) {
+    const fin = m.index + m[0].length;
+    const src = claveTexto(txt, fin, m[0]);
+    if (!src) continue;
+    if (m.index > ult) partes.push(txt.slice(ult, m.index));
+    partes.push(<ImgTexto key={'i' + i++} src={src} emoji={m[0]} />);
+    ult = fin;
+  }
+  if (!partes.length) return txt;
+  if (ult < txt.length) partes.push(txt.slice(ult));
+  return partes;
+}
+
+function ImgTexto({ src, emoji }) {
+  const [malo, setMalo] = useState(false);
+  if (malo) return <>{emoji}</>;
+  return <img className="ico-img ico-i" src={src} alt="" draggable="false" decoding="async" onError={() => setMalo(true)} />;
+}
+
+// <Rico>{'🪵 Madera x3'}</Rico>
+export function Rico({ children }) {
+  return <>{conIconos(children)}</>;
+}

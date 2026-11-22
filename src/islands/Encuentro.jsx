@@ -1,6 +1,7 @@
 import React from 'react';
 import { fmt } from '../lib/format.js';
 import { Countdown, Accion, BotonListo, Titulo, Vacio } from './ui.jsx';
+import { conIconos } from './Icono.jsx';
 import Cabeza from './Cabeza.jsx';
 
 const ARTE = (
@@ -37,13 +38,13 @@ function Escenario({ a, base }) {
           <span className="en-pierde">Se pierde en <Countdown fin={base + a.expiraMs} /></span>
         </div>
         <h2>{a.titulo}</h2>
-        <p>{a.texto}</p>
+        <p>{conIconos(a.texto)}</p>
       </div>
       <Titulo>¿Qué haces?</Titulo>
       {a.opciones.map(o => (
         <div className={'bloque vidrio en-opcion riesgo-' + o.riesgo} key={o.id}>
           <div className="fila">
-            <strong>{o.emoji} {o.etiqueta}</strong>
+            <strong>{conIconos(`${o.emoji || ''} ${o.etiqueta}`)}</strong>
             <span className={'etiq' + (o.riesgo === 'bajo' ? '' : ' nar')}>{RIESGO[o.riesgo] || o.riesgo}</span>
           </div>
           <div className="en-prob">
