@@ -3,6 +3,24 @@ import { fmt } from '../../lib/format.js';
 import { Campo, Accion } from '../ui.jsx';
 import { Seccion, Grupo } from './comun.jsx';
 
+function Noche({ d }) {
+  return (
+    <Grupo titulo="Fuera del casino" extra="Sin apuesta">
+      <div className="bloque vidrio">
+        <div className="ci-juego"><h3>Noche de fiesta</h3><span className="ci-pago">Riesgo</span></div>
+        <span className="mut peq">Sal a la ciudad con tu cartera. Si la noche sale bien ganas monedas; si sale mal, pierdes parte de lo que llevas.</span>
+        <Accion
+          cls="pri"
+          ruta="/api/noche"
+          cuerpo={{}}
+          motivo={d.cartera < 1 && 'Necesitas monedas en la cartera para salir de fiesta.'}
+          confirmar="¿Salir de fiesta? Puedes ganar monedas o perder parte de tu cartera."
+        >Salir de fiesta</Accion>
+      </div>
+    </Grupo>
+  );
+}
+
 const COLORES = ['rojo', 'negro', 'verde', 'par', 'impar'];
 const cap = k => k[0].toUpperCase() + k.slice(1);
 
@@ -61,6 +79,7 @@ export default function Casino({ d }) {
           </div>
         </div>
       </Grupo>
+      <Noche d={d} />
     </Seccion>
   );
 }

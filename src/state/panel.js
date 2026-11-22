@@ -4,7 +4,7 @@ import { sincronizar } from '../core/reloj.js';
 
 const SEL0 = {
   perfilSel: 'ficha', invSel: 'equipo', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota', compPag: 1,
-  ciudadSel: 'banco', jugQ: '', pagoQ: '', arenaQ: '', gachaSel: 'invocar', gachaPag: 1, gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
+  ciudadSel: 'banco', jugQ: '', pagoQ: '', arenaQ: '', dadosQ: '', gachaSel: 'invocar', gachaPag: 1, ctQ: '', ctRareza: '', ctOrden: '', ctMias: '', topSel: 'coleccionistas', gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
 };
 const enc = encodeURIComponent;
 
@@ -17,10 +17,13 @@ export const RUTAS = {
   inventario: () => ({ equipo: '/api/equipo', heroe: '/api/heroe', forja: '/api/forja' }[sel.invSel] || '/api/inventario'),
   tienda: () => (sel.tiendaSel === 'mercado' ? '/api/mercado?pagina=' + sel.merPag : sel.tiendaSel === 'subastas' ? '/api/subastas?pagina=' + sel.subPag : '/api/' + sel.tiendaSel),
   hogar: () => (sel.hogarSel === 'companero' ? '/api/companero?pagina=' + sel.compPag : '/api/' + sel.hogarSel),
-  ciudad: () => (sel.ciudadSel === 'jugadores' ? '/api/jugadores?q=' + enc(sel.jugQ) : sel.ciudadSel === 'banco' ? '/api/banco?q=' + enc(sel.pagoQ) : sel.ciudadSel === 'arena' ? '/api/arena?q=' + enc(sel.arenaQ) : '/api/' + sel.ciudadSel),
+  ciudad: () => (sel.ciudadSel === 'jugadores' ? '/api/jugadores?q=' + enc(sel.jugQ) : sel.ciudadSel === 'banco' ? '/api/banco?q=' + enc(sel.pagoQ) : sel.ciudadSel === 'arena' ? '/api/arena?q=' + enc(sel.arenaQ) : sel.ciudadSel === 'dados' ? '/api/dados?q=' + enc(sel.dadosQ) : '/api/' + sel.ciudadSel),
   rankings: () => '/api/rankings',
   gacha: () => (sel.gachaSel === 'coleccion' ? '/api/gacha/coleccion?pagina=' + sel.gachaPag
-    : sel.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + enc(sel.gtQ) + '&ref=' + enc(sel.gtRef) + '&pm=' + sel.gtPm + '&ps=' + sel.gtPs : '/api/gacha'),
+    : sel.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + enc(sel.gtQ) + '&ref=' + enc(sel.gtRef) + '&pm=' + sel.gtPm + '&ps=' + sel.gtPs
+      : sel.gachaSel === 'tienda' ? '/api/cartas/tienda?pagina=' + sel.gachaPag + '&q=' + enc(sel.ctQ) + '&rareza=' + enc(sel.ctRareza) + '&orden=' + enc(sel.ctOrden) + '&mias=' + sel.ctMias
+        : sel.gachaSel === 'top' ? (sel.topSel === 'populares' ? '/api/cartas/top-favoritos?pagina=' : '/api/cartas/coleccionistas?pagina=') + sel.gachaPag
+          : sel.gachaSel === 'favoritos' ? '/api/cartas/favoritos' : '/api/gacha'),
   raid: () => '/api/raid',
   mazmorra: () => '/api/mazmorra',
   sala: () => '/api/sala',

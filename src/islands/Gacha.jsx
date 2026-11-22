@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { gachaSel, gachaIr, gachaPagina, abiertasGacha, vigilarFinGacha } from '../bridge/acciones.js';
 import { Seg, Vacio, Countdown, BotonListo, Accion, Fila, Titulo } from './ui.jsx';
 import Cabeza from './Cabeza.jsx';
-import { Carta, Mini, ChipsRareza, Pager } from './gachaUi.jsx';
+import { Carta, Mini, MiniSel, ChipsRareza, Pager } from './gachaUi.jsx';
 import GachaTratos from './GachaTratos.jsx';
+import GachaTienda, { PanelCarta } from './GachaTienda.jsx';
+import GachaTop, { GachaFavoritos } from './GachaTop.jsx';
 
-const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos']];
+const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos'], ['tienda', 'Tienda'], ['top', 'Top'], ['favoritos', 'Favoritos']];
 
 const ARTE = (
   <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
@@ -116,29 +118,43 @@ function Invocar({ d, base }) {
 }
 
 function Coleccion({ d }) {
+  const [elegida, setElegida] = useState(0);
+  const activa = d.cartas.find(c => c.id === elegida) || null;
   return (
     <>
       <ChipsRareza lista={d.porRareza} />
-      <Titulo>Tu colección</Titulo>
+      <Titulo extra={<span className="mut peq">Toca una para venderla o marcarla</span>}>Tu colección</Titulo>
       {d.cartas.length ? (
         <>
-          <div className="gc-rejilla">{d.cartas.map(c => <Mini key={c.id} c={c} />)}</div>
+          <div className="gc-rejilla">
+            {d.cartas.map(c => <MiniSel key={c.id} c={c} activa={c.id === elegida} onClick={() => setElegida(x => (x === c.id ? 0 : c.id))} />)}
+          </div>
           {d.paginas > 1 && <Pager pagina={d.pagina} paginas={d.paginas} onDir={gachaPagina} />}
+          {activa && <PanelCarta key={activa.id} c={activa} />}
         </>
       ) : <Vacio>Aún no tienes cartas. Invoca y reclama la primera.</Vacio>}
     </>
   );
 }
 
+const stats = (sel, d) => (sel === 'invocar' ? [['Cartas', fmt(d.mia.total)], ['Valor', fmt(d.mia.valor)]]
+  : sel === 'coleccion' ? [['Cartas', fmt(d.total)], ['Valor', fmt(d.valor)]]
+    : sel === 'tienda' ? [['Cartera', fmt(d.cartera)], ['En venta', d.enVenta + '/' + d.maxVentas]]
+      : sel === 'favoritos' ? [['Favoritos', d.total + '/' + d.max], ['Valor', fmt(d.valor)]]
+        : undefined);
+
 export default function Gacha({ d, base }) {
   const sel = gachaSel();
-  const mia = sel === 'coleccion' ? { total: d.total, valor: d.valor } : sel === 'tratos' ? null : d.mia;
-  const stats = mia ? [['Cartas', fmt(mia.total)], ['Valor', fmt(mia.valor)]] : undefined;
   return (
     <div className="lg gc">
-      <Cabeza titulo="Gacha" sub="Invoca, colecciona y cambia personajes de anime." arte={ARTE} cifras={stats} />
+      <Cabeza titulo="Gacha" sub="Invoca, colecciona y cambia personajes de anime." arte={ARTE} cifras={stats(sel, d)} />
       <Seg aria="Sección del gacha" opciones={OPCIONES} valor={sel} onCambio={gachaIr} />
-      {sel === 'coleccion' ? <Coleccion d={d} /> : sel === 'tratos' ? <GachaTratos d={d} base={base} /> : <Invocar d={d} base={base} />}
+      {sel === 'coleccion' ? <Coleccion d={d} />
+        : sel === 'tratos' ? <GachaTratos d={d} base={base} />
+          : sel === 'tienda' ? <GachaTienda d={d} />
+            : sel === 'top' ? <GachaTop d={d} />
+              : sel === 'favoritos' ? <GachaFavoritos d={d} />
+                : <Invocar d={d} base={base} />}
     </div>
   );
 }
