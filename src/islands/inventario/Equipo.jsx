@@ -1,14 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Sec, Vacio, Accion, Titulo, Slot, Countdown } from '../ui.jsx';
-import { ORDEN_RAREZA, infoRareza, colorRareza } from '../rareza.js';
+import { ORDEN_EQUIPO, claveEquipo, infoEquipo, colorEquipo, rangoEquipo } from '../rareza.js';
 import { aviso } from '../../bridge/acciones.js';
 import { useMe } from '../../bridge/store.js';
 import { Sprite, hojaHeroe } from '../Sprite.jsx';
 import { fmt } from '../../lib/format.js';
 
-const SOLO = { legendario: 'legendaria' };
-const TIPOS = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'] };
-const colorDe = it => colorRareza(it.rareza);
+const TIPOS = { arma: ['Arma', '🗡️'], armadura: ['Armadura', '🛡️'], amuleto: ['Amuleto', '📿'], apoyo: ['Apoyo', '🎒'] };
+const tiposDe = d => {
+  const t = { ...TIPOS };
+  for (const x of d.forja?.tipos || []) t[x.clave] = [x.nombre, x.emoji];
+  return t;
+};
+const colorDe = it => colorEquipo(it);
+const brillo = it => {
+  const k = claveEquipo(it);
+  return k === 'semidios' ? 'sem' : k === 'mitica' ? 'leg' : '';
+};
+const nombreRareza = k => infoEquipo(k)[0];
 const mismo = (a, b) => String(a) === String(b);
 
 function Heroe({ clase }) {
@@ -20,18 +29,18 @@ function Heroe({ clase }) {
   );
 }
 
-const AREAS = { arma: 'arma', armadura: 'armadura', amuleto: 'amuleto' };
+const AREAS = { arma: 'arma', armadura: 'armadura', amuleto: 'amuleto', apoyo: 'apoyo' };
 
-function Muneco({ items, activo, onSel, clase }) {
+function Muneco({ items, activo, onSel, clase, tipos }) {
   return (
     <div className="muneco pj vidrio">
-      {Object.entries(TIPOS).map(([tipo, [nombre, emoji]]) => {
+      {Object.entries(tipos).map(([tipo, [nombre, emoji]]) => {
         const it = items.find(i => i.equipado && i.tipo === tipo);
         const sel = !!it && mismo(it.id, activo?.id);
         return (
           <div className="hueco" key={tipo} style={{ gridArea: AREAS[tipo] }}>
             {it ? (
-              <button type="button" className={`slot celda ${sel ? 'sel' : ''}`} style={{ '--r': colorDe(it) }} onClick={() => onSel(it.id)} aria-label={it.etiqueta} aria-pressed={sel}>
+              <button type="button" className={`slot celda ${sel ? 'sel' : ''} ${brillo(it)}`} style={{ '--r': colorDe(it) }} onClick={() => onSel(it.id)} aria-label={it.etiqueta} aria-pressed={sel}>
                 <span className="si">{it.emoji || emoji}</span>
                 {it.plus > 0 && <b className="mas">+{it.plus}</b>}
                 <i className="eq">E</i>
@@ -98,11 +107,11 @@ function Bonos({ b }) {
   );
 }
 
-function Bolsa({ d, items, activo, onSel }) {
+function Bolsa({ d, items, activo, onSel, tipos }) {
   const [filtro, setFiltro] = useState('todo');
   const filtros = [
     ['todo', 'Todo', items.length],
-    ...Object.entries(TIPOS).map(([k, [n]]) => [k, n, items.filter(i => i.tipo === k).length])
+    ...Object.entries(tipos).map(([k, [n]]) => [k, n, items.filter(i => i.tipo === k).length])
   ];
   const vistos = filtro === 'todo' ? items : items.filter(i => i.tipo === filtro);
   const libres = filtro === 'todo' ? Math.min(10, Math.max(0, (d.bolsa?.max || 0) - items.length)) : 0;
@@ -117,7 +126,7 @@ function Bolsa({ d, items, activo, onSel }) {
         {vistos.map(it => {
           const sel = mismo(it.id, activo?.id);
           return (
-            <button key={it.id} type="button" className={`slot celda ${sel ? 'sel' : ''} ${it.rareza === 'legendaria' ? 'leg' : ''}`} style={{ '--r': colorDe(it) }} aria-label={it.etiqueta} aria-pressed={sel} onClick={() => onSel(it.id)}>
+            <button key={it.id} type="button" className={`slot celda ${sel ? 'sel' : ''} ${brillo(it)}`} style={{ '--r': colorDe(it) }} aria-label={it.etiqueta} aria-pressed={sel} onClick={() => onSel(it.id)}>
               <span className="si">{it.emoji || '🎒'}</span>
               {it.plus > 0 && <b className="mas">+{it.plus}</b>}
               {it.equipado && <i className="eq">E</i>}
@@ -145,7 +154,7 @@ function Comparar({ activo, actual }) {
       <p className="mut peq">Comparado con lo que llevas puesto ({actual.etiqueta})</p>
       {fila('Nivel', activo.ilvl, actual.ilvl)}
       {fila('Mejora', activo.plus || 0, actual.plus || 0, `+${activo.plus || 0}`, `+${actual.plus || 0}`)}
-      {fila('Rareza', ORDEN_RAREZA.indexOf(activo.rareza), ORDEN_RAREZA.indexOf(actual.rareza), infoRareza(activo.rareza)[0], infoRareza(actual.rareza)[0])}
+      {fila('Rareza', rangoEquipo(activo), rangoEquipo(actual), nombreRareza(activo), nombreRareza(actual))}
       {fila('Durabilidad', activo.dur, actual.dur, `${activo.dur}/${activo.durMax}`, `${actual.dur}/${actual.durMax}`)}
     </div>
   );
@@ -161,7 +170,7 @@ function Encanto({ activo, d }) {
     setElegido('');
   }, [claveActual]);
   if (!e) return null;
-  const opciones = (d.encantos || []).filter(x => x.clave !== claveActual && (!x.solo || (SOLO[x.solo] || x.solo) === activo.rareza));
+  const opciones = (d.encantos || []).filter(x => x.clave !== claveActual && (!x.solo || rangoEquipo(activo) >= ORDEN_EQUIPO.indexOf(x.solo)));
   const visible = e.disponible && (!e.actual || abierto);
   const pieza = opciones.find(x => x.clave === elegido);
   const extra = pieza?.extra || [];
@@ -192,12 +201,12 @@ function Encanto({ activo, d }) {
       {visible && (
         <>
           <span className="mut peq">
-            {e.actual ? 'Cambiarlo cuesta lo mismo que encantar y el anterior se pierde.' : 'Las piezas épicas y legendarias aceptan un encanto. Elige uno:'}
+            {e.actual ? 'Cambiarlo cuesta lo mismo que encantar y el anterior se pierde.' : 'Las piezas épicas, míticas y de semidiós aceptan un encanto. Elige uno:'}
           </span>
           <div className="en-ops" role="group" aria-label="Encantamientos">
             {opciones.map(x => (
               <button key={x.clave} type="button" className="en-op" aria-pressed={elegido === x.clave} onClick={() => setElegido(x.clave)}>
-                {x.emoji} {x.nombre}<span>{x.efecto}{x.solo ? ' · legendario' : ''}</span>
+                {x.emoji} {x.nombre}<span>{x.efecto}{x.solo ? ` · ${nombreRareza(x.solo).toLowerCase()}+` : ''}</span>
               </button>
             ))}
           </div>
@@ -222,29 +231,64 @@ function Encanto({ activo, d }) {
   );
 }
 
-function Forjar({ d }) {
+function textoBase(bs, tipo) {
+  if (!bs) return null;
+  if (tipo === 'armadura') {
+    const a = bs.armadura;
+    return `🛡️ Base: ❤️ +${a.vida} vida · repele ${a.repele}% del daño${a.extra ? ` · ${a.extra.texto}: ${a.extra.efecto}` : ''} · durabilidad ${bs.durabilidad}. Crece con tu nivel y las mejoras.`;
+  }
+  if (tipo === 'arma') {
+    const w = bs.arma;
+    return `🗡️ Base: ${w.critico > 0 ? `🎯 ${w.critico}% crítico (x${w.mult})` : 'sin crítico'}${w.robo > 0 ? ` · 🩸 ${w.robo}% robo de vida` : ''} · durabilidad ${bs.durabilidad}.`;
+  }
+  if (tipo === 'amuleto') return `📿 Base: suerte x${bs.mult} · durabilidad ${bs.durabilidad}.`;
+  if (tipo === 'apoyo') return bs.apoyo ? `${bs.apoyo.emoji} Base: ${bs.apoyo.efectos.join(' · ')} · durabilidad ${bs.durabilidad}. Crece con tu nivel y las mejoras.` : `Necesitas una clase para forjar apoyo.`;
+  return `Durabilidad ${bs.durabilidad}. Elige un tipo para ver sus estadísticas base.`;
+}
+
+function Forjar({ d, tipos }) {
+  const me = useMe();
+  const nivel = me?.nivel ?? 0;
   const [tipo, setTipo] = useState('');
+  const [rareza, setRareza] = useState('mitica');
   const f = d.forja;
   if (!f) return null;
-  const alcanza = (d.cartera || 0) >= f.costo.monedas && f.costo.mats.every(m => m.tienes >= m.n);
-  const motivo = !d.clase ? 'Necesitas una clase para forjar equipo de clase.' : !tipo ? 'Elige qué quieres forjar.' : !alcanza ? 'Te faltan monedas o materiales.' : null;
+  const recetas = f.recetas?.length ? f.recetas : [{ rareza: 'mitica', nombre: 'Mítica', emoji: '🟡', nivelMin: 0, costo: f.costo, puede: f.puede }];
+  const r = recetas.find(x => x.rareza === rareza) || recetas[0];
+  const rt = (tipo && r.tipos?.[tipo]) || r;
+  const nombre = nombreRareza(r.rareza);
+  const base = textoBase(r.base, tipo);
+  const alcanza = (d.cartera || 0) >= rt.costo.monedas && rt.costo.mats.every(m => m.tienes >= m.n);
+  const motivo = !d.clase ? 'Necesitas una clase para forjar equipo de clase.'
+    : nivel < r.nivelMin ? `Esta rareza se forja desde el nivel ${r.nivelMin}.`
+    : !tipo ? 'Elige qué quieres forjar.'
+    : !alcanza ? 'Te faltan monedas o materiales.' : null;
   return (
-    <Sec k="equipo-forjar-react" titulo="Forjar legendario" extra={d.clase ? `${d.clase.emoji || ''} ${d.clase.nombre}` : 'Sin clase'}>
+    <Sec k="equipo-forjar-react" titulo="Forjar equipo" extra={d.clase ? `${d.clase.emoji || ''} ${d.clase.nombre}` : 'Sin clase'}>
       <div className="bloque vidrio">
-        <p className="mut peq">Crea una pieza legendaria de tu clase actual. Elige el tipo:</p>
-        <div className="en-ops" role="group" aria-label="Tipo de pieza">
-          {Object.entries(TIPOS).map(([k, [nombre, emoji]]) => (
-            <button key={k} type="button" className="en-op" aria-pressed={tipo === k} onClick={() => setTipo(k)}>{emoji} {nombre}</button>
+        <p className="mut peq">Crea una pieza de tu clase actual. Elige la rareza:</p>
+        <div className="en-ops" role="group" aria-label="Rareza de la pieza">
+          {recetas.map(x => (
+            <button key={x.rareza} type="button" className="en-op" style={{ '--r': colorEquipo(x.rareza) }} aria-pressed={r.rareza === x.rareza} onClick={() => setRareza(x.rareza)}>
+              {x.emoji} {nombreRareza(x.rareza)}{x.nivelMin > 0 ? <span>Nv {x.nivelMin}+</span> : null}
+            </button>
           ))}
         </div>
+        <p className="mut peq">Elige el tipo:</p>
+        <div className="en-ops" role="group" aria-label="Tipo de pieza">
+          {Object.entries(tipos).map(([k, [n, emoji]]) => (
+            <button key={k} type="button" className="en-op" aria-pressed={tipo === k} onClick={() => setTipo(k)}>{emoji} {n}</button>
+          ))}
+        </div>
+        {base && <p className="mut peq">{base}</p>}
         <div className="reqs" aria-label="Costo">
-          <span className={`req ${(d.cartera || 0) < f.costo.monedas ? 'falta' : ''}`}>{fmt(f.costo.monedas)} monedas</span>
-          {f.costo.mats.map(m => (
+          <span className={`req ${(d.cartera || 0) < rt.costo.monedas ? 'falta' : ''}`}>{fmt(rt.costo.monedas)} monedas</span>
+          {rt.costo.mats.map(m => (
             <span key={m.clave} className={`req ${m.tienes < m.n ? 'falta' : ''}`}>{m.emoji} {m.nombre} {m.tienes}/{m.n}</span>
           ))}
         </div>
         <div className="btns uno">
-          <Accion cls="pri" ruta="/api/equipo/forjar" cuerpo={{ tipo }} motivo={motivo} confirmar={`¿Forjar ${TIPOS[tipo]?.[0] || 'pieza'} legendaria por ${fmt(f.costo.monedas)} monedas y los materiales?`}>Forjar</Accion>
+          <Accion cls="pri" ruta="/api/equipo/forjar" cuerpo={{ tipo, rareza: r.rareza }} motivo={motivo} confirmar={`¿Forjar ${tipos[tipo]?.[0] || 'pieza'} ${nombre.toLowerCase()} por ${fmt(rt.costo.monedas)} monedas y los materiales?`}>Forjar</Accion>
         </div>
       </div>
     </Sec>
@@ -266,7 +310,7 @@ function Detalle({ d, activo, actual }) {
             <strong style={{ color: colorDe(activo) }}>{activo.etiqueta}</strong>
             {activo.equipado && <span className="etiq">Equipado</span>}
           </div>
-          <p className="mut peq">{infoRareza(activo.rareza)[0]} · Nivel {activo.ilvl} · Mejora +{activo.plus || 0}</p>
+          <p className="mut peq">{infoEquipo(activo)[2]} {nombreRareza(activo)} · {activo.tipoNombre || 'Pieza'} · Nivel {activo.ilvl} · Mejora +{activo.plus || 0}</p>
           <p className="mut peq">Durabilidad: {activo.dur}/{activo.durMax}{activo.roto ? ' · roto, sin bonos' : ''}</p>
         </div>
       </div>
@@ -385,15 +429,16 @@ export default function Equipo({ d, base }) {
   const activo = items.find(i => mismo(i.id, seleccion)) || items.find(i => i.equipado) || items[0] || null;
   const actual = activo && !activo.equipado ? items.find(i => i.equipado && i.tipo === activo.tipo) : null;
   const puestos = items.filter(i => i.equipado).length;
+  const tipos = tiposDe(d);
   const b = d.bonos || {};
   return (
     <>
-      <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(TIPOS).length}`}>
-        <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} />
+      <Sec k="equipo-puesto-react" titulo="Equipado" extra={`${puestos}/${Object.keys(tipos).length}`}>
+        <Muneco items={items} activo={activo} onSel={setSeleccion} clase={me?.clase?.clave} tipos={tipos} />
       </Sec>
       <Sec k="equipo-react" titulo="Bolsa" extra={`${d.bolsa?.usados ?? items.length}/${d.bolsa?.max ?? '—'}`}>
         {items.length
-          ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} />
+          ? <Bolsa d={d} items={items} activo={activo} onSel={setSeleccion} tipos={tipos} />
           : <Vacio>No tienes equipo todavía. Consigue piezas jugando o en la tienda.</Vacio>}
       </Sec>
       {activo && (
@@ -406,7 +451,7 @@ export default function Equipo({ d, base }) {
       <Sec k="equipo-bonos-react" titulo="Bonos del equipo" extra="">
         <Bonos b={b} />
       </Sec>
-      <Forjar d={d} />
+      <Forjar d={d} tipos={tipos} />
       {d.reparacion?.cantidad > 0 && <Reparaciones d={d} />}
       {items.length > 0 && <Lotes d={d} />}
       {d.casa && <Hogar d={d} />}
