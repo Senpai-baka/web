@@ -35,7 +35,7 @@ export function EfectosActivos({ lista, base }) {
         return (
           <div className="efecto vidrio" role="listitem" key={e.clave} style={{ '--r': color }}>
             <div className="efecto-f">
-              <Slot emoji={e.emoji} color={color} />
+              <Slot emoji={e.emoji} clave={e.clave} nombre={e.nombre} color={color} />
               <div className="nom">
                 <strong>{e.nombre}</strong>
                 <Chip color={color}>{e.efecto}</Chip>
@@ -66,7 +66,7 @@ export function Elixires({ lista, tope }) {
         const color = colorObjeto(o.clave);
         return (
           <div className="fil elx" key={o.clave}>
-            <Slot emoji={o.emoji} cantidad={o.cantidad} color={color} />
+            <Slot emoji={o.emoji} clave={o.clave} nombre={o.nombre} cantidad={o.cantidad} color={color} />
             <div className="nom">
               <strong className="largo">{o.nombre}</strong>
               <Chip color={color}>{o.efecto}{o.duracionS ? ` · ${o.duracionS / 3600} h` : ''}</Chip>
@@ -91,7 +91,7 @@ function Receta({ o, max }) {
   return (
     <div className="bloque vidrio rec" style={{ '--r': color }}>
       <div className="fila">
-        <span className="rec-t"><Slot emoji={o.emoji} color={color} /><span className="nom"><strong>{o.nombre}</strong><Chip color={color}>{o.efecto}{o.duracionS ? ` · ${o.duracionS / 3600} h` : ''}</Chip></span></span>
+        <span className="rec-t"><Slot emoji={o.emoji} clave={o.clave} nombre={o.nombre} color={color} /><span className="nom"><strong>{o.nombre}</strong><Chip color={color}>{o.efecto}{o.duracionS ? ` · ${o.duracionS / 3600} h` : ''}</Chip></span></span>
         <span className="mut peq rec-n">Tienes {o.cantidad}/{max}</span>
       </div>
       <p className="mut peq" style={{ marginTop: 8 }}>{o.desc}</p>
@@ -100,7 +100,7 @@ function Receta({ o, max }) {
           const falta = x.tengo < x.necesita;
           return (
             <div className={`mat ${falta ? 'falta' : 'ok'}`} key={x.clave}>
-              <Slot emoji={x.emoji} color={falta ? '#dd8591' : '#8fc4ad'} falta={falta} />
+              <Slot emoji={x.emoji} clave={x.clave} nombre={x.nombre} color={falta ? '#dd8591' : '#8fc4ad'} falta={falta} />
               <span className="peq">{x.nombre}<br /><b>{x.tengo}/{x.necesita}</b></span>
             </div>
           );

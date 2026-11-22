@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { hogarSeccion, hogarIr, publicar } from '../bridge/acciones.js';
 import { Countdown, Titulo, Accion, BotonListo, Barra, Estado, Cifras, Kv } from './ui.jsx';
+import { Emo } from './Icono.jsx';
 import MascotaSprite from './MascotaSprite.jsx';
 import Companero from './Companero.jsx';
 
@@ -276,7 +277,7 @@ function Legendarias({ d }) {
           Ganas una invocación cada {d.cada} niveles. Cada fallo suma +{d.pityPorFallo}% de éxito, hasta +{d.pityMax}%.
         </p>
         <Kv k="Monedas" v={fmt(d.costo.monedas) + ' (tienes ' + fmt(d.cartera) + ')'} />
-        {d.costo.mats.map(m => <Kv key={m.k} k={m.emoji + ' ' + m.nombre} v={m.tiene + '/' + m.necesita} />)}
+        {d.costo.mats.map(m => <Kv key={m.k} k={<><Emo o={m} /> {m.nombre}</>} v={m.tiene + '/' + m.necesita} />)}
       </div>
       <div className="btns uno">
         <Accion ruta="/api/invocacion/invocar" motivo={d.bloqueo || undefined} confirmar={aviso}>✨ Invocar</Accion>
