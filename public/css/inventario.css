@@ -815,5 +815,5 @@
 }
 
 .iv .pj.muneco {
-  grid-template-areas: "arma hero armadura" "apoyo . amuleto";
+  grid-template-areas: "casco hero arma" "coraza hero guantes" "pantalones hero amuleto" "botas hero apoyo";
 }
