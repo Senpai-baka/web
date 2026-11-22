@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { fmt } from '../lib/format.js';
 import { Countdown, Accion, Barra, Campo, Fila, Titulo, Vacio, filas, medalla } from './ui.jsx';
+import { Emo } from './Icono.jsx';
 import Cabeza from './Cabeza.jsx';
 
 const ARTE = (
@@ -35,8 +36,14 @@ const ARTE = (
 
 const ACTIVIDAD = { minar: 'Minar', talar: 'Talar', pescar: 'Pescar', hunt: 'Cazar', work: 'Trabajar' };
 
-const cofresTxt = lista => lista.map(c => `${c.emoji} ${c.nombre} x${c.cantidad}`).join(' · ');
-const premioTxt = p => [`🪙 ${fmt(p.monedas)}`, cofresTxt(p.cofres)].filter(Boolean).join(' · ');
+const premioTxt = p => (
+  <>
+    {`🪙 ${fmt(p.monedas)}`}
+    {(p.cofres || []).map(c => (
+      <React.Fragment key={c.clave || c.nombre}>{' · '}<Emo clave={'cofre_' + c.clave} nombre={c.nombre} emoji={c.emoji} /> {c.nombre} x{c.cantidad}</React.Fragment>
+    ))}
+  </>
+);
 
 function Tema({ d, base }) {
   return (
@@ -111,7 +118,7 @@ function Aportar({ d }) {
         ? tienen.map(m => (
           <div className="bloque vidrio" key={m.clave}>
             <div className="fila">
-              <strong>{m.emoji} {m.nombre}</strong>
+              <strong><Emo o={m} /> {m.nombre}</strong>
               <span className="mut peq">Tienes {fmt(m.tengo)}</span>
             </div>
             <div className="fila peq">

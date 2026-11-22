@@ -5,6 +5,7 @@ import { NEUTRO, AZUL, COLOR_COFRE } from '../rareza.js';
 import { cambiarInventario } from '../../bridge/acciones.js';
 import { fmt } from '../../lib/format.js';
 import { Elixires, EfectosActivos } from '../Elixires.jsx';
+import { Emo } from '../Icono.jsx';
 
 const FILTROS = [
   ['todo', 'Todo'], ['cofres', 'Cofres'], ['herramientas', 'Herramientas'], ['consumibles', 'Consumibles'],
@@ -30,7 +31,7 @@ function Herramienta({ h }) {
   return (
     <div className={`herr bloque vidrio ${h.activa ? '' : 'off'}`}>
       <div className="cab">
-        <Slot emoji={h.emoji} color={NEUTRO} />
+        <Slot emoji={h.emoji} clave={h.clave} nombre={h.nombre} color={NEUTRO} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <strong>{h.nombre}</strong> <span className="mut peq">Nv {h.nivel}/{h.nivelMax} · x{h.mult}</span><br />
           <span className="mut peq">Se usa en {h.usoEn}</span>
@@ -53,7 +54,7 @@ function Herramienta({ h }) {
         <>
           <p className="costo mut">
             Nv {m.siguiente.nivel}: x{m.siguiente.mult} · {m.siguiente.usosMax} usos<br />
-            Costo: {fmt(m.monedas)} monedas · {m.mats.map(x => `${x.emoji} ${x.tengo}/${x.necesita}`).join(' ')}
+            Costo: {fmt(m.monedas)} monedas · {m.mats.map(x => <span key={x.clave || x.nombre} className="mat-i"><Emo o={x} /> {x.tengo}/{x.necesita}</span>)}
           </p>
           <div className="btns uno">
             <Accion ruta="/api/herramientas/mejorar" cuerpo={{ clave: h.clave }} motivo={!m.puede ? 'Te faltan monedas o materiales.' : null}>Mejorar</Accion>
@@ -72,7 +73,7 @@ function Herramientas({ lista }) {
 function Cofres({ lista, max }) {
   const [sel, elegir] = useElegir();
   if (!lista.length) return <Vacio>No tienes cofres. Puedes conseguirlos jugando y explorando.</Vacio>;
-  const celdas = lista.map(c => ({ id: c.clave, emoji: c.emoji, nombre: c.nombre, etiqueta: `x${c.cantidad}`, color: COLOR_COFRE[c.clave] || COLOR_COFRE.madera, cofre: c }));
+  const celdas = lista.map(c => ({ id: c.clave, clave: 'cofre_' + c.clave, emoji: c.emoji, nombre: c.nombre, etiqueta: `x${c.cantidad}`, color: COLOR_COFRE[c.clave] || COLOR_COFRE.madera, cofre: c }));
   const activo = celdas.find(x => x.id === sel);
   const c = activo?.cofre;
   const n = c ? Math.min(c.cantidad, max) : 1;
@@ -80,7 +81,7 @@ function Cofres({ lista, max }) {
     <>
       <Rejilla lista={celdas} sel={sel} onSel={elegir} />
       {c && (
-        <Ficha color={activo.color} titulo={`${c.emoji} ${c.nombre}`}>
+        <Ficha color={activo.color} titulo={<><Emo clave={'cofre_' + c.clave} nombre={c.nombre} emoji={c.emoji} /> {c.nombre}</>}>
           <p className="mut peq">{fmt(c.monedas[0])}–{fmt(c.monedas[1])} monedas, materiales y más.</p>
           <p className="peq">Tienes {c.cantidad}</p>
           <div className="btnrow">
@@ -96,14 +97,14 @@ function Cofres({ lista, max }) {
 function Consumibles({ lista, tope, base }) {
   const [sel, elegir] = useElegir();
   if (!lista.length) return <Vacio>No tienes consumibles.</Vacio>;
-  const celdas = lista.map(c => ({ id: c.clave || c.nombre, emoji: c.emoji, nombre: c.nombre, etiqueta: `x${c.cantidad}`, color: AZUL, apagado: c.cantidad < 1, consumible: c }));
+  const celdas = lista.map(c => ({ id: c.clave || c.nombre, clave: c.clave, emoji: c.emoji, nombre: c.nombre, etiqueta: `x${c.cantidad}`, color: AZUL, apagado: c.cantidad < 1, consumible: c }));
   const activo = celdas.find(x => x.id === sel);
   const c = activo?.consumible;
   return (
     <>
       <Rejilla lista={celdas} sel={sel} onSel={elegir} />
       {c && (
-        <Ficha color={AZUL} titulo={`${c.emoji} ${c.nombre}`}>
+        <Ficha color={AZUL} titulo={<><Emo o={c} /> {c.nombre}</>}>
           <p className="mut peq">{c.desc}</p>
           <p className="peq">
             Tienes {c.cantidad}/{tope}{' '}
@@ -118,14 +119,14 @@ function Consumibles({ lista, tope, base }) {
 function Materiales({ lista, valor }) {
   const [sel, elegir] = useElegir();
   if (!lista.length) return <Vacio>Aún no tienes materiales. Mina, tala o pesca para conseguirlos.</Vacio>;
-  const celdas = lista.map(m => ({ id: m.clave, emoji: m.emoji, nombre: m.nombre, cantidad: fmt(m.cantidad), precio: m.precio, color: NEUTRO, mat: m }));
+  const celdas = lista.map(m => ({ id: m.clave, clave: m.clave, emoji: m.emoji, nombre: m.nombre, cantidad: fmt(m.cantidad), precio: m.precio, color: NEUTRO, mat: m }));
   const activo = celdas.find(x => x.id === sel);
   const m = activo?.mat;
   return (
     <>
       <Rejilla lista={celdas} sel={sel} onSel={elegir} />
       {m && (
-        <Ficha color={NEUTRO} titulo={`${m.emoji || '📦'} ${m.nombre}`} precio={m.precio}>
+        <Ficha color={NEUTRO} titulo={<><Emo o={{ ...m, emoji: m.emoji || '📦' }} /> {m.nombre}</>} precio={m.precio}>
           <p className="mut peq">Precio por unidad. Tienes {fmt(m.cantidad)}, valen {fmt(m.cantidad * (m.precio || 0))} monedas.</p>
         </Ficha>
       )}
@@ -142,7 +143,7 @@ function Reliquias({ lista, bono }) {
   return (
     <>
       <div className="rel">
-        {lista.map(r => <span key={r.clave || r.nombre} className={r.tiene ? '' : 'no'}>{r.emoji} {r.nombre}</span>)}
+        {lista.map(r => <span key={r.clave || r.nombre} className={r.tiene ? '' : 'no'}><Emo o={r} /> {r.nombre}</span>)}
       </div>
       <p className="mut peq" style={{ marginTop: 8 }}>
         Colección: {tengo}/{lista.length}. Bono de ingresos por reliquias: +{bono}%. Solo salen de los cofres.

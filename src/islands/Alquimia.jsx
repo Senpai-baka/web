@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { fmt, dur } from '../lib/format.js';
 import { Countdown, Accion, Barra, Titulo, Vacio, Seg } from './ui.jsx';
+import { Emo } from './Icono.jsx';
 import Cabeza from './Cabeza.jsx';
 
 const ARTE = (
@@ -78,7 +79,7 @@ function Calderos({ d, base }) {
       <div className="aq-calderos">
         {d.calderos.map(c => (
           <div className={'aq-caldero' + (c.lista ? ' lista' : '')} key={c.idx}>
-            <span className="aq-em">{c.emoji}</span>
+            <span className="aq-em"><Emo o={c} /></span>
             <strong>{c.nombre}</strong>
             {c.lista ? <span className="etiq">Lista</span> : <Countdown fin={base + c.listoS * 1000} />}
           </div>
@@ -111,14 +112,14 @@ function Receta({ r, libres }) {
   return (
     <div className={'bloque vidrio aq-receta' + (r.bloqueada ? ' bloq' : '')}>
       <div className="fila">
-        <strong>{r.emoji} {r.nombre}</strong>
+        <strong><Emo o={r} /> {r.nombre}</strong>
         <span className="aq-tiempo">{r.bloqueada ? `Nivel ${r.nivel}` : dur(r.s)}</span>
       </div>
       <p className="mut peq">{r.desc}</p>
       <div className="reqs">
         {[...r.hierbas, ...r.mats].map(x => (
           <span key={x.clave} className={'req' + (x.tengo < x.necesita ? ' falta' : '')}>
-            {x.emoji} {fmt(x.tengo)}/{fmt(x.necesita)}
+            <Emo o={x} /> {fmt(x.tengo)}/{fmt(x.necesita)}
           </span>
         ))}
         {r.costo > 0 && <span className="req">🪙 {fmt(r.costo)}</span>}
@@ -138,7 +139,7 @@ function Objeto({ o, actividad }) {
   return (
     <div className="bloque vidrio">
       <div className="fila">
-        <strong>{o.emoji} {o.nombre}</strong>
+        <strong><Emo o={o} /> {o.nombre}</strong>
         <span className="mut peq">{o.cantidad}/{o.max}</span>
       </div>
       <p className="mut peq">{o.desc}</p>
@@ -180,7 +181,7 @@ export default function Alquimia({ d, base }) {
       <Calderos d={d} base={base} />
       <Titulo>Hierbas</Titulo>
       {hierbas.length
-        ? <div className="aq-hierbas">{hierbas.map(h => <span key={h.clave || h.nombre}>{h.emoji} <b>{fmt(h.cantidad)}</b> {h.nombre}</span>)}</div>
+        ? <div className="aq-hierbas">{hierbas.map(h => <span key={h.clave || h.nombre}><Emo o={h} /> <b>{fmt(h.cantidad)}</b> {h.nombre}</span>)}</div>
         : <Vacio>Aún no tienes hierbas. Se encuentran al recolectar.</Vacio>}
       <Titulo>Recetas</Titulo>
       {d.recetas.map(r => <Receta key={r.clave} r={r} libres={d.libres} />)}

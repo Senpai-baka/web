@@ -4,6 +4,7 @@ import { dur, fmt } from '../lib/format.js';
 import { API } from '../lib/api.js';
 import { useMe } from '../bridge/store.js';
 import { publicar, aviso, verJugador } from '../bridge/acciones.js';
+import { Icono } from './Icono.jsx';
 
 export const MEDALLA = ['🥇', '🥈', '🥉'];
 export const medalla = i => MEDALLA[i] || (i + 1) + '.';
@@ -90,10 +91,10 @@ export function Fila({ r, extra, valor, avatar }) {
   );
 }
 
-export function Slot({ emoji, cantidad, color, falta, plus }) {
+export function Slot({ emoji, cantidad, color, falta, plus, clave, nombre }) {
   return (
     <span className={`slot${falta ? ' falta' : ''}`} style={{ '--r': color }} aria-hidden="true">
-      <span className="si">{emoji || '📦'}</span>
+      <span className="si"><Icono clave={clave} nombre={nombre} emoji={emoji || '📦'} cls="ico-slot" /></span>
       {cantidad !== undefined && <i className="n">{cantidad}</i>}
       {plus > 0 && <b className="mas">+{plus}</b>}
     </span>
@@ -103,7 +104,7 @@ export function Slot({ emoji, cantidad, color, falta, plus }) {
 export function Celda({ it, sel, onSel }) {
   return (
     <button type="button" className={`it ${sel ? 'sel' : ''} ${it.apagado ? 'no' : ''}`} onClick={() => onSel(it.id)} aria-pressed={sel} aria-label={it.nombre}>
-      <Slot emoji={it.emoji} cantidad={it.cantidad} color={it.color} />
+      <Slot emoji={it.emoji} clave={it.clave ?? (typeof it.id === 'string' ? it.id : undefined)} nombre={it.nombre} cantidad={it.cantidad} color={it.color} />
       <span className="it-n">{it.nombre}</span>
       <span className="it-p">{it.etiqueta !== undefined ? it.etiqueta : fmt(it.precio)}</span>
     </button>

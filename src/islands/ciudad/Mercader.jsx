@@ -52,7 +52,7 @@ function Oferta({ o, cartera }) {
     : cartera < o.precio && 'No te alcanza con la cartera.';
   return (
     <div className="ci-fil">
-      <Slot emoji={emojiDe(o.nombre)} color={o.comprada ? NEUTRO : color} />
+      <Slot emoji={emojiDe(o.nombre)} clave={o.clave} nombre={sinEmoji(o.nombre)} color={o.comprada ? NEUTRO : color} />
       <div className="info">
         <strong>{sinEmoji(o.nombre)}</strong>
         <span className="mut peq">{tipo}{o.comprada ? ' · Comprada' : ''}</span>
@@ -71,7 +71,7 @@ function Demanda({ m }) {
     : m.tengo < 1 && `No tienes ${m.nombre}.`;
   return (
     <div className="ci-fil">
-      <Slot emoji={m.emoji} cantidad={m.tengo} color={m.tengo > 0 ? ORO : NEUTRO} falta={m.tengo < 1} />
+      <Slot emoji={m.emoji} clave={m.clave} nombre={m.nombre} cantidad={m.tengo} color={m.tengo > 0 ? ORO : NEUTRO} falta={m.tengo < 1} />
       <div className="info">
         <strong>{m.nombre}</strong>
         <span className="mut peq">Paga {fmt(m.precio)} c/u · Cupo {fmt(Math.max(0, m.cupo))}</span>

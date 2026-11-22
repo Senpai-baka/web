@@ -1,6 +1,7 @@
 import React from 'react';
 import { fmt } from '../lib/format.js';
 import { Countdown, Accion, Barra, Titulo, Vacio } from './ui.jsx';
+import { Emo } from './Icono.jsx';
 import Cabeza from './Cabeza.jsx';
 
 const ARTE = (
@@ -50,7 +51,7 @@ function Encargo({ x }) {
   return (
     <div className={'bloque vidrio eg-encargo' + (x.hecho ? ' hecho' : '') + (x.urgente && !x.hecho ? ' urgente' : '')}>
       <div className="eg-cab">
-        <span className="eg-em" aria-hidden="true">{x.emoji}</span>
+        <span className="eg-em" aria-hidden="true"><Emo o={x} /></span>
         <div className="eg-pide">
           <strong>{x.nombre}</strong>
           <span>Entrega {fmt(x.cantidad)}</span>
@@ -86,8 +87,8 @@ function Resumen({ d, base }) {
       <p className="eg-racha">{rachaTxt}</p>
       <p className="mut peq">
         {d.completoHoy
-          ? `Hoy completaste todos y recibiste ${d.cofre.emoji} ${d.cofre.nombre}.`
-          : `Al completar los ${d.total} recibes ${d.cofre.emoji} ${d.cofre.nombre}.`}
+          ? <>Hoy completaste todos y recibiste <Emo clave={'cofre_' + d.cofre.clave} nombre={d.cofre.nombre} emoji={d.cofre.emoji} /> {d.cofre.nombre}.</>
+          : <>Al completar los {d.total} recibes <Emo clave={'cofre_' + d.cofre.clave} nombre={d.cofre.nombre} emoji={d.cofre.emoji} /> {d.cofre.nombre}.</>}
       </p>
     </div>
   );

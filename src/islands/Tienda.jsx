@@ -3,6 +3,7 @@ import { fmt } from '../lib/format.js';
 import { useMe } from '../bridge/store.js';
 import { tiendaSeccion, tiendaIr, tiendaPagina } from '../bridge/acciones.js';
 import { Vacio, Countdown, Titulo, Accion, Campo, Celda, Rejilla, Ficha } from './ui.jsx';
+import { Emo } from './Icono.jsx';
 import { NEUTRO, ORO, AZUL, colorObjeto } from './rareza.js';
 
 const SECCIONES = [['tienda', 'Tienda'], ['bazar', 'Bazar'], ['mercado', 'Mercado'], ['subastas', 'Subastas']];
@@ -62,7 +63,7 @@ function BotonAbrir({ abierto, onCambio, texto }) {
 
 function Objetos({ d, base }) {
   const [sel, elegir] = useElegir();
-  const lista = d.items.map(i => ({ id: i.clave, emoji: i.emoji, nombre: i.nombre, precio: i.precio, color: colorObjeto(i.clave), item: i }));
+  const lista = d.items.map(i => ({ id: i.clave, clave: i.clave, emoji: i.emoji, nombre: i.nombre, precio: i.precio, color: colorObjeto(i.clave), item: i }));
   const activo = lista.find(x => x.id === sel);
   const i = activo?.item;
   const lleno = i && i.stock >= d.tope;
@@ -74,7 +75,7 @@ function Objetos({ d, base }) {
       <Titulo extra={<span className="ex">Toca uno para ver sus datos</span>}>Objetos</Titulo>
       <Rejilla lista={lista} sel={sel} onSel={elegir} />
       {i && (
-        <Ficha color={activo.color} titulo={`${i.emoji} ${i.nombre}`} precio={i.precio}>
+        <Ficha color={activo.color} titulo={<><Emo o={i} /> {i.nombre}</>} precio={i.precio}>
           <p className="mut peq">{i.desc}</p>
           <p className="peq">
             Tienes {i.stock}/{d.tope}{' '}
