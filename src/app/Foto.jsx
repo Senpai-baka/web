@@ -5,12 +5,32 @@ export const inicial = d => (d.alias || '?').trim().charAt(0).toUpperCase() || '
 
 export default function Foto({ me, envuelta }) {
   const [fallo, setFallo] = useState(false);
+  const [listo, setListo] = useState(false);
   const url = me.fotoUrl || (me.foto ? `${API}/api/foto?v=${me.foto}` : '');
-  useEffect(() => { setFallo(false); }, [url]);
+
+  useEffect(() => {
+    setFallo(false);
+    setListo(false);
+  }, [url]);
+
+  const revisar = img => {
+    if (img && img.complete && img.naturalWidth) setListo(true);
+  };
+
   return (
     <>
       {envuelta ? <span>{inicial(me)}</span> : inicial(me)}
-      {url && !fallo && <img src={url} alt="" decoding="async" onError={() => setFallo(true)} />}
+      {url && !fallo && (
+        <img
+          ref={revisar}
+          className={listo ? 'listo' : undefined}
+          src={url}
+          alt=""
+          decoding="async"
+          onLoad={() => setListo(true)}
+          onError={() => setFallo(true)}
+        />
+      )}
     </>
   );
 }

@@ -10,6 +10,25 @@ const faltan = hasta => {
   return r ? h + ' h ' + r + ' min' : h + ' h';
 };
 
+function Engranaje({ id, x, y, r, dientes, clase }) {
+  const ancho = r * 0.36;
+  const alto = r * 0.51;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <mask id={id} maskUnits="userSpaceOnUse" x={-r * 2} y={-r * 2} width={r * 4} height={r * 4}>
+        <rect x={-r * 2} y={-r * 2} width={r * 4} height={r * 4} fill="#fff" />
+        <circle r={r * 0.4} fill="#000" />
+      </mask>
+      <g className={'mant-g ' + clase} mask={`url(#${id})`}>
+        <circle r={r} />
+        {Array.from({ length: dientes }, (_, i) => (
+          <rect key={i} x={-ancho / 2} y={-r * 1.32} width={ancho} height={alto} rx="2" transform={`rotate(${(i * 360) / dientes})`} />
+        ))}
+      </g>
+    </g>
+  );
+}
+
 export default function Mantenimiento() {
   const mant = useEstado(s => s.mant) || {};
   const [, tic] = useState(0);
@@ -27,14 +46,22 @@ export default function Mantenimiento() {
 
   return (
     <section id="v-mant" role="status" aria-live="polite">
-      <div className="mant-escena" aria-hidden="true">
-        <svg viewBox="0 0 200 160" width="220" height="176"><g transform="translate(78 78)"><g className="mant-g mant-g1"><circle r="30"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(0.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(45.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(90.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(135.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(180.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(225.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(270.0)"/><rect x="-5.4" y="-39.6" width="10.8" height="15.4" rx="2" transform="rotate(315.0)"/><circle r="12" className="mant-hueco"/></g></g><g transform="translate(138 108)"><g className="mant-g mant-g2"><circle r="19"/><rect x="-3.4" y="-25.1" width="6.8" height="9.7" rx="2" transform="rotate(0.0)"/><rect x="-3.4" y="-25.1" width="6.8" height="9.7" rx="2" transform="rotate(60.0)"/><rect x="-3.4" y="-25.1" width="6.8" height="9.7" rx="2" transform="rotate(120.0)"/><rect x="-3.4" y="-25.1" width="6.8" height="9.7" rx="2" transform="rotate(180.0)"/><rect x="-3.4" y="-25.1" width="6.8" height="9.7" rx="2" transform="rotate(240.0)"/><rect x="-3.4" y="-25.1" width="6.8" height="9.7" rx="2" transform="rotate(300.0)"/><circle r="8" className="mant-hueco"/></g></g><circle className="mant-chispa mant-c1" cx="160" cy="36" r="3" /><circle className="mant-chispa mant-c2" cx="30" cy="130" r="2.5" /><circle className="mant-chispa mant-c3" cx="172" cy="140" r="2" /></svg>
+      <div className="mant-tarjeta">
+        <div className="mant-escena" aria-hidden="true">
+          <svg viewBox="0 0 200 160" width="220" height="176">
+            <Engranaje id="mant-m1" x={78} y={78} r={30} dientes={8} clase="mant-g1" />
+            <Engranaje id="mant-m2" x={138} y={108} r={19} dientes={6} clase="mant-g2" />
+            <circle className="mant-chispa mant-c1" cx="160" cy="36" r="3" />
+            <circle className="mant-chispa mant-c2" cx="30" cy="130" r="2.5" />
+            <circle className="mant-chispa mant-c3" cx="172" cy="140" r="2" />
+          </svg>
+        </div>
+        <h1>Mantenimiento<span className="mant-puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></h1>
+        <p className="mant-msg">{mant.mensaje || 'Estamos afinando algunos detalles. Volvemos en un momento.'}</p>
+        {mant.hasta ? <p className="mant-hasta">Volvemos en aproximadamente {faltan(mant.hasta)}.</p> : null}
+        <div className="mant-barra" aria-hidden="true"><span /></div>
+        <p className="mant-pie mut peq">Esta pantalla se actualiza sola cuando todo esté listo.</p>
       </div>
-      <h1>Mantenimiento<span className="mant-puntos" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></h1>
-      <p className="mant-msg">{mant.mensaje || 'Estamos afinando algunos detalles. Volvemos en un momento.'}</p>
-      {mant.hasta ? <p className="mut peq">Volvemos en aproximadamente {faltan(mant.hasta)}.</p> : null}
-      <div className="mant-barra" aria-hidden="true"><span /></div>
-      <p className="mut peq">Esta pantalla se actualiza sola cuando todo esté listo.</p>
     </section>
   );
 }

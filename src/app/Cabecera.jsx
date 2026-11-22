@@ -28,7 +28,7 @@ export default function Cabecera({ panel }) {
   return (
     <header className="top">
       <a className="logo" href="/" aria-label="Isla">
-        <img src="/logo-favicon.png?v=3" alt="" width="48" height="48" style={{ width: 48, height: 48, objectFit: 'contain', flexShrink: 0 }} />
+        <img src="/logo-favicon.png?v=3" alt="" width="44" height="44" />
         <span className="marca">Isla</span>
       </a>
       <div className="der-top" id="top-der" hidden={!panel}>

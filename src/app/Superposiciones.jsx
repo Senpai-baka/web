@@ -35,7 +35,7 @@ export function Hoja() {
   }, [h]);
   const col = (h && h.col) || '#a9b0c4';
   const rareza = h && h.rareza ? 'Rareza: ' + h.rareza : '';
-  const clase = 'hoja vidrio' + (h && h.mal ? ' mal' : '') + (h && !h.mal && h.rareza === 'Legendaria' ? ' leg' : '') + (h && h.nivel ? ' nivel' : '');
+  const clase = 'hoja' + (h && h.mal ? ' mal' : '') + (h && !h.mal && h.rareza === 'Legendaria' ? ' leg' : '') + (h && h.nivel ? ' nivel' : '');
   return (
     <div className="sheet" id="hoja" hidden={!abierta} role="dialog" aria-modal="true" aria-labelledby="h-titulo">
       <div className={clase}>
