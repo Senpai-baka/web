@@ -71,7 +71,7 @@ export function Elixires({ lista, tope }) {
               <strong className="largo">{o.nombre}</strong>
               <Chip color={color}>{o.efecto}{o.duracionS ? ` · ${o.duracionS / 3600} h` : ''}</Chip>
               <span className="mut peq">{o.desc}</span>
-              {o.activoS > 0 && <span className="peq act">✓ Activo</span>}
+              {o.activoS > 0 && <span className="peq act">Activo ahora</span>}
             </div>
             {o.uso.pasivo
               ? <button type="button" className="mini" onClick={() => cambiarInventario('equipo')}>Ir a Equipo</button>
@@ -106,7 +106,7 @@ function Receta({ o, max }) {
           );
         })}
       </div>
-      {o.costo > 0 && <p className="peq" style={{ marginTop: 8 }}>💰 Costo: <b>{fmt(o.costo)}</b> monedas por unidad</p>}
+      {o.costo > 0 && <p className="rec-costo">Cuesta <b>{fmt(o.costo)}</b> monedas por unidad.</p>}
       <div className="btnrow">
         <Accion ruta="/api/objetos/fabricar" cuerpo={{ clave: o.clave, n: 1 }} motivo={motivo}>Fabricar</Accion>
         {o.maxFab > 1 && <Accion ruta="/api/objetos/fabricar" cuerpo={{ clave: o.clave, n: o.maxFab }}>Fabricar x{o.maxFab}</Accion>}

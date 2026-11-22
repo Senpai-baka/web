@@ -76,10 +76,10 @@ function Objetivo({ d, o, mia: idMia, suya: idSuya }) {
       <Titulo>{'Cartas de ' + o.alias}</Titulo>
       <Cartas lado="suya" grupo={o.suyas} marcada={idSuya} vacio="Todavía no tiene cartas." />
 
-      <p className="peq" style={{ marginTop: 12 }}>
-        Tu carta: <b>{idMia ? '#' + idMia + (mia ? ' ' + mia.nombre : '') : 'sin elegir'}</b>
-        {' · '}De {o.alias}: <b>{idSuya ? '#' + idSuya + (suya ? ' ' + suya.nombre : '') : 'sin elegir'}</b>
-      </p>
+      <dl className="gt-sel">
+        <div><dd>{idMia ? '#' + idMia + (mia ? ' ' + mia.nombre : '') : 'Sin elegir'}</dd><dt>Tu carta</dt></div>
+        <div><dd>{idSuya ? '#' + idSuya + (suya ? ' ' + suya.nombre : '') : 'Sin elegir'}</dd><dt>{'Carta de ' + o.alias}</dt></div>
+      </dl>
       <div className="btns">
         <Accion ruta="/api/gacha/proponer" cuerpo={{ ref: o.ref, mia: idMia, suya: idSuya }} motivo={(!idMia || !idSuya) && sinAmbas}>Proponer cambio</Accion>
         <Accion
