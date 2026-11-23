@@ -23,7 +23,15 @@ export const buscarClan = q => fijar('clan', { clanQ: q || '' });
 export const consultaClan = () => vista('clan').clanQ;
 
 export const gachaSel = () => vista('gacha').gachaSel;
-export const gachaIr = s => fijar('gacha', { gachaSel: s, gachaPag: 1 });
+export const gachaIr = s => fijar('gacha', { gachaSel: s, gachaPag: 1, serRef: '', serModo: '', conRef: '' });
+export const serieEstado = () => { const v = vista('gacha'); return { q: v.serQ, ref: v.serRef, modo: v.serModo }; };
+export const buscarSeries = q => fijar('gacha', { serQ: q || '', serRef: '', serModo: '', gachaPag: 1 });
+export const serieElegir = t => fijar('gacha', { serRef: t, serModo: '', gachaPag: 1 });
+export const serieQuitar = () => fijar('gacha', { serRef: '', serModo: '', gachaPag: 1 });
+export const serieModo = m => fijar('gacha', { serModo: m, gachaPag: 1 });
+export const constelacionRef = () => vista('gacha').conRef;
+export const constelacionElegir = t => fijar('gacha', { conRef: t });
+export const constelacionQuitar = () => fijar('gacha', { conRef: '' });
 export const gachaPagina = dir => fijar('gacha', { gachaPag: mas(sel.gachaPag, dir) });
 export const abiertasGacha = () => e.abiertas;
 
