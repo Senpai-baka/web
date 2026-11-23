@@ -1,5 +1,5 @@
 import React from 'react';
-import { fmt } from '../lib/format.js';
+import { fmt, dur } from '../lib/format.js';
 import { Sec, Countdown, Accion } from './ui.jsx';
 import { Emo } from './Icono.jsx';
 
@@ -14,7 +14,10 @@ const Dato = ({ ok, children }) => <li className={ok ? 'ok' : 'no'}>{ok ? '✓' 
 
 function Clase({ d, base }) {
   const c = d.clase;
-  const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y conserva tu energía actual. ¿Continuar?` : undefined;
+  const dias = d.clases.bloqueoDias;
+  const fin = c && d.clases.cambioEnS > 0 ? base + d.clases.cambioEnS * 1000 : 0;
+  const bloqueado = fin > Date.now();
+  const confirma = c ? `Cambiar de clase cuesta ${fmt(d.clases.cambio)} monedas y conserva tu energía actual. Después no podrás cambiar de nuevo por ${dias} días. ¿Continuar?` : undefined;
   return (
     <>
       {c ? (
@@ -25,9 +28,10 @@ function Clase({ d, base }) {
           </div>
           <p className="mut peq">{c.desc}</p>
           {c.energia.n < c.energia.max && <p className="peq">Próxima energía en <Countdown fin={base + c.energia.faltaS * 1000} /></p>}
+          {bloqueado && <p className="peq">🔒 Podrás cambiar de clase en <Countdown fin={fin} /></p>}
         </div>
       ) : (
-        <p className="mut peq">{d.clases.disponible ? 'Elige tu clase. Es gratis la primera vez.' : 'Se desbloquea en el nivel ' + d.clases.nivelMin + '.'}</p>
+        <p className="mut peq">{d.clases.disponible ? 'Elige tu clase. Es gratis la primera vez. Cambiarla después cuesta monedas y solo se puede cada ' + dias + ' días.' : 'Se desbloquea en el nivel ' + d.clases.nivelMin + '.'}</p>
       )}
       <div className="clases">
         {d.clases.lista.map(k => (
@@ -54,7 +58,7 @@ function Clase({ d, base }) {
                   ruta="/api/heroe/clase"
                   cuerpo={{ clase: k.id }}
                   confirmar={confirma}
-                  motivo={!d.clases.disponible && `Necesitas nivel ${d.clases.nivelMin}.`}
+                  motivo={(!d.clases.disponible && `Necesitas nivel ${d.clases.nivelMin}.`) || (bloqueado && `Solo puedes cambiar de clase cada ${dias} días. Faltan ${dur((fin - Date.now()) / 1000)}.`)}
                 >{c ? 'Cambiar · ' + fmt(d.clases.cambio) : 'Elegir'}</Accion>
               </div>
             )}

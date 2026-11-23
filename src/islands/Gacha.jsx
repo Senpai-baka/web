@@ -7,8 +7,9 @@ import { Carta, Mini, MiniSel, ChipsRareza, Pager } from './gachaUi.jsx';
 import GachaTratos from './GachaTratos.jsx';
 import GachaTienda, { PanelCarta } from './GachaTienda.jsx';
 import GachaTop, { GachaFavoritos } from './GachaTop.jsx';
+import { GachaSeries, GachaFusion, GachaConstelaciones } from './GachaSeries.jsx';
 
-const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos'], ['tienda', 'Tienda'], ['top', 'Top'], ['favoritos', 'Favoritos']];
+const OPCIONES = [['invocar', 'Invocar'], ['coleccion', 'Colección'], ['tratos', 'Tratos'], ['tienda', 'Tienda'], ['top', 'Top'], ['favoritos', 'Favoritos'], ['series', 'Series'], ['fusion', 'Fusión'], ['constelaciones', 'Constelaciones']];
 
 const ARTE = (
   <svg viewBox="0 0 400 110" preserveAspectRatio="xMidYMax slice">
@@ -154,7 +155,10 @@ export default function Gacha({ d, base }) {
           : sel === 'tienda' ? <GachaTienda d={d} />
             : sel === 'top' ? <GachaTop d={d} />
               : sel === 'favoritos' ? <GachaFavoritos d={d} />
-                : <Invocar d={d} base={base} />}
+                : sel === 'series' ? <GachaSeries d={d} />
+                  : sel === 'fusion' ? <GachaFusion d={d} base={base} />
+                    : sel === 'constelaciones' ? <GachaConstelaciones d={d} />
+                      : <Invocar d={d} base={base} />}
     </div>
   );
 }

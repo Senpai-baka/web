@@ -198,16 +198,16 @@ function Semilla({ c, d }) {
   );
 }
 
-function Producto({ p }) {
+function Producto({ p, com }) {
   const total = p.cantidad + p.marchitos;
-  const valor = p.cantidad * p.precio + p.marchitos * p.precioMarchito;
+  const valor = Math.floor((p.cantidad * p.precio + p.marchitos * p.precioMarchito) * (1 - com / 100));
   return (
     <div className="bloque vidrio" style={{ padding: '12px 14px' }}>
       <div className="fila"><strong><Emo o={p} /> {p.nombre} x{total}</strong><span className="mut peq">{fmt(p.precio)} c/u</span></div>
       <p className="mut peq">
         {p.cantidad} fresco{p.cantidad === 1 ? '' : 's'}
         {p.marchitos ? ` · ${p.marchitos} marchito${p.marchitos === 1 ? '' : 's'} (${fmt(p.precioMarchito)} c/u)` : ''}
-        {' · '}todo vale {fmt(valor)}
+        {' · '}todo vale ~{fmt(valor)}{com ? ` tras ${com}% de comisión` : ''}
       </p>
       <div className="btnrow">
         <Accion ruta="/api/granja/vender" cuerpo={{ cultivo: p.clave, cantidad: 1 }}>Vender 1</Accion>
@@ -217,7 +217,7 @@ function Producto({ p }) {
   );
 }
 
-function Almacen({ a, cartera }) {
+function Almacen({ a, cartera, com }) {
   const maximo = a.mejoraCosto === null;
   return (
     <>
@@ -235,8 +235,58 @@ function Almacen({ a, cartera }) {
         </div>
       </div>
       {a.productos.length
-        ? a.productos.map(p => <Producto key={p.clave} p={p} />)
+        ? a.productos.map(p => <Producto key={p.clave} p={p} com={com} />)
         : <p className="mut peq">El almacén está vacío.</p>}
+    </>
+  );
+}
+
+function Ventajas({ d }) {
+  const m = d.mercader;
+  if (!m) return null;
+  return (
+    <div className="bloque vidrio">
+      <div className="fila"><strong>💰 Ventajas de Mercader</strong></div>
+      <Kv k="Comisión de venta" v={(d.comisionPct || 0) + '%'} />
+      <Kv k="Precio de venta" v={'+' + m.precioPct + '%'} />
+      <Kv k="Capacidad del almacén" v={'+' + m.almacenPct + '%'} />
+      <Kv k="Las cosechas se marchitan tras" v={Math.round(d.marchitaH * 10) / 10 + ' h'} />
+    </div>
+  );
+}
+
+function Contrato({ x }) {
+  const falta = x.cantidad - x.tengo;
+  const motivo = x.hecho ? 'Ya entregaste este contrato.' : falta > 0 ? `Te faltan ${falta} frescos de ${x.nombre.toLowerCase()}.` : undefined;
+  return (
+    <div className="bloque vidrio" style={{ padding: '12px 14px' }}>
+      <div className="fila">
+        <strong>{x.urgente ? '🔥 ' : ''}<Emo o={x} /> {x.nombre} x{x.cantidad}</strong>
+        <span className="mut peq">{x.hecho ? '✅ Entregado' : fmt(x.pago) + ' monedas'}</span>
+      </div>
+      <p className="mut peq">Tienes {x.tengo} frescos{x.urgente ? ' · Urgente: más pago y +2 de reputación' : ''}</p>
+      <div className="btns uno">
+        <Accion ruta="/api/granja/contrato" cuerpo={{ n: x.n }} motivo={motivo}>{x.hecho ? 'Entregado' : 'Entregar'}</Accion>
+      </div>
+    </div>
+  );
+}
+
+function Contratos({ d, base }) {
+  const c = d.contratos;
+  if (!c) return <p className="mut peq" style={{ marginTop: 12 }}>Los contratos de la granja son exclusivos de la clase Mercader.</p>;
+  return (
+    <>
+      <Titulo extra={<span className="mut peq">Se renuevan en <Countdown fin={base + c.renuevaS * 1000} /></span>}>Contratos de Mercader</Titulo>
+      <div className="bloque vidrio">
+        <div className="fila"><strong>{c.rango.emoji} {c.rango.nombre}</strong><span className="etiq">+{c.bonoPct}% de pago</span></div>
+        <p className="mut peq">
+          Reputación {fmt(c.reputacion)}
+          {c.siguiente ? ` · Siguiente rango: ${c.siguiente.emoji} ${c.siguiente.nombre} con ${fmt(c.siguiente.requiere)}` : ' · Rango máximo'}
+        </p>
+        <p className="mut peq">Se pagan sin comisión con cultivos frescos del almacén. Los marchitos no cuentan.</p>
+      </div>
+      {c.lista.map(x => <Contrato key={x.n} x={x} />)}
     </>
   );
 }
@@ -250,7 +300,7 @@ function Granja({ d, base }) {
           {d.cultivos.map((c, i) => <Parcela key={i} c={c} base={base} />)}
           {Array.from({ length: d.libres }, (_, i) => <div className="plot" key={'libre' + i}><span className="em">🟫</span>Libre</div>)}
         </div>
-        <p className="mut peq" style={{ marginTop: 10 }}>Lo que dejes más de {d.marchitaH} h tras madurar se marchita y paga la mitad.</p>
+        <p className="mut peq" style={{ marginTop: 10 }}>Lo que dejes más de {Math.round(d.marchitaH * 10) / 10} h tras madurar se marchita y paga la mitad.</p>
         <div className="btns">
           <Accion ruta="/api/granja/cosechar" motivo={!d.listas ? 'Aún no hay nada listo.' : d.almacen && !d.almacen.libres && 'El almacén está lleno.'}>{d.listas ? 'Cosechar (' + d.listas + ')' : 'Cosechar'}</Accion>
           {d.costoParcela !== null
@@ -258,7 +308,9 @@ function Granja({ d, base }) {
             : <Accion motivo="Ya tienes todas las parcelas extra.">Parcelas al máximo</Accion>}
         </div>
       </div>
-      {d.almacen && <Almacen a={d.almacen} cartera={d.cartera} />}
+      <Ventajas d={d} />
+      <Contratos d={d} base={base} />
+      {d.almacen && <Almacen a={d.almacen} cartera={d.cartera} com={d.comisionPct || 0} />}
       <Titulo>Semillas</Titulo>
       {d.catalogo.map(c => <Semilla key={c.clave} c={c} d={d} />)}
     </>
