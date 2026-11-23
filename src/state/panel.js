@@ -4,7 +4,7 @@ import { sincronizar } from '../core/reloj.js';
 
 const SEL0 = {
   perfilSel: 'ficha', invSel: 'equipo', tiendaSel: 'tienda', merPag: 1, subPag: 1, hogarSel: 'mascota', compPag: 1,
-  ciudadSel: 'banco', jugQ: '', pagoQ: '', arenaQ: '', dadosQ: '', gachaSel: 'invocar', gachaPag: 1, ctQ: '', ctRareza: '', ctOrden: '', ctMias: '', topSel: 'coleccionistas', gtQ: '', gtRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
+  ciudadSel: 'banco', jugQ: '', pagoQ: '', arenaQ: '', dadosQ: '', gachaSel: 'invocar', gachaPag: 1, ctQ: '', ctRareza: '', ctOrden: '', ctMias: '', topSel: 'coleccionistas', gtQ: '', gtRef: '', serQ: '', serRef: '', serModo: '', conRef: '', gtPm: 1, gtPs: 1, gtMia: 0, gtSuya: 0, clanQ: '', jugRef: '', jugVolver: 'rankings',
 };
 const enc = encodeURIComponent;
 
@@ -23,7 +23,11 @@ export const RUTAS = {
     : sel.gachaSel === 'tratos' ? '/api/gacha/trato?q=' + enc(sel.gtQ) + '&ref=' + enc(sel.gtRef) + '&pm=' + sel.gtPm + '&ps=' + sel.gtPs
       : sel.gachaSel === 'tienda' ? '/api/cartas/tienda?pagina=' + sel.gachaPag + '&q=' + enc(sel.ctQ) + '&rareza=' + enc(sel.ctRareza) + '&orden=' + enc(sel.ctOrden) + '&mias=' + sel.ctMias
         : sel.gachaSel === 'top' ? (sel.topSel === 'populares' ? '/api/cartas/top-favoritos?pagina=' : '/api/cartas/coleccionistas?pagina=') + sel.gachaPag
-          : sel.gachaSel === 'favoritos' ? '/api/cartas/favoritos' : '/api/gacha'),
+          : sel.gachaSel === 'favoritos' ? '/api/cartas/favoritos'
+            : sel.gachaSel === 'series' ? (sel.serRef ? '/api/series/detalle?serie=' + enc(sel.serRef) + '&modo=' + enc(sel.serModo) + '&pagina=' + sel.gachaPag : '/api/series?q=' + enc(sel.serQ) + '&pagina=' + sel.gachaPag)
+              : sel.gachaSel === 'fusion' ? '/api/fusion'
+                : sel.gachaSel === 'constelaciones' ? '/api/constelaciones' + (sel.conRef ? '?serie=' + enc(sel.conRef) : '')
+                  : '/api/gacha'),
   raid: () => '/api/raid',
   mazmorra: () => '/api/mazmorra',
   sala: () => '/api/sala',
