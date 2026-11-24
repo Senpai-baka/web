@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "xyz.hub_team.nephre.twa",
+        "sha256_cert_fingerprints": ["35:D5:1A:0F:58:37:B7:36:45:88:7B:1C:17:3D:56:8C:71:DD:2D:07:8C:C7:EE:8F:E0:D1:1E:1D:06:39:A9:16"]
+      }
+    }]
