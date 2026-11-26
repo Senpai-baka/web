@@ -13,11 +13,13 @@ import TabHost from '../islands/TabHost.jsx';
 import Cabecera from './Cabecera.jsx';
 import Login from './Login.jsx';
 import Mantenimiento from './Mantenimiento.jsx';
+import Bloqueo from './Bloqueo.jsx';
 import Inicio from './Inicio.jsx';
 import Nav from './Nav.jsx';
 import { Animacion, Hoja, Toast } from './Superposiciones.jsx';
 
 const Pestana = memo(TabHost);
+const TABS_LIBRES = new Set(['ficha', 'jugador']);
 
 export default function App() {
   const vista = useEstado(s => s.vista);
@@ -25,6 +27,8 @@ export default function App() {
   const listas = useEstado(s => s.listas);
   const panel = vista === 'panel';
   const hayMe = useEstado(s => !!s.me);
+  const bloqueada = useEstado(s => !!(s.me && s.me.economiaBloqueada));
+  const libre = !bloqueada || TABS_LIBRES.has(tab);
 
   useEffect(() => {
     iniciarAvisos();
@@ -52,7 +56,7 @@ export default function App() {
   }, [panel, hayMe, tab]);
 
   useEffect(() => {
-    if (!panel || !hayMe) return undefined;
+    if (!panel || !hayMe || bloqueada) return undefined;
     if (navigator.connection && navigator.connection.saveData) return undefined;
     const lista = ['inventario', 'tienda', 'hogar', 'ciudad', 'rankings'];
     let vivo = true;
@@ -66,7 +70,7 @@ export default function App() {
     };
     id = setTimeout(paso, 2500);
     return () => { vivo = false; clearTimeout(id); };
-  }, [panel, hayMe]);
+  }, [panel, hayMe, bloqueada]);
 
   useEffect(() => {
     quitarAmbiente();
@@ -84,9 +88,10 @@ export default function App() {
         <Login visible={vista === 'login'} />
         {vista === 'mantenimiento' && <Mantenimiento />}
         <section id="v-panel" hidden={!panel}>
-          <div id="t-inicio" hidden={tab !== 'inicio'}>{panel && <Inicio />}</div>
+          {panel && !libre && <Bloqueo />}
+          <div id="t-inicio" hidden={tab !== 'inicio' || !libre}>{panel && libre && <Inicio />}</div>
           {TABS.filter(t => t !== 'inicio').map(t => (
-            <div key={t} id={'t-' + t} hidden={tab !== t}>
+            <div key={t} id={'t-' + t} hidden={tab !== t || !libre}>
               <Pestana t={t} Isla={ISLAS[t]} />
             </div>
           ))}

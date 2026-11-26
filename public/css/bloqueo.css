@@ -1,0 +1,102 @@
+#v-bloqueo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--e5) 0 var(--e4);
+}
+.blq-tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 22px 22px;
+  overflow: hidden;
+  text-align: center;
+  border-radius: 6px 26px 6px 26px;
+  background: radial-gradient(circle at 12% 0,rgba(240,211,154,.16),transparent 55%),linear-gradient(150deg,rgba(52,38,78,.95),rgba(21,16,32,.95));
+  box-shadow: inset 0 0 0 1px var(--linea),var(--sombra-1);
+}
+#v-bloqueo h1 {
+  margin: 4px 0 0;
+  font: 800 clamp(26px,7vw,30px)/1.1 var(--serif);
+  letter-spacing: -.02em;
+  color: var(--petal);
+}
+.blq-msg {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--petal);
+}
+.blq-nota {
+  margin: 0;
+  padding: 4px 14px;
+  border-radius: 99px;
+  background: rgba(240,211,154,.1);
+  box-shadow: inset 0 0 0 1px rgba(240,211,154,.34);
+  color: var(--oro);
+  font-size: 14px;
+  font-weight: 700;
+}
+.blq-sigue {
+  margin: 0;
+  color: var(--oro);
+  font-size: 14px;
+}
+.blq-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+  margin-top: 6px;
+}
+.blq-acciones .btn,
+.blq-acciones .btn2 {
+  width: 100%;
+}
+.blq-pie {
+  align-self: stretch;
+  margin: 6px -22px 0;
+  padding: 14px 22px 0;
+  border-top: 2px dashed rgba(205,190,235,.2);
+}
+.blq-escena svg {
+  overflow: visible;
+}
+.blq-aro {
+  fill: none;
+  stroke: rgba(205,190,235,.25);
+  stroke-width: 2;
+  stroke-dasharray: 6 8;
+  transform-origin: 60px 60px;
+  animation: blq-gira 18s linear infinite;
+}
+.blq-cuerpo {
+  fill: rgba(240,211,154,.16);
+  stroke: var(--oro);
+  stroke-width: 3;
+}
+.blq-arco {
+  fill: none;
+  stroke: var(--oro);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.blq-ojo {
+  fill: var(--oro);
+  stroke: var(--oro);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+@keyframes blq-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blq-aro {
+    animation: none;
+  }
+}
