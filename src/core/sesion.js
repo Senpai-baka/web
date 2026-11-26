@@ -47,6 +47,7 @@ function borrarCache() {
 
 export function aplicar(d, instante) {
   const t = instante || Date.now();
+  const estabaBloqueada = !!(e.me && e.me.economiaBloqueada);
   vigilarBot(d);
   const fin = {};
   const tot = {};
@@ -57,9 +58,25 @@ export function aplicar(d, instante) {
   cambiar({ me: d, meT: t, fin, tot });
   if (!instante) guardarCache(d, t);
   gancho.tick();
+  if (d.economiaBloqueada) return;
+  if (estabaBloqueada) {
+    store.reiniciar();
+    reiniciarEventos();
+    if (e.tab !== 'inicio') abrir(e.tab, true);
+  }
   anunciarRaid();
   cargarEventos();
   if (!sondeoReciente()) sondearAbiertas();
+}
+
+export async function reintentarBloqueo() {
+  try {
+    const d = await api('/api/me');
+    aplicar(d);
+    return !d.economiaBloqueada;
+  } catch (_) {
+    return false;
+  }
 }
 
 export function limpiarTabs() {
@@ -144,6 +161,12 @@ export async function arrancar() {
 
 store.hooks.aviso = (txt, ms) => aviso(txt, ms);
 store.hooks.sesionCaducada = () => sesionCaducada();
+
+hooks.bloqueo = d => {
+  if (!e.me || e.me.economiaBloqueada) return;
+  const m = d && (d.mensaje || d.error);
+  cambiar({ me: { ...e.me, economiaBloqueada: true, mensajeBloqueo: m || e.me.mensajeBloqueo || null } });
+};
 
 let sondeoMant = 0;
 
