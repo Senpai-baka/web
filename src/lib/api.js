@@ -1,5 +1,5 @@
 export const API = '';
-export const hooks = { mantenimiento: null };
+export const hooks = { mantenimiento: null, bloqueo: null };
 
 export function err(msg, estado, datos) { return Object.assign(new Error(msg), { estado, datos }); }
 const espera = ms => new Promise(r => setTimeout(r, ms));
@@ -42,6 +42,13 @@ async function pedir(ruta, cuerpo) {
       if (dm && dm.mantenimiento) {
         if (hooks.mantenimiento) hooks.mantenimiento(dm);
         throw err(dm.error || 'El panel está en mantenimiento.', 503, dm);
+      }
+    }
+    if (r.status === 403) {
+      const db = await r.clone().json().catch(() => null);
+      if (db && db.economiaBloqueada) {
+        if (hooks.bloqueo) hooks.bloqueo(db);
+        throw err(db.error || db.mensaje || 'La economía está bloqueada.', 403, db);
       }
     }
     if (REINTENTABLE.has(r.status) && i < intentos - 1) { ultimo = err('Isla está reiniciándose. Reintentando…', r.status); continue; }
