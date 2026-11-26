@@ -1,23 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useEstado } from '../core/estado.js';
-import { reintentarBloqueo } from '../core/sesion.js';
 import { abrir } from '../core/navegar.js';
-import { BOT_NUMBER } from '../core/datos.js';
 
-const MENSAJE = 'La economía está bloqueada porque no hay ningún bot en el grupo donde estás. Agrega al bot principal o a un sub-bot a tu grupo para desbloquearla.';
+const MENSAJE = 'La economía está bloqueada porque no hay ningún bot en el grupo donde estás.';
+const NUMERO = '524444470387';
+const ENLACE = 'https://wa.me/' + NUMERO + '?text=' + encodeURIComponent('Hola, mi economía en Isla está bloqueada por no haber ningún bot en mi grupo.');
 
 export default function Bloqueo() {
   const texto = useEstado(s => (s.me && s.me.mensajeBloqueo) || '');
-  const [cargando, setCargando] = useState(false);
-  const [sigue, setSigue] = useState(false);
-
-  const reintentar = async () => {
-    setCargando(true);
-    setSigue(false);
-    const libre = await reintentarBloqueo();
-    setCargando(false);
-    setSigue(!libre);
-  };
 
   return (
     <section id="v-bloqueo" role="status" aria-live="polite">
@@ -34,14 +24,11 @@ export default function Bloqueo() {
         <h1>Economía bloqueada</h1>
         <p className="blq-msg">{(texto || MENSAJE).replace(/^🔒\s*/, '')}</p>
         <p className="blq-nota">Sigues pudiendo entrar a tu perfil.</p>
-        {sigue ? <p className="blq-sigue">Todavía no encuentro ningún bot en tus grupos.</p> : null}
         <div className="blq-acciones">
-          <button className="btn" type="button" disabled={cargando} onClick={reintentar}>
-            {cargando ? 'Comprobando…' : 'Ya lo agregué, comprobar'}
-          </button>
+          <a className="btn" href={ENLACE} target="_blank" rel="noopener noreferrer">Contactar al dev</a>
           <button className="btn2" type="button" onClick={() => abrir('ficha')}>Ir a mi perfil</button>
         </div>
-        {BOT_NUMBER ? <p className="blq-pie mut peq">Bot principal: +{BOT_NUMBER}</p> : null}
+        <p className="blq-pie mut peq">Dev: +{NUMERO}</p>
       </div>
     </section>
   );
